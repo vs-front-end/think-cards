@@ -171,6 +171,7 @@ export function useStudySession(deckId: string) {
         elapsed_days: log.elapsed_days,
         review_time_ms: elapsedMs,
         reviewed_at: now.toISOString(),
+        pending_sync: true,
       });
 
       setAnsweredCount((n) => n + 1);
@@ -193,6 +194,7 @@ export function useStudySession(deckId: string) {
       ended_at: now.toISOString(),
       cards_reviewed: answeredCount,
       time_elapsed_ms: now.getTime() - startedAt.current.getTime(),
+      pending_sync: true,
     });
   }, [deckId, answeredCount]);
 

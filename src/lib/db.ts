@@ -50,6 +50,7 @@ export interface IRevlog {
   elapsed_days: number;
   review_time_ms: number;
   reviewed_at: string;
+  pending_sync: boolean;
 }
 
 export interface ISessionLog {
@@ -60,6 +61,7 @@ export interface ISessionLog {
   ended_at: string | null;
   cards_reviewed: number;
   time_elapsed_ms: number;
+  pending_sync: boolean;
 }
 
 export interface ISyncMeta {
@@ -89,6 +91,14 @@ class ThinkCardsDB extends Dexie {
     this.version(2).stores({
       revlog: "id, card_id, user_id, reviewed_at",
       session_log: "id, deck_id, user_id, started_at",
+    });
+
+    this.version(3).stores({
+      revlog: "id, card_id, user_id, reviewed_at, pending_sync",
+      session_log: "id, deck_id, user_id, started_at, pending_sync",
+    }).upgrade(async (tx) => {
+      await tx.table("revlog").toCollection().modify({ pending_sync: false });
+      await tx.table("session_log").toCollection().modify({ pending_sync: false });
     });
   }
 }
