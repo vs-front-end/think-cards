@@ -2,10 +2,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@stellar-ui-kit/shared";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSyncStore, useAuthStore } from "@/store";
-import { useDashboardData, useDecksList, useIsMobile } from "@/hooks";
+import { useSyncStore } from "@/store";
+import { useDashboardData, useDecksList, useIsMobile, useSync } from "@/hooks";
 import { formatTimePerCard } from "@/utils";
-import { syncAll } from "@/lib/sync";
 import type { IDeck } from "@/lib/db";
 
 import {
@@ -118,6 +117,7 @@ function DashboardComponent() {
 
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { triggerSync } = useSync();
   const isSyncing = useSyncStore((s) => s.isSyncing);
   const initialSyncDone = useSyncStore((s) => s.initialSyncDone);
 
@@ -286,10 +286,7 @@ function DashboardComponent() {
                   size="icon"
                   className="size-8 text-muted hover:text-foreground"
                   disabled={isSyncing}
-                  onClick={() => {
-                    const userId = useAuthStore.getState().user?.id;
-                    if (userId) syncAll(userId).catch(console.error);
-                  }}
+                  onClick={triggerSync}
                 >
                   <RefreshCw
                     className={cn("size-4", isSyncing && "animate-spin")}

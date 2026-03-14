@@ -4,6 +4,7 @@ import type { Grade, IPreview } from "ts-fsrs";
 import { db } from "@/lib/db";
 import type { ICard, ICardState, Rating as DBRating } from "@/lib/db";
 import { useAuthStore } from "@/store";
+import { syncAll } from "@/lib/sync";
 
 type QueuedCard = {
   card: ICard;
@@ -196,6 +197,9 @@ export function useStudySession(deckId: string) {
       time_elapsed_ms: now.getTime() - startedAt.current.getTime(),
       pending_sync: 1,
     });
+
+    const uid = useAuthStore.getState().user?.id;
+    if (uid) syncAll(uid).catch(console.error);
   }, [deckId, answeredCount]);
 
   useEffect(() => {

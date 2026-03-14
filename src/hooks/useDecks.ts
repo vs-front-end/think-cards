@@ -4,7 +4,6 @@ import i18next from "i18next";
 import { toast } from "sonner";
 import { db } from "@/lib/db";
 import { useAuthStore } from "@/store";
-import { requestSync } from "@/hooks/useSync";
 import type { IDeck } from "@/lib/db";
 
 export type DeckNode = IDeck & { children: DeckNode[] };
@@ -83,7 +82,6 @@ export function useCreateDeck() {
     onSuccess: (deck) => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success(i18next.t("deckCreated", { name: deck.name }));
-      requestSync();
     },
 
     onError: () => {
@@ -118,7 +116,6 @@ export function useUpdateDeck() {
     onSuccess: (input) => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success(i18next.t("deckUpdated", { name: input.name }));
-      requestSync();
     },
 
     onError: () => {
@@ -159,7 +156,6 @@ export function useDeleteDeck() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success(i18next.t("deckDeleted"));
-      requestSync();
     },
 
     onError: () => {

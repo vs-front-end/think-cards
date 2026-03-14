@@ -4,7 +4,6 @@ import i18next from "i18next";
 import { toast } from "sonner";
 import { createEmptyCard } from "ts-fsrs";
 import { db } from "@/lib/db";
-import { requestSync } from "@/hooks/useSync";
 import type { ICard, ICardState, CardType } from "@/lib/db";
 
 export function useCards(deckId: string) {
@@ -80,7 +79,6 @@ export function useCreateCard() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success(i18next.t("cardCreated"));
-      requestSync();
     },
 
     onError: () => {
@@ -114,7 +112,6 @@ export function useUpdateCard() {
 
     onSuccess: () => {
       toast.success(i18next.t("cardUpdated"));
-      requestSync();
     },
 
     onError: () => {
@@ -140,7 +137,6 @@ export function useDeleteCard() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success(i18next.t("cardDeleted"));
-      requestSync();
     },
 
     onError: () => {

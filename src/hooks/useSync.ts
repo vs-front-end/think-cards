@@ -7,10 +7,7 @@ import { syncAll } from "@/lib/sync";
 
 const { setInitialSyncDone } = useSyncStore.getState();
 
-const SYNC_INTERVAL_MS = 60_000;
-const DEBOUNCE_MS = 2_000;
 let syncScheduled = false;
-let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 async function runSyncInternal(
   userId: string,
@@ -34,20 +31,6 @@ async function runSyncInternal(
   }
 }
 
-export function requestSync(): void {
-  if (debounceTimer) clearTimeout(debounceTimer);
-
-  debounceTimer = setTimeout(() => {
-    debounceTimer = null;
-    const userId = useAuthStore.getState().user?.id;
-    if (!userId) return;
-
-    syncAll(userId).catch((err) => {
-      console.error("[sync] background push failed:", err);
-    });
-  }, DEBOUNCE_MS);
-}
-
 export function useSync() {
   const isSyncing = useSyncStore((s) => s.isSyncing);
   const qc = useQueryClient();
@@ -69,37 +52,34 @@ export function useSync() {
 
     if (!syncScheduled) {
       syncScheduled = true;
-
       runSync(userId, false).finally(() => {
         syncScheduled = false;
         setInitialSyncDone();
       });
     }
 
+    const handleVisibilityChange = () => {
+      const uid = useAuthStore.getState().user?.id;
+      if (!uid) return;
+
+      if (document.visibilityState === "visible") {
+        runSync(uid);
+      } else {
+        runSync(uid, false);
+      }
+    };
+
     const handleOnline = () => {
       const uid = useAuthStore.getState().user?.id;
       if (uid) runSync(uid);
     };
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        const uid = useAuthStore.getState().user?.id;
-        if (uid) runSync(uid);
-      }
-    };
-
-    const interval = setInterval(() => {
-      const uid = useAuthStore.getState().user?.id;
-      if (uid) runSync(uid, false);
-    }, SYNC_INTERVAL_MS);
-
-    window.addEventListener("online", handleOnline);
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("online", handleOnline);
 
     return () => {
-      window.removeEventListener("online", handleOnline);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      clearInterval(interval);
+      window.removeEventListener("online", handleOnline);
     };
   }, [runSync]);
 
