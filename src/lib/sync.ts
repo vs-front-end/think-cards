@@ -34,71 +34,65 @@ async function countPending(): Promise<number> {
 }
 
 async function hasRemoteChanges(lastSyncedAt: string): Promise<boolean> {
-  const { data, error } = await supabase
-    .from("decks")
-    .select("id")
-    .gt("updated_at", lastSyncedAt)
-    .limit(1);
+  const [decksRes, cardsRes, cardStateRes] = await Promise.all([
+    supabase.from("decks").select("id").gt("updated_at", lastSyncedAt).limit(1),
+    supabase.from("cards").select("id").gt("updated_at", lastSyncedAt).limit(1),
+    supabase.from("card_state").select("id").gt("updated_at", lastSyncedAt).limit(1),
+  ]);
 
-  if (error) return false;
-  return (data?.length ?? 0) > 0;
+  return (
+    (decksRes.data?.length ?? 0) > 0 ||
+    (cardsRes.data?.length ?? 0) > 0 ||
+    (cardStateRes.data?.length ?? 0) > 0
+  );
 }
 
 async function pushDecks(): Promise<void> {
-  const all = await db.decks.toArray();
-  if (!all.length) return;
+  const pending = await db.decks.where("pending_sync").equals(1).toArray();
+  if (!pending.length) return;
 
   const { error } = await supabase.from("decks").upsert(
-    all.map(({ pending_sync: _, ...rest }) => rest),
+    pending.map(({ pending_sync: _, ...rest }) => rest),
     { onConflict: "id" },
   );
 
   if (error) throw error;
 
-  const pendingIds = all.filter((d) => d.pending_sync).map((d) => d.id);
-  if (pendingIds.length) {
-    await db.decks.bulkUpdate(
-      pendingIds.map((id) => ({ key: id, changes: { pending_sync: false } })),
-    );
-  }
+  await db.decks.bulkUpdate(
+    pending.map(({ id }) => ({ key: id, changes: { pending_sync: false } })),
+  );
 }
 
 async function pushCards(): Promise<void> {
-  const all = await db.cards.toArray();
-  if (!all.length) return;
+  const pending = await db.cards.where("pending_sync").equals(1).toArray();
+  if (!pending.length) return;
 
   const { error } = await supabase.from("cards").upsert(
-    all.map(({ pending_sync: _, ...rest }) => rest),
+    pending.map(({ pending_sync: _, ...rest }) => rest),
     { onConflict: "id" },
   );
 
   if (error) throw error;
 
-  const pendingIds = all.filter((c) => c.pending_sync).map((c) => c.id);
-  if (pendingIds.length) {
-    await db.cards.bulkUpdate(
-      pendingIds.map((id) => ({ key: id, changes: { pending_sync: false } })),
-    );
-  }
+  await db.cards.bulkUpdate(
+    pending.map(({ id }) => ({ key: id, changes: { pending_sync: false } })),
+  );
 }
 
 async function pushCardState(): Promise<void> {
-  const all = await db.card_state.toArray();
-  if (!all.length) return;
+  const pending = await db.card_state.where("pending_sync").equals(1).toArray();
+  if (!pending.length) return;
 
   const { error } = await supabase.from("card_state").upsert(
-    all.map(({ pending_sync: _, ...rest }) => rest),
+    pending.map(({ pending_sync: _, ...rest }) => rest),
     { onConflict: "id" },
   );
 
   if (error) throw error;
 
-  const pendingIds = all.filter((s) => s.pending_sync).map((s) => s.id);
-  if (pendingIds.length) {
-    await db.card_state.bulkUpdate(
-      pendingIds.map((id) => ({ key: id, changes: { pending_sync: false } })),
-    );
-  }
+  await db.card_state.bulkUpdate(
+    pending.map(({ id }) => ({ key: id, changes: { pending_sync: false } })),
+  );
 }
 
 async function pushRevlog(): Promise<void> {

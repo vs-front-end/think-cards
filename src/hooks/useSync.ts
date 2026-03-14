@@ -8,6 +8,7 @@ import { syncAll } from "@/lib/sync";
 const { setInitialSyncDone } = useSyncStore.getState();
 
 const MAX_CONSECUTIVE_FAILURES = 3;
+const SYNC_INTERVAL_MS = 60_000;
 let syncScheduled = false;
 
 export function useSync() {
@@ -53,8 +54,26 @@ export function useSync() {
       if (uid) runSync(uid);
     };
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        const uid = useAuthStore.getState().user?.id;
+        if (uid) runSync(uid);
+      }
+    };
+
+    const interval = setInterval(() => {
+      const uid = useAuthStore.getState().user?.id;
+      if (uid) runSync(uid);
+    }, SYNC_INTERVAL_MS);
+
     window.addEventListener("online", handleOnline);
-    return () => window.removeEventListener("online", handleOnline);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearInterval(interval);
+    };
   }, []);
 
   return { isSyncing };
