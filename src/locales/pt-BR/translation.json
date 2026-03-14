@@ -310,6 +310,7 @@
   "deckDeleted": "Baralho excluído.",
   "deckDeletedError": "Falha ao excluir baralho. Tente novamente.",
   "syncError": "Falha na sincronização. As alterações serão salvas quando a conexão for restaurada.",
+  "syncSuccess": "Sincronizado com sucesso.",
   "profileAvatarUpdated": "Avatar atualizado.",
   "profileAvatarError": "Falha ao enviar avatar.",
   "profileUsernameSaved": "Nome de usuário salvo.",

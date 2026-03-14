@@ -3,6 +3,7 @@ import { fsrs, Rating, State } from "ts-fsrs";
 import type { Grade, IPreview } from "ts-fsrs";
 import { db } from "@/lib/db";
 import type { ICard, ICardState, Rating as DBRating } from "@/lib/db";
+import { useAuthStore } from "@/store";
 
 type QueuedCard = {
   card: ICard;
@@ -38,6 +39,7 @@ function stateOrder(state: number): number {
 
 export function useStudySession(deckId: string) {
   const f = useMemo(() => fsrs(), []);
+  const userId = useAuthStore((s) => s.user?.id ?? null);
 
   const [queue, setQueue] = useState<QueuedCard[]>([]);
   const [index, setIndex] = useState(0);
@@ -123,7 +125,7 @@ export function useStudySession(deckId: string) {
 
   const answerCard = useCallback(
     async (rating: 1 | 2 | 3 | 4) => {
-      if (!currentItem) return;
+      if (!currentItem || !userId) return;
 
       const now = new Date();
       const grade = rating as Grade;
@@ -163,6 +165,7 @@ export function useStudySession(deckId: string) {
       await db.revlog.add({
         id: crypto.randomUUID(),
         card_id: currentItem.card.id,
+        user_id: userId,
         rating: rating as DBRating,
         scheduled_days: log.scheduled_days,
         elapsed_days: log.elapsed_days,
@@ -177,7 +180,7 @@ export function useStudySession(deckId: string) {
   );
 
   const saveSession = useCallback(async () => {
-    if (sessionSaved.current || answeredCount === 0) return;
+    if (sessionSaved.current || answeredCount === 0 || !userId) return;
     sessionSaved.current = true;
 
     const now = new Date();
@@ -185,6 +188,7 @@ export function useStudySession(deckId: string) {
     await db.session_log.add({
       id: crypto.randomUUID(),
       deck_id: deckId,
+      user_id: userId,
       started_at: startedAt.current.toISOString(),
       ended_at: now.toISOString(),
       cards_reviewed: answeredCount,

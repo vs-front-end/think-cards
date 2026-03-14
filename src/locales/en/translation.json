@@ -310,6 +310,7 @@
   "deckDeleted": "Deck deleted.",
   "deckDeletedError": "Failed to delete deck. Please try again.",
   "syncError": "Sync failed. Changes will be saved when connection restores.",
+  "syncSuccess": "Synced successfully.",
   "profileAvatarUpdated": "Avatar updated.",
   "profileAvatarError": "Failed to upload avatar.",
   "profileUsernameSaved": "Username saved.",

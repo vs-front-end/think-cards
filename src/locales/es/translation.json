@@ -312,6 +312,7 @@
   "deckDeleted": "Mazo eliminado.",
   "deckDeletedError": "Error al eliminar el mazo. Inténtalo de nuevo.",
   "syncError": "Error de sincronización. Los cambios se guardarán cuando se restaure la conexión.",
+  "syncSuccess": "Sincronizado correctamente.",
   "profileAvatarUpdated": "Avatar actualizado.",
   "profileAvatarError": "Error al subir el avatar.",
   "profileUsernameSaved": "Nombre de usuario guardado.",

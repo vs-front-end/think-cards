@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSyncStore } from "@/store";
 import type { IDeck } from "@/lib/db";
 import { useTranslation } from "react-i18next";
 import { cn } from "@stellar-ui-kit/shared";
@@ -115,12 +116,18 @@ function DashboardComponent() {
 
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const initialSyncDone = useSyncStore((s) => s.initialSyncDone);
+
   const [modal, setModal] = useState<ActiveModal>(null);
   const [overviewMetricsOpen, setOverviewMetricsOpen] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(
-    () => !isOnboardingDone(),
-  );
   const [deckSearch, setDeckSearch] = useState("");
+
+  const [onboardingDismissed, setOnboardingDismissed] = useState(() =>
+    isOnboardingDone(),
+  );
+
+  const showOnboarding =
+    initialSyncDone && !onboardingDismissed && (data?.totalDecks ?? 0) === 0;
 
   const deckMap = new Map<string, IDeck>(flatDecks.map((d) => [d.id, d]));
   const editDeck =
@@ -467,7 +474,7 @@ function DashboardComponent() {
       />
 
       {showOnboarding && (
-        <OnboardingTour onDone={() => setShowOnboarding(false)} />
+        <OnboardingTour onDone={() => setOnboardingDismissed(true)} />
       )}
     </div>
   );

@@ -45,55 +45,64 @@ async function hasRemoteChanges(lastSyncedAt: string): Promise<boolean> {
 }
 
 async function pushDecks(): Promise<void> {
-  const pending = await db.decks.where("pending_sync").equals(1).toArray();
-  if (!pending.length) return;
+  const all = await db.decks.toArray();
+  if (!all.length) return;
 
   const { error } = await supabase.from("decks").upsert(
-    pending.map(({ pending_sync: _, ...rest }) => rest),
+    all.map(({ pending_sync: _, ...rest }) => rest),
     { onConflict: "id" },
   );
 
   if (error) throw error;
 
-  await db.decks.bulkUpdate(
-    pending.map((d) => ({ key: d.id, changes: { pending_sync: false } })),
-  );
+  const pendingIds = all.filter((d) => d.pending_sync).map((d) => d.id);
+  if (pendingIds.length) {
+    await db.decks.bulkUpdate(
+      pendingIds.map((id) => ({ key: id, changes: { pending_sync: false } })),
+    );
+  }
 }
 
 async function pushCards(): Promise<void> {
-  const pending = await db.cards.where("pending_sync").equals(1).toArray();
-  if (!pending.length) return;
+  const all = await db.cards.toArray();
+  if (!all.length) return;
 
   const { error } = await supabase.from("cards").upsert(
-    pending.map(({ pending_sync: _, ...rest }) => rest),
+    all.map(({ pending_sync: _, ...rest }) => rest),
     { onConflict: "id" },
   );
 
   if (error) throw error;
 
-  await db.cards.bulkUpdate(
-    pending.map((c) => ({ key: c.id, changes: { pending_sync: false } })),
-  );
+  const pendingIds = all.filter((c) => c.pending_sync).map((c) => c.id);
+  if (pendingIds.length) {
+    await db.cards.bulkUpdate(
+      pendingIds.map((id) => ({ key: id, changes: { pending_sync: false } })),
+    );
+  }
 }
 
 async function pushCardState(): Promise<void> {
-  const pending = await db.card_state.where("pending_sync").equals(1).toArray();
-  if (!pending.length) return;
+  const all = await db.card_state.toArray();
+  if (!all.length) return;
 
   const { error } = await supabase.from("card_state").upsert(
-    pending.map(({ pending_sync: _, ...rest }) => rest),
+    all.map(({ pending_sync: _, ...rest }) => rest),
     { onConflict: "id" },
   );
 
   if (error) throw error;
 
-  await db.card_state.bulkUpdate(
-    pending.map((s) => ({ key: s.id, changes: { pending_sync: false } })),
-  );
+  const pendingIds = all.filter((s) => s.pending_sync).map((s) => s.id);
+  if (pendingIds.length) {
+    await db.card_state.bulkUpdate(
+      pendingIds.map((id) => ({ key: id, changes: { pending_sync: false } })),
+    );
+  }
 }
 
 async function pushRevlog(): Promise<void> {
-  const all = await db.revlog.toArray();
+  const all = (await db.revlog.toArray()).filter((r) => r.user_id);
   if (!all.length) return;
 
   const { error } = await supabase.from("revlog").upsert(all, {
@@ -105,7 +114,7 @@ async function pushRevlog(): Promise<void> {
 }
 
 async function pushSessionLog(): Promise<void> {
-  const all = await db.session_log.toArray();
+  const all = (await db.session_log.toArray()).filter((s) => s.user_id);
   if (!all.length) return;
 
   const { error } = await supabase.from("session_log").upsert(all, {
@@ -117,13 +126,9 @@ async function pushSessionLog(): Promise<void> {
 }
 
 async function push(): Promise<void> {
-  await Promise.all([
-    pushDecks(),
-    pushCards(),
-    pushCardState(),
-    pushRevlog(),
-    pushSessionLog(),
-  ]);
+  await pushDecks();
+  await Promise.all([pushCards(), pushSessionLog()]);
+  await Promise.all([pushCardState(), pushRevlog()]);
 }
 
 async function pullDecks(lastSyncedAt: string): Promise<void> {
@@ -239,19 +244,19 @@ async function pull(lastSyncedAt: string): Promise<void> {
   ]);
 }
 
-export async function syncAll(userId: string): Promise<void> {
-  if (!navigator.onLine) return;
+export async function syncAll(userId: string): Promise<boolean> {
+  if (!navigator.onLine) return false;
 
   const { isSyncing, setIsSyncing, setLastSyncedAt, setPendingCount } =
     useSyncStore.getState();
 
-  if (isSyncing) return;
+  if (isSyncing) return false;
 
   const lastSyncedAt = await getLastSyncedAt(userId);
   const pendingCount = await countPending();
   const needsPull = lastSyncedAt ? await hasRemoteChanges(lastSyncedAt) : true;
 
-  if (!pendingCount && !needsPull) return;
+  if (!pendingCount && !needsPull) return false;
 
   setIsSyncing(true);
 
@@ -265,6 +270,8 @@ export async function syncAll(userId: string): Promise<void> {
 
     setLastSyncedAt(new Date(now));
     setPendingCount(0);
+
+    return true;
   } finally {
     setIsSyncing(false);
   }

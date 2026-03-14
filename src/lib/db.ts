@@ -44,6 +44,7 @@ export interface ICardState {
 export interface IRevlog {
   id: string;
   card_id: string;
+  user_id: string;
   rating: Rating;
   scheduled_days: number;
   elapsed_days: number;
@@ -54,6 +55,7 @@ export interface IRevlog {
 export interface ISessionLog {
   id: string;
   deck_id: string;
+  user_id: string;
   started_at: string;
   ended_at: string | null;
   cards_reviewed: number;
@@ -82,6 +84,11 @@ class ThinkCardsDB extends Dexie {
       revlog: "id, card_id, reviewed_at",
       session_log: "id, deck_id, started_at",
       sync_meta: "user_id",
+    });
+
+    this.version(2).stores({
+      revlog: "id, card_id, user_id, reviewed_at",
+      session_log: "id, deck_id, user_id, started_at",
     });
   }
 }
