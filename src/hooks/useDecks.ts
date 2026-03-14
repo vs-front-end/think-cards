@@ -4,6 +4,7 @@ import i18next from "i18next";
 import { toast } from "sonner";
 import { db } from "@/lib/db";
 import { useAuthStore } from "@/store";
+import { requestSync } from "@/hooks/useSync";
 import type { IDeck } from "@/lib/db";
 
 export type DeckNode = IDeck & { children: DeckNode[] };
@@ -71,7 +72,7 @@ export function useCreateDeck() {
         daily_goal: input.daily_goal,
         created_at: now,
         updated_at: now,
-        pending_sync: true,
+        pending_sync: 1,
         deleted_at: null,
       };
 
@@ -82,6 +83,7 @@ export function useCreateDeck() {
     onSuccess: (deck) => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success(i18next.t("deckCreated", { name: deck.name }));
+      requestSync();
     },
 
     onError: () => {
@@ -107,7 +109,7 @@ export function useUpdateDeck() {
         parent_id: input.parent_id,
         daily_goal: input.daily_goal,
         updated_at: now,
-        pending_sync: true,
+        pending_sync: 1,
       });
 
       return input;
@@ -116,6 +118,7 @@ export function useUpdateDeck() {
     onSuccess: (input) => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success(i18next.t("deckUpdated", { name: input.name }));
+      requestSync();
     },
 
     onError: () => {
@@ -134,7 +137,7 @@ export function useDeleteDeck() {
       await db.decks.update(deckId, {
         deleted_at: now,
         updated_at: now,
-        pending_sync: true,
+        pending_sync: 1,
       });
 
       const childCards = await db.cards
@@ -147,7 +150,7 @@ export function useDeleteDeck() {
           db.cards.update(c.id, {
             deleted_at: now,
             updated_at: now,
-            pending_sync: true,
+            pending_sync: 1,
           }),
         ),
       );
@@ -156,6 +159,7 @@ export function useDeleteDeck() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success(i18next.t("deckDeleted"));
+      requestSync();
     },
 
     onError: () => {

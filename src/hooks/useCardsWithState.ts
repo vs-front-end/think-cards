@@ -4,6 +4,7 @@ import i18next from "i18next";
 import { toast } from "sonner";
 import { db } from "@/lib/db";
 import { State } from "ts-fsrs";
+import { requestSync } from "@/hooks/useSync";
 import type { CardType } from "@/lib/db";
 
 export type CardStatus = "new" | "learning" | "review";
@@ -83,7 +84,7 @@ export function useMoveCards() {
           db.cards.update(id, {
             deck_id: targetDeckId,
             updated_at: now,
-            pending_sync: true,
+            pending_sync: 1,
           }),
         ),
       );
@@ -92,6 +93,7 @@ export function useMoveCards() {
 
     onSuccess: (cardIds) => {
       toast.success(i18next.t("cardsMoved", { count: cardIds.length }));
+      requestSync();
     },
 
     onError: () => {
@@ -111,7 +113,7 @@ export function useBulkDeleteCards() {
           db.cards.update(id, {
             deleted_at: now,
             updated_at: now,
-            pending_sync: true,
+            pending_sync: 1,
           }),
         ),
       );
@@ -120,6 +122,7 @@ export function useBulkDeleteCards() {
     onSuccess: (cardIds) => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success(i18next.t("cardsDeleted", { count: cardIds.length }));
+      requestSync();
     },
     onError: () => {
       toast.error(i18next.t("cardsDeletedError"));

@@ -2,6 +2,7 @@ import Dexie, { type EntityTable } from "dexie";
 
 export type CardType = "basic" | "cloze" | "typing";
 export type Rating = 1 | 2 | 3 | 4;
+export type SyncFlag = 0 | 1;
 
 export interface IDeck {
   id: string;
@@ -11,7 +12,7 @@ export interface IDeck {
   daily_goal: number;
   created_at: string;
   updated_at: string;
-  pending_sync: boolean;
+  pending_sync: SyncFlag;
   deleted_at: string | null;
 }
 
@@ -23,7 +24,7 @@ export interface ICard {
   back: string;
   created_at: string;
   updated_at: string;
-  pending_sync: boolean;
+  pending_sync: SyncFlag;
   deleted_at: string | null;
 }
 
@@ -38,7 +39,7 @@ export interface ICardState {
   reps: number;
   lapses: number;
   updated_at: string;
-  pending_sync: boolean;
+  pending_sync: SyncFlag;
 }
 
 export interface IRevlog {
@@ -50,7 +51,7 @@ export interface IRevlog {
   elapsed_days: number;
   review_time_ms: number;
   reviewed_at: string;
-  pending_sync: boolean;
+  pending_sync: SyncFlag;
 }
 
 export interface ISessionLog {
@@ -61,7 +62,7 @@ export interface ISessionLog {
   ended_at: string | null;
   cards_reviewed: number;
   time_elapsed_ms: number;
-  pending_sync: boolean;
+  pending_sync: SyncFlag;
 }
 
 export interface ISyncMeta {
@@ -97,8 +98,8 @@ class ThinkCardsDB extends Dexie {
       revlog: "id, card_id, user_id, reviewed_at, pending_sync",
       session_log: "id, deck_id, user_id, started_at, pending_sync",
     }).upgrade(async (tx) => {
-      await tx.table("revlog").toCollection().modify({ pending_sync: false });
-      await tx.table("session_log").toCollection().modify({ pending_sync: false });
+      await tx.table("revlog").toCollection().modify({ pending_sync: 0 });
+      await tx.table("session_log").toCollection().modify({ pending_sync: 0 });
     });
   }
 }

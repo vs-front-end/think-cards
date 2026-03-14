@@ -103,7 +103,7 @@ async function pushDecks(full: boolean): Promise<void> {
   const toMark = rows.filter((d) => d.pending_sync).map(({ id }) => id);
   if (toMark.length) {
     await db.decks.bulkUpdate(
-      toMark.map((id) => ({ key: id, changes: { pending_sync: false } })),
+      toMark.map((id) => ({ key: id, changes: { pending_sync: 0 } })),
     );
   }
 }
@@ -122,7 +122,7 @@ async function pushCards(full: boolean): Promise<void> {
   const toMark = rows.filter((c) => c.pending_sync).map(({ id }) => id);
   if (toMark.length) {
     await db.cards.bulkUpdate(
-      toMark.map((id) => ({ key: id, changes: { pending_sync: false } })),
+      toMark.map((id) => ({ key: id, changes: { pending_sync: 0 } })),
     );
   }
 }
@@ -141,7 +141,7 @@ async function pushCardState(full: boolean): Promise<void> {
   const toMark = rows.filter((s) => s.pending_sync).map(({ id }) => id);
   if (toMark.length) {
     await db.card_state.bulkUpdate(
-      toMark.map((id) => ({ key: id, changes: { pending_sync: false } })),
+      toMark.map((id) => ({ key: id, changes: { pending_sync: 0 } })),
     );
   }
 }
@@ -156,7 +156,7 @@ async function pushRevlog(): Promise<void> {
   );
 
   await db.revlog.bulkUpdate(
-    rows.map(({ id }) => ({ key: id, changes: { pending_sync: false } })),
+    rows.map(({ id }) => ({ key: id, changes: { pending_sync: 0 } })),
   );
 }
 
@@ -173,7 +173,7 @@ async function pushSessionLog(): Promise<void> {
   );
 
   await db.session_log.bulkUpdate(
-    rows.map(({ id }) => ({ key: id, changes: { pending_sync: false } })),
+    rows.map(({ id }) => ({ key: id, changes: { pending_sync: 0 } })),
   );
 }
 
@@ -225,7 +225,7 @@ async function pullDecks(lastSyncedAt: string): Promise<void> {
       await db.decks.update(remote.id as string, {
         deleted_at: remote.deleted_at as string,
         updated_at: remote.updated_at as string,
-        pending_sync: false,
+        pending_sync: 0,
       });
       continue;
     }
@@ -234,7 +234,7 @@ async function pullDecks(lastSyncedAt: string): Promise<void> {
     if (!local || (remote.updated_at as string) > local.updated_at) {
       await db.decks.put({
         ...(remote as Record<string, unknown>),
-        pending_sync: false,
+        pending_sync: 0,
       } as Parameters<typeof db.decks.put>[0]);
     }
   }
@@ -253,7 +253,7 @@ async function pullCards(lastSyncedAt: string): Promise<void> {
       await db.cards.update(remote.id as string, {
         deleted_at: remote.deleted_at as string,
         updated_at: remote.updated_at as string,
-        pending_sync: false,
+        pending_sync: 0,
       });
       continue;
     }
@@ -262,7 +262,7 @@ async function pullCards(lastSyncedAt: string): Promise<void> {
     if (!local || (remote.updated_at as string) > local.updated_at) {
       await db.cards.put({
         ...(remote as Record<string, unknown>),
-        pending_sync: false,
+        pending_sync: 0,
       } as Parameters<typeof db.cards.put>[0]);
     }
   }
@@ -281,7 +281,7 @@ async function pullCardState(lastSyncedAt: string): Promise<void> {
     if (!local || (remote.updated_at as string) > local.updated_at) {
       await db.card_state.put({
         ...(remote as Record<string, unknown>),
-        pending_sync: false,
+        pending_sync: 0,
       } as Parameters<typeof db.card_state.put>[0]);
     }
   }
@@ -303,7 +303,7 @@ async function pullRevlog(lastSyncedAt: string): Promise<void> {
 
   const newEntries = data
     .filter((r) => !existingIds.has(r.id as string))
-    .map((r) => ({ ...r, pending_sync: false }) as Parameters<typeof db.revlog.add>[0]);
+    .map((r) => ({ ...r, pending_sync: 0 }) as Parameters<typeof db.revlog.add>[0]);
 
   if (newEntries.length) {
     await db.revlog.bulkAdd(newEntries);
@@ -326,7 +326,7 @@ async function pullSessionLog(lastSyncedAt: string): Promise<void> {
 
   const newEntries = data
     .filter((s) => !existingIds.has(s.id as string))
-    .map((s) => ({ ...s, pending_sync: false }) as Parameters<typeof db.session_log.add>[0]);
+    .map((s) => ({ ...s, pending_sync: 0 }) as Parameters<typeof db.session_log.add>[0]);
 
   if (newEntries.length) {
     await db.session_log.bulkAdd(newEntries);

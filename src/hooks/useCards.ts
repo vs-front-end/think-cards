@@ -4,6 +4,7 @@ import i18next from "i18next";
 import { toast } from "sonner";
 import { createEmptyCard } from "ts-fsrs";
 import { db } from "@/lib/db";
+import { requestSync } from "@/hooks/useSync";
 import type { ICard, ICardState, CardType } from "@/lib/db";
 
 export function useCards(deckId: string) {
@@ -46,7 +47,7 @@ export function useCreateCard() {
         back: input.back,
         created_at: now,
         updated_at: now,
-        pending_sync: true,
+        pending_sync: 1,
         deleted_at: null,
       };
 
@@ -65,7 +66,7 @@ export function useCreateCard() {
         reps: fsrsCard.reps,
         lapses: fsrsCard.lapses,
         updated_at: now,
-        pending_sync: true,
+        pending_sync: 1,
       };
 
       await db.transaction("rw", db.cards, db.card_state, async () => {
@@ -79,6 +80,7 @@ export function useCreateCard() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success(i18next.t("cardCreated"));
+      requestSync();
     },
 
     onError: () => {
@@ -104,7 +106,7 @@ export function useUpdateCard() {
         ...(input.deck_id ? { deck_id: input.deck_id } : {}),
         ...(input.type ? { type: input.type } : {}),
         updated_at: now,
-        pending_sync: true,
+        pending_sync: 1,
       });
 
       return input;
@@ -112,6 +114,7 @@ export function useUpdateCard() {
 
     onSuccess: () => {
       toast.success(i18next.t("cardUpdated"));
+      requestSync();
     },
 
     onError: () => {
@@ -129,7 +132,7 @@ export function useDeleteCard() {
       await db.cards.update(cardId, {
         deleted_at: now,
         updated_at: now,
-        pending_sync: true,
+        pending_sync: 1,
       });
       return cardId;
     },
@@ -137,6 +140,7 @@ export function useDeleteCard() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success(i18next.t("cardDeleted"));
+      requestSync();
     },
 
     onError: () => {

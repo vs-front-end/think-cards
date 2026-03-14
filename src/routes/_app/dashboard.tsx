@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useSyncStore } from "@/store";
-import type { IDeck } from "@/lib/db";
 import { useTranslation } from "react-i18next";
 import { cn } from "@stellar-ui-kit/shared";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useSyncStore, useAuthStore } from "@/store";
 import { useDashboardData, useDecksList, useIsMobile } from "@/hooks";
 import { formatTimePerCard } from "@/utils";
+import { syncAll } from "@/lib/sync";
+import type { IDeck } from "@/lib/db";
 
 import {
   DeckCard,
@@ -45,6 +46,7 @@ import {
   HelpCircle,
   Layers,
   Plus,
+  RefreshCw,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/dashboard")({
@@ -116,6 +118,7 @@ function DashboardComponent() {
 
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const isSyncing = useSyncStore((s) => s.isSyncing);
   const initialSyncDone = useSyncStore((s) => s.initialSyncDone);
 
   const [modal, setModal] = useState<ActiveModal>(null);
@@ -274,6 +277,31 @@ function DashboardComponent() {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 text-muted hover:text-foreground"
+                  disabled={isSyncing}
+                  onClick={() => {
+                    const userId = useAuthStore.getState().user?.id;
+                    if (userId) syncAll(userId).catch(console.error);
+                  }}
+                >
+                  <RefreshCw
+                    className={cn("size-4", isSyncing && "animate-spin")}
+                  />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t("syncNow")}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           <Button
             type="button"
             size="sm"
