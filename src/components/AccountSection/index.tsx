@@ -87,11 +87,22 @@ export function AccountSection() {
 
     e.target.value = "";
 
+    const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
+    if (file.size > MAX_AVATAR_SIZE) {
+      toast.error(t("profileAvatarTooLarge"));
+      return;
+    }
+
     try {
       await uploadAvatar.mutateAsync(file);
       toast.success(t("profileAvatarUpdated"));
-    } catch {
-      toast.error(t("profileAvatarError"));
+    } catch (err) {
+      const message =
+        err instanceof Error && err.message?.includes("size")
+          ? t("profileAvatarTooLarge")
+          : t("profileAvatarError");
+
+      toast.error(message);
     }
   };
 

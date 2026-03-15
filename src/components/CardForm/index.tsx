@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { cn } from "@stellar-ui-kit/shared";
+import { toast } from "sonner";
 import { useCreateCard, useDecksList, useUpdateCard } from "@/hooks";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store";
@@ -73,6 +74,12 @@ export function CardForm({ card, defaultDeckId }: ICardFormProps) {
     const userId = useAuthStore.getState().user?.id;
     if (!userId) throw new Error("Not authenticated");
 
+    const MAX_CARD_IMAGE_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_CARD_IMAGE_SIZE) {
+      toast.error(t("cardImageTooLarge"));
+      throw new Error("File too large");
+    }
+
     const compressed = await compressImage(file);
     const ext = compressed.name.split(".").pop() ?? "webp";
     const path = `${userId}/${crypto.randomUUID()}.${ext}`;
@@ -81,11 +88,14 @@ export function CardForm({ card, defaultDeckId }: ICardFormProps) {
       .from("card-images")
       .upload(path, compressed);
 
-    if (error) throw error;
+    if (error) {
+      toast.error(t("cardImageUploadError"));
+      throw error;
+    }
 
     const { data } = supabase.storage.from("card-images").getPublicUrl(path);
     return data.publicUrl;
-  }, []);
+  }, [t]);
 
   const validate = (): boolean => {
     const next = { deck: "", content: "" };

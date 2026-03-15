@@ -13,6 +13,7 @@ import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
@@ -43,6 +44,11 @@ const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
 const AuthSignUpRoute = AuthSignUpRouteImport.update({
   id: '/auth/sign-up',
   path: '/auth/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/auth/reset-password',
+  path: '/auth/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/cards/new': typeof AppCardsNewRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/cards/new': typeof AppCardsNewRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/_app/cards/new': typeof AppCardsNewRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/forgot-password'
     | '/auth/login'
+    | '/auth/reset-password'
     | '/auth/sign-up'
     | '/legal/privacy'
     | '/cards/new'
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/forgot-password'
     | '/auth/login'
+    | '/auth/reset-password'
     | '/auth/sign-up'
     | '/legal/privacy'
     | '/cards/new'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/forgot-password'
     | '/auth/login'
+    | '/auth/reset-password'
     | '/auth/sign-up'
     | '/legal/privacy'
     | '/_app/cards/new'
@@ -219,6 +231,7 @@ export interface RootRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthLoginRoute: typeof AuthLoginRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   AppCardsNewRoute: typeof AppCardsNewRoute
@@ -253,6 +266,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/sign-up'
       fullPath: '/auth/sign-up'
       preLoaderRoute: typeof AuthSignUpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/auth/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/login': {
@@ -347,6 +367,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthLoginRoute: AuthLoginRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   AppCardsNewRoute: AppCardsNewRoute,

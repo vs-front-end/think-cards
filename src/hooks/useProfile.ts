@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db";
 import { useAuthStore } from "@/store";
+import { compressImage } from "@/utils";
 
 export type Profile = {
   id: string;
@@ -60,12 +61,14 @@ export function useUploadAvatar() {
     mutationFn: async (file: File) => {
       const userId = useAuthStore.getState().user?.id;
       if (!userId) throw new Error("Not authenticated");
-      const ext = file.name.split(".").pop() ?? "jpg";
+
+      const compressed = await compressImage(file);
+      const ext = compressed.name.split(".").pop() ?? "webp";
       const path = `${userId}/avatar.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(path, file, { upsert: true });
+        .upload(path, compressed, { upsert: true });
 
       if (uploadError) throw uploadError;
 
