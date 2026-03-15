@@ -9,7 +9,7 @@ type DailyActivity = {
 
 type ForecastDay = {
   date: string;
-  label: string;
+  dayIndex: number;
   count: number;
 };
 
@@ -21,7 +21,7 @@ type CardDistribution = {
 };
 
 type MonthlyReview = {
-  month: string;
+  monthIndex: number;
   count: number;
 };
 
@@ -168,7 +168,6 @@ export function useStatisticsData() {
       }
 
       const forecastMap = new Map<string, number>();
-      const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
       for (let i = 1; i <= 7; i++) {
         const d = new Date(Date.now() + i * 86400000);
@@ -186,7 +185,7 @@ export function useStatisticsData() {
       const forecast: ForecastDay[] = [...forecastMap.entries()]
         .map(([date, count]) => ({
           date,
-          label: dayLabels[new Date(date + "T12:00:00").getDay()],
+          dayIndex: new Date(date + "T12:00:00").getDay(),
           count,
         }))
         .sort((a, b) => a.date.localeCompare(b.date));
@@ -211,28 +210,13 @@ export function useStatisticsData() {
           ? Math.round((matureCount / distribution.total) * 100)
           : 0;
 
-      const shortMonthNames = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
-
-      const reviewsByMonthMap = new Map<string, { label: string; count: number }>();
+      const reviewsByMonthMap = new Map<string, { monthIndex: number; count: number }>();
       const now = new Date();
 
       for (let i = 5; i >= 0; i--) {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-        reviewsByMonthMap.set(key, { label: shortMonthNames[d.getMonth()], count: 0 });
+        reviewsByMonthMap.set(key, { monthIndex: d.getMonth(), count: 0 });
       }
 
       for (const r of allRevlogs) {
@@ -246,7 +230,7 @@ export function useStatisticsData() {
 
       const reviewsByMonth: MonthlyReview[] = [...reviewsByMonthMap.entries()]
         .sort(([a], [b]) => a.localeCompare(b))
-        .map(([, { label, count }]) => ({ month: label, count }));
+        .map(([, { monthIndex, count }]) => ({ monthIndex, count }));
 
       return {
         streak,

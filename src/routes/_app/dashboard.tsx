@@ -155,48 +155,56 @@ function DashboardComponent() {
         <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
           <Layers className="size-4" />
         </div>
+
         <div className="min-w-0 flex-1">
           <Text
             as="p"
             styleVariant="muted"
-            className="truncate text-xs font-medium"
+            className="text-xs font-medium"
           >
             {t("dashboardTotalDecks")}
           </Text>
+
           <Text as="p" className="text-md font-semibold tabular-nums">
             {data?.totalDecks ?? 0}
           </Text>
         </div>
       </div>
+
       <div className="flex items-center gap-3">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-secondary-soft text-secondary">
           <BookOpen className="size-4" />
         </div>
+
         <div className="min-w-0 flex-1">
           <Text
             as="p"
             styleVariant="muted"
-            className="truncate text-xs font-medium"
+            className="text-xs font-medium"
           >
             {t("dashboardTotalCards")}
           </Text>
+
           <Text as="p" className="text-md font-semibold tabular-nums">
             {data?.totalCards ?? 0}
           </Text>
         </div>
       </div>
+
       <div className="flex items-center gap-3">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success">
           <CalendarCheck className="size-4" />
         </div>
+
         <div className="min-w-0 flex-1">
           <Text
             as="p"
             styleVariant="muted"
-            className="truncate text-xs font-medium"
+            className="text-xs font-medium"
           >
             {t("dashboardPendingToday")}
           </Text>
+
           <Text as="p" className="text-md font-semibold tabular-nums">
             {data?.pendingToday ?? 0}
           </Text>
@@ -206,48 +214,56 @@ function DashboardComponent() {
         <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-warning-soft text-warning">
           <Flame className="size-4" />
         </div>
+
         <div className="min-w-0 flex-1">
           <Text
             as="p"
             styleVariant="muted"
-            className="truncate text-xs font-medium"
+            className="text-xs font-medium"
           >
             {t("dashboardStreak")}
           </Text>
+
           <Text as="p" className="text-md font-semibold tabular-nums">
             {data?.streak ?? 0}
           </Text>
         </div>
       </div>
+
       <div className="flex items-center gap-3">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-background">
           <BarChart3 className="size-4" />
         </div>
+
         <div className="min-w-0 flex-1">
           <Text
             as="p"
             styleVariant="muted"
-            className="truncate text-xs font-medium"
+            className="text-xs font-medium"
           >
             {t("dashboardStudiedToday")}
           </Text>
+
           <Text as="p" className="text-md font-semibold tabular-nums">
             {data?.studiedToday ?? 0}
           </Text>
         </div>
       </div>
+
       <div className="flex items-center gap-3">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-background">
           <Clock className="size-4" />
         </div>
+
         <div className="min-w-0 flex-1">
           <Text
             as="p"
             styleVariant="muted"
-            className="truncate text-xs font-medium"
+            className="text-xs font-medium"
           >
             {t("dashboardAvgReviewTime")}
           </Text>
+
           <Text as="p" className="text-md font-semibold tabular-nums">
             {t(
               "dashboardTimePerCard",
@@ -269,6 +285,7 @@ function DashboardComponent() {
           >
             {t("dashboardTitle")}
           </Text>
+
           <Text as="p" styleVariant="muted" className="text-sm">
             {t("dashboardSubtitle")}
           </Text>
@@ -291,6 +308,7 @@ function DashboardComponent() {
                   />
                 </Button>
               </TooltipTrigger>
+
               <TooltipContent>
                 <p>{t("syncNow")}</p>
               </TooltipContent>
@@ -311,7 +329,9 @@ function DashboardComponent() {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => navigate({ to: "/cards/new", search: { deckId: undefined } })}
+            onClick={() =>
+              navigate({ to: "/cards/new", search: { deckId: undefined } })
+            }
             className="gap-1.5"
           >
             <Plus className="size-4" />

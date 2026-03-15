@@ -16,18 +16,44 @@ export const Route = createFileRoute("/_app/statistics")({
   ),
 });
 
+const DAY_KEYS = [
+  "statsDaySun",
+  "statsDayMon",
+  "statsDayTue",
+  "statsDayWed",
+  "statsDayThu",
+  "statsDayFri",
+  "statsDaySat",
+] as const;
+
+const MONTH_KEYS = [
+  "statsMonthJan",
+  "statsMonthFeb",
+  "statsMonthMar",
+  "statsMonthApr",
+  "statsMonthMay",
+  "statsMonthJun",
+  "statsMonthJul",
+  "statsMonthAug",
+  "statsMonthSep",
+  "statsMonthOct",
+  "statsMonthNov",
+  "statsMonthDec",
+] as const;
+
 function ForecastBar({
   forecast,
 }: {
-  forecast: Array<{ label: string; count: number }>;
+  forecast: Array<{ date: string; dayIndex: number; count: number }>;
 }) {
+  const { t } = useTranslation();
   const maxCount = Math.max(...forecast.map((d) => d.count), 1);
 
   return (
     <div className="flex items-end gap-1.5">
       {forecast.map((day) => (
         <div
-          key={day.label}
+          key={day.date}
           className="flex flex-1 flex-col items-center gap-1"
         >
           <Text as="span" className="text-xs tabular-nums text-muted">
@@ -42,7 +68,7 @@ function ForecastBar({
           />
 
           <Text as="span" className="text-xs text-muted">
-            {day.label}
+            {t(DAY_KEYS[day.dayIndex])}
           </Text>
         </div>
       ))}
@@ -53,15 +79,16 @@ function ForecastBar({
 function MonthlyBar({
   reviewsByMonth,
 }: {
-  reviewsByMonth: Array<{ month: string; count: number }>;
+  reviewsByMonth: Array<{ monthIndex: number; count: number }>;
 }) {
+  const { t } = useTranslation();
   const maxCount = Math.max(...reviewsByMonth.map((d) => d.count), 1);
 
   return (
     <div className="flex items-end gap-1.5">
       {reviewsByMonth.map((entry) => (
         <div
-          key={entry.month}
+          key={entry.monthIndex}
           className="flex flex-1 flex-col items-center gap-1"
         >
           <Text as="span" className="text-xs tabular-nums text-muted">
@@ -76,7 +103,7 @@ function MonthlyBar({
           />
 
           <Text as="span" className="text-xs text-muted">
-            {entry.month}
+            {t(MONTH_KEYS[entry.monthIndex])}
           </Text>
         </div>
       ))}
@@ -255,9 +282,7 @@ function StatisticsComponent() {
 
           <div className="rounded-xl border border-border bg-surface p-4">
             <SectionTitle>
-              {t("statsReviewsLast6Mo", {
-                defaultValue: "Reviews — last 6 months",
-              })}
+              {t("statsReviewsLast6Mo")}
             </SectionTitle>
 
             <MonthlyBar reviewsByMonth={data.reviewsByMonth} />
@@ -272,13 +297,13 @@ function StatisticsComponent() {
               <Text as="span" className="font-semibold text-primary">
                 {data.maturePct}%
               </Text>{" "}
-              mature
+              {t("statsMature")}
             </Text>
           </div>
 
           <div className="rounded-xl border border-border bg-surface p-4">
             <SectionTitle>
-              {t("statsDueNext14", { defaultValue: "Due — next 14 days" })}
+              {t("statsDueNext14")}
             </SectionTitle>
 
             <ForecastBar forecast={data.forecast} />

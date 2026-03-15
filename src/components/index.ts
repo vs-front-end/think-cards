@@ -23,6 +23,5 @@ export * from "./SessionBar";
 export * from "./SettingsSection";
 export * from "./Sidebar";
 export * from "./SocialAuthButtons";
-export * from "./StatCard";
 export * from "./StudySection";
 export * from "./StudySession";

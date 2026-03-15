@@ -1,9 +1,16 @@
+import {
+  useCallback,
+  useDeferredValue,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import type { CardStatus } from "@/hooks/useCardsWithState";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { BookOpen, Play, Plus } from "lucide-react";
+import type { CardStatus, CardWithState } from "@/hooks/useCardsWithState";
 import { CardRow, EmptyCards } from "@/components";
-import { useCallback, useDeferredValue, useMemo, useState } from "react";
 
 import {
   Button,
@@ -14,7 +21,6 @@ import {
   DialogHeader,
   DialogTitle,
   InputSearch,
-  ScrollArea,
   Select,
   SelectContent,
   SelectItem,
@@ -33,6 +39,64 @@ import {
 
 type CardTypeFilter = "all" | "basic" | "cloze" | "typing";
 type StatusFilter = "all" | CardStatus;
+
+type VirtualizedCardListProps = {
+  cards: CardWithState[];
+  selected: Set<string>;
+  onToggle: (id: string) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+};
+
+function VirtualizedCardList({
+  cards,
+  selected,
+  onToggle,
+  onEdit,
+  onDelete,
+}: VirtualizedCardListProps) {
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const virtualizer = useVirtualizer({
+    count: cards.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 72,
+  });
+
+  return (
+    <div
+      ref={parentRef}
+      className="themed-scroll min-w-0 flex-1 overflow-y-auto pb-20 md:pb-0"
+    >
+      <div
+        className="relative w-full"
+        style={{ height: `${virtualizer.getTotalSize()}px` }}
+      >
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const card = cards[virtualRow.index];
+
+          return (
+            <div
+              key={card.id}
+              data-index={virtualRow.index}
+              ref={virtualizer.measureElement}
+              className="absolute left-0 w-full"
+              style={{ transform: `translateY(${virtualRow.start}px)` }}
+            >
+              <CardRow
+                card={card}
+                selected={selected.has(card.id)}
+                onToggle={onToggle}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 type CardPanelProps = {
   deckId: string | null;
@@ -323,20 +387,13 @@ export function CardPanel({
       )}
 
       {!isLoading && filtered.length > 0 && (
-        <ScrollArea className="min-w-0 flex-1 overflow-y-auto">
-          <div className="pb-20 md:pb-0">
-            {filtered.map((card) => (
-              <CardRow
-                key={card.id}
-                card={card}
-                selected={selected.has(card.id)}
-                onToggle={toggleSelect}
-                onEdit={onEditCard}
-                onDelete={onDeleteCard}
-              />
-            ))}
-          </div>
-        </ScrollArea>
+        <VirtualizedCardList
+          cards={filtered}
+          selected={selected}
+          onToggle={toggleSelect}
+          onEdit={onEditCard}
+          onDelete={onDeleteCard}
+        />
       )}
 
       <Dialog
