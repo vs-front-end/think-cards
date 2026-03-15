@@ -6,7 +6,7 @@ import { useCreateCard, useDecksList, useUpdateCard } from "@/hooks";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store";
 import type { ICard, CardType } from "@/lib/db";
-import { nextClozeIndex, parseClozePreview } from "@/utils/cloze";
+import { nextClozeIndex, parseClozePreview, compressImage } from "@/utils";
 
 import {
   Button,
@@ -73,12 +73,13 @@ export function CardForm({ card, defaultDeckId }: ICardFormProps) {
     const userId = useAuthStore.getState().user?.id;
     if (!userId) throw new Error("Not authenticated");
 
-    const ext = file.name.split(".").pop() ?? "jpg";
+    const compressed = await compressImage(file);
+    const ext = compressed.name.split(".").pop() ?? "webp";
     const path = `${userId}/${crypto.randomUUID()}.${ext}`;
 
     const { error } = await supabase.storage
       .from("card-images")
-      .upload(path, file);
+      .upload(path, compressed);
 
     if (error) throw error;
 

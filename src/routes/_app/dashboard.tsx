@@ -157,11 +157,7 @@ function DashboardComponent() {
         </div>
 
         <div className="min-w-0 flex-1">
-          <Text
-            as="p"
-            styleVariant="muted"
-            className="text-xs font-medium"
-          >
+          <Text as="p" styleVariant="muted" className="text-xs font-medium">
             {t("dashboardTotalDecks")}
           </Text>
 
@@ -177,11 +173,7 @@ function DashboardComponent() {
         </div>
 
         <div className="min-w-0 flex-1">
-          <Text
-            as="p"
-            styleVariant="muted"
-            className="text-xs font-medium"
-          >
+          <Text as="p" styleVariant="muted" className="text-xs font-medium">
             {t("dashboardTotalCards")}
           </Text>
 
@@ -197,11 +189,7 @@ function DashboardComponent() {
         </div>
 
         <div className="min-w-0 flex-1">
-          <Text
-            as="p"
-            styleVariant="muted"
-            className="text-xs font-medium"
-          >
+          <Text as="p" styleVariant="muted" className="text-xs font-medium">
             {t("dashboardPendingToday")}
           </Text>
 
@@ -216,11 +204,7 @@ function DashboardComponent() {
         </div>
 
         <div className="min-w-0 flex-1">
-          <Text
-            as="p"
-            styleVariant="muted"
-            className="text-xs font-medium"
-          >
+          <Text as="p" styleVariant="muted" className="text-xs font-medium">
             {t("dashboardStreak")}
           </Text>
 
@@ -236,11 +220,7 @@ function DashboardComponent() {
         </div>
 
         <div className="min-w-0 flex-1">
-          <Text
-            as="p"
-            styleVariant="muted"
-            className="text-xs font-medium"
-          >
+          <Text as="p" styleVariant="muted" className="text-xs font-medium">
             {t("dashboardStudiedToday")}
           </Text>
 
@@ -256,11 +236,7 @@ function DashboardComponent() {
         </div>
 
         <div className="min-w-0 flex-1">
-          <Text
-            as="p"
-            styleVariant="muted"
-            className="text-xs font-medium"
-          >
+          <Text as="p" styleVariant="muted" className="text-xs font-medium">
             {t("dashboardAvgReviewTime")}
           </Text>
 
@@ -291,7 +267,7 @@ function DashboardComponent() {
           </Text>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -321,7 +297,7 @@ function DashboardComponent() {
             onClick={() => setModal({ type: "createDeck" })}
             className="gap-1.5"
           >
-            <Plus className="size-4" />
+            <Plus className="size-4 hidden min-[340px]:block" />
             {t("dashboardNewDeck")}
           </Button>
 
@@ -334,7 +310,7 @@ function DashboardComponent() {
             }
             className="gap-1.5"
           >
-            <Plus className="size-4" />
+            <Plus className="size-4 hidden min-[340px]:block" />
             {t("dashboardNewCard")}
           </Button>
         </div>

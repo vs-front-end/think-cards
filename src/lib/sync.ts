@@ -220,9 +220,17 @@ async function pullDecks(lastSyncedAt: string): Promise<void> {
   );
   if (!data.length) return;
 
+  const ids = data.map((r) => r.id as string);
+  const locals = await db.decks.bulkGet(ids);
+  const localMap = new Map(
+    locals.filter(Boolean).map((l) => [l!.id, l!]),
+  );
+
   for (const remote of data) {
+    const id = remote.id as string;
+
     if (remote.deleted_at) {
-      await db.decks.update(remote.id as string, {
+      await db.decks.update(id, {
         deleted_at: remote.deleted_at as string,
         updated_at: remote.updated_at as string,
         pending_sync: 0,
@@ -230,7 +238,7 @@ async function pullDecks(lastSyncedAt: string): Promise<void> {
       continue;
     }
 
-    const local = await db.decks.get(remote.id as string);
+    const local = localMap.get(id);
     if (!local || (remote.updated_at as string) > local.updated_at) {
       await db.decks.put({
         ...(remote as Record<string, unknown>),
@@ -248,9 +256,17 @@ async function pullCards(lastSyncedAt: string): Promise<void> {
   );
   if (!data.length) return;
 
+  const ids = data.map((r) => r.id as string);
+  const locals = await db.cards.bulkGet(ids);
+  const localMap = new Map(
+    locals.filter(Boolean).map((l) => [l!.id, l!]),
+  );
+
   for (const remote of data) {
+    const id = remote.id as string;
+
     if (remote.deleted_at) {
-      await db.cards.update(remote.id as string, {
+      await db.cards.update(id, {
         deleted_at: remote.deleted_at as string,
         updated_at: remote.updated_at as string,
         pending_sync: 0,
@@ -258,7 +274,7 @@ async function pullCards(lastSyncedAt: string): Promise<void> {
       continue;
     }
 
-    const local = await db.cards.get(remote.id as string);
+    const local = localMap.get(id);
     if (!local || (remote.updated_at as string) > local.updated_at) {
       await db.cards.put({
         ...(remote as Record<string, unknown>),
@@ -276,8 +292,14 @@ async function pullCardState(lastSyncedAt: string): Promise<void> {
   );
   if (!data.length) return;
 
+  const ids = data.map((r) => r.id as string);
+  const locals = await db.card_state.bulkGet(ids);
+  const localMap = new Map(
+    locals.filter(Boolean).map((l) => [l!.id, l!]),
+  );
+
   for (const remote of data) {
-    const local = await db.card_state.get(remote.id as string);
+    const local = localMap.get(remote.id as string);
     if (!local || (remote.updated_at as string) > local.updated_at) {
       await db.card_state.put({
         ...(remote as Record<string, unknown>),

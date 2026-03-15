@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { cn } from "@stellar-ui-kit/shared";
-import { useDecks } from "@/hooks";
+import { useDecks, useNavigateToStudy } from "@/hooks";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "@tanstack/react-router";
 import type { DeckNode } from "@/hooks/useDecks";
 
 import {
@@ -40,7 +39,7 @@ function DeckTreeItem({
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
-  const navigate = useNavigate();
+  const navigateToStudy = useNavigateToStudy();
   
   const [expanded, setExpanded] = useState(true);
   const hasChildren = node.children.length > 0;
@@ -103,7 +102,7 @@ function DeckTreeItem({
           >
             <DropdownMenuItem
               onClick={() =>
-                navigate({ to: "/study", search: { deckId: node.id } })
+                navigateToStudy(node.id)
               }
             >
               <Play className="mr-2 size-4" />

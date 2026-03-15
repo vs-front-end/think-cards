@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { ChevronDown, MoreVertical, Pencil, Play, Trash2 } from "lucide-react";
 import { cn } from "@stellar-ui-kit/shared";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigateToStudy } from "@/hooks";
 
 import {
   Badge,
@@ -104,14 +104,14 @@ function CardCounts({
 
 function PlayButton({ deckId }: { deckId: string }) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const navigateToStudy = useNavigateToStudy();
 
   return (
     <Button
       type="button"
       size="icon"
       className="size-7 shrink-0"
-      onClick={() => navigate({ to: "/study", search: { deckId } })}
+      onClick={() => navigateToStudy(deckId)}
       aria-label={t("deckStudy")}
     >
       <Play className="size-3.5" />

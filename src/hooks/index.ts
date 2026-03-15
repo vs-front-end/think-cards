@@ -6,6 +6,7 @@ export * from './useIsMobile';
 export * from './useDecks';
 export * from './useProfile';
 export * from './useStatisticsData';
+export * from './useNavigateToStudy';
 export * from './useStudySession';
 export * from './useSync';
 export * from './usePwaInstall';

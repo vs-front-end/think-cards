@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigateToStudy } from "@/hooks";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { BookOpen, Play, Plus } from "lucide-react";
 import type { CardStatus, CardWithState } from "@/hooks/useCardsWithState";
@@ -114,7 +114,7 @@ export function CardPanel({
   onDeleteCard,
 }: CardPanelProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const navigateToStudy = useNavigateToStudy();
 
   const moveCards = useMoveCards();
   const bulkDelete = useBulkDeleteCards();
@@ -239,7 +239,7 @@ export function CardPanel({
             size="sm"
             className="gap-1.5"
             onClick={() =>
-              navigate({ to: "/study", search: { deckId: deckId! } })
+              navigateToStudy(deckId!)
             }
           >
             <Play className="size-3.5" />

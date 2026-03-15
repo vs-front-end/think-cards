@@ -99,6 +99,12 @@ function RootComponent() {
         setIsLoading(false);
         return;
       }
+
+      if (!session.user.email_confirmed_at) {
+        setIsLoading(false);
+        return;
+      }
+
       setSession(session);
       setUser(session.user);
       setIsLoading(false);

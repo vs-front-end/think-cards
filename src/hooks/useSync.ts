@@ -59,14 +59,9 @@ export function useSync() {
     }
 
     const handleVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return;
       const uid = useAuthStore.getState().user?.id;
-      if (!uid) return;
-
-      if (document.visibilityState === "visible") {
-        runSync(uid);
-      } else {
-        runSync(uid, false);
-      }
+      if (uid) runSync(uid);
     };
 
     const handleOnline = () => {
