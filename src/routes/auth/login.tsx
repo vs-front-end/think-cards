@@ -4,6 +4,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { isNotEmpty, isValidEmail, hasMinLength } from "@/utils/validation";
 import { SocialAuthButtons } from "@/components";
 import { useSignIn, useOAuthSignIn } from "@/hooks/useAuth";
+import { useDocumentHead } from "@/hooks";
 import type { AuthError } from "@supabase/supabase-js";
 
 import {
@@ -29,7 +30,9 @@ function getAuthErrorMessage(error: AuthError, t: (key: string) => string) {
 const LoginComponent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  
+
+  useDocumentHead({ title: t("loginTitle") });
+
   const signIn = useSignIn();
   const oAuthSignIn = useOAuthSignIn();
 

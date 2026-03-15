@@ -4,6 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { isNotEmpty, isValidEmail } from "@/utils/validation";
 import { SocialAuthButtons } from "@/components";
 import { useSignUp, useOAuthSignIn } from "@/hooks/useAuth";
+import { useDocumentHead } from "@/hooks";
 import type { AuthError } from "@supabase/supabase-js";
 
 import {
@@ -28,6 +29,8 @@ const PASSWORD_REQUIREMENTS = [
 
 const SignUpComponent = () => {
   const { t } = useTranslation();
+
+  useDocumentHead({ title: t("signInTitle") });
 
   const signUp = useSignUp();
   const oAuthSignIn = useOAuthSignIn();

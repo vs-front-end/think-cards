@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /auth/
+Disallow: /dashboard
+Disallow: /decks
+Disallow: /study
+Disallow: /statistics
+Disallow: /settings
+Disallow: /help
+Disallow: /cards/
+
+Sitemap: https://think-cards.com/sitemap.xml

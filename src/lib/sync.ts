@@ -374,6 +374,9 @@ async function getServerTimestamp(): Promise<string> {
 export async function syncAll(userId: string): Promise<boolean> {
   if (!navigator.onLine) return false;
 
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return false;
+
   const { isSyncing, setIsSyncing, setLastSyncedAt, setPendingCount } =
     useSyncStore.getState();
 

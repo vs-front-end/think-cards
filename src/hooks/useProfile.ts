@@ -83,17 +83,22 @@ export function useUploadAvatar() {
 }
 
 export function useDeleteAccount() {
-  const { logout } = useAuthStore.getState();
-
   return useMutation({
     mutationFn: async () => {
       const { error } = await supabase.functions.invoke("delete-account");
       if (error) throw error;
-    },
 
-    onSuccess: async () => {
+      await Promise.all([
+        db.decks.clear(),
+        db.cards.clear(),
+        db.card_state.clear(),
+        db.revlog.clear(),
+        db.session_log.clear(),
+        db.sync_meta.clear(),
+      ]);
+
       await supabase.auth.signOut();
-      logout();
+      useAuthStore.getState().logout();
     },
   });
 }

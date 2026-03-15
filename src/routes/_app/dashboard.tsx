@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@stellar-ui-kit/shared";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSyncStore } from "@/store";
-import { useDashboardData, useDecksList, useIsMobile, useSync } from "@/hooks";
+import { useDashboardData, useDecksList, useIsMobile, useSync, useDocumentHead } from "@/hooks";
 import { formatTimePerCard } from "@/utils";
 import type { IDeck } from "@/lib/db";
 
@@ -110,6 +110,7 @@ function buildDeckTree(
 
 function DashboardComponent() {
   const { t } = useTranslation();
+  useDocumentHead({ title: t("dashboardTitle") });
   const { data, isLoading } = useDashboardData();
   const { data: flatDecks = [] } = useDecksList();
 

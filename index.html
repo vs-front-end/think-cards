@@ -1,20 +1,157 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>ThinkCards - Free Anki Alternative with FSRS Spaced Repetition</title>
+
+    <meta
+      name="description"
+      content="ThinkCards is a modern, free alternative to Anki. Powered by the FSRS algorithm for smarter spaced repetition. Offline-first, works on any device, no install required. Study less, remember more."
+    />
+    <meta
+      name="keywords"
+      content="anki alternative, free anki alternative, anki replacement, flashcard app, spaced repetition, FSRS, FSRS algorithm, flashcards online, study app, memorization app, anki online, anki web, best flashcard app, open source flashcard, spaced repetition software, SRS, anki vs thinkcards, free flashcards, PWA flashcard, offline flashcards"
+    />
+    <meta name="author" content="ThinkCards" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="theme-color" content="#3748CE" />
+    <meta name="application-name" content="ThinkCards" />
+    <meta name="apple-mobile-web-app-title" content="ThinkCards" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <link rel="canonical" href="https://think-cards.com/" />
+
+    <link rel="alternate" hreflang="en" href="https://think-cards.com/" />
+    <link rel="alternate" hreflang="pt-BR" href="https://think-cards.com/" />
+    <link rel="alternate" hreflang="es" href="https://think-cards.com/" />
+    <link rel="alternate" hreflang="x-default" href="https://think-cards.com/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://think-cards.com/" />
+    <meta property="og:title" content="ThinkCards - Free Anki Alternative with FSRS Spaced Repetition" />
+    <meta
+      property="og:description"
+      content="Modern, free alternative to Anki. FSRS algorithm for smarter spaced repetition. Works offline on any device. No install required."
+    />
+    <meta property="og:image" content="https://think-cards.com/images/og-cover.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="ThinkCards - Smart flashcard app with FSRS spaced repetition" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="pt_BR" />
+    <meta property="og:locale:alternate" content="es_ES" />
+    <meta property="og:site_name" content="ThinkCards" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ThinkCards - Free Anki Alternative with FSRS" />
+    <meta
+      name="twitter:description"
+      content="Modern, free alternative to Anki. FSRS algorithm for smarter spaced repetition. Works offline on any device."
+    />
+    <meta name="twitter:image" content="https://think-cards.com/images/og-cover.png" />
+    <meta name="twitter:image:alt" content="ThinkCards - Smart flashcard app with FSRS spaced repetition" />
+
     <link rel="icon" type="image/x-icon" href="/icons/favicon.ico" />
+    <link rel="apple-touch-icon" href="/images/logo.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="ThinkCards – Flashcards inteligentes para aprendizado eficiente"
-    />
-    <title>ThinkCards</title>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "ThinkCards",
+        "url": "https://think-cards.com",
+        "description": "A modern, free alternative to Anki. ThinkCards uses the FSRS spaced repetition algorithm to schedule reviews at the optimal moment. Offline-first PWA that works on any device.",
+        "applicationCategory": "EducationalApplication",
+        "applicationSubCategory": "Flashcard & Spaced Repetition Software",
+        "operatingSystem": "Any (Web, iOS, Android via PWA)",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        },
+        "browserRequirements": "Requires a modern web browser with JavaScript enabled",
+        "softwareVersion": "1.0",
+        "author": {
+          "@type": "Organization",
+          "name": "ThinkCards",
+          "url": "https://think-cards.com"
+        },
+        "featureList": [
+          "FSRS spaced repetition algorithm (more accurate than SM-2 used by Anki)",
+          "Offline-first with automatic cloud sync",
+          "Works on any device as a PWA (no app store needed)",
+          "Multi-language: English, Portuguese, Spanish",
+          "Deck and subdeck organization",
+          "Basic, cloze, and typing card types",
+          "Study progress tracking with streaks and statistics",
+          "Dark, light, and ocean themes",
+          "Free and open source"
+        ],
+        "screenshot": "https://think-cards.com/images/og-cover.png",
+        "inLanguage": ["en", "pt-BR", "es"],
+        "installUrl": "https://think-cards.com",
+        "downloadUrl": "https://think-cards.com",
+        "isAccessibleForFree": true,
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "worstRating": 1,
+          "bestRating": 5
+        }
+      }
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is ThinkCards a free alternative to Anki?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. ThinkCards is completely free and uses the FSRS algorithm, which is more modern than Anki's SM-2. It works directly in your browser as a PWA, with no download or installation required."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What is the FSRS algorithm?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "FSRS (Free Spaced Repetition Scheduler) is a modern, open-source algorithm that models how memory works. Unlike SM-2 (used by Anki), FSRS adapts to your individual memory patterns, tracking the difficulty and stability of each card to schedule reviews at the optimal moment."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I use ThinkCards offline?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. ThinkCards is offline-first. All your cards and study data are stored locally in your browser. When you go back online, everything syncs automatically to the cloud."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does ThinkCards work on mobile?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. ThinkCards is a Progressive Web App (PWA) that can be installed on any device — desktop, Android, or iOS — directly from the browser. No app store needed."
+            }
+          }
+        ]
+      }
+    </script>
   </head>
 
   <body>

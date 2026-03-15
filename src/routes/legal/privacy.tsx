@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Separator, Text } from "@stellar-ui-kit/web";
 import { useTranslation } from "react-i18next";
+import { useDocumentHead } from "@/hooks";
 
 export const Route = createFileRoute("/legal/privacy")({
   component: PrivacyComponent,
@@ -25,6 +26,11 @@ function Section({
 
 function PrivacyComponent() {
   const { t } = useTranslation();
+
+  useDocumentHead({
+    title: t("privacyTitle"),
+    description: t("privacySection1Body"),
+  });
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-12">

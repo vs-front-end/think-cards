@@ -4,6 +4,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { cn } from "@stellar-ui-kit/shared";
 import type { ThemeVariant } from "@/store";
+import { useDocumentHead } from "@/hooks";
 
 import {
   Badge,
@@ -37,6 +38,11 @@ export const Route = createFileRoute("/")({
 function WelcomeComponent() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  useDocumentHead({
+    title: t("welcomeSubtitle"),
+    description: t("welcomeHeroDesc"),
+  });
 
   const user = useAuthStore((s) => s.user);
   const isLoading = useAuthStore((s) => s.isLoading);
