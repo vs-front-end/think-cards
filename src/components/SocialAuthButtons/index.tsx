@@ -3,10 +3,9 @@ import { Spinner } from "@stellar-ui-kit/web";
 interface ISocialAuthButtons {
   handlers: {
     google?: () => void;
+    github?: () => void;
     twitter?: () => void;
-    facebook?: () => void;
   };
-  showAll?: boolean;
   isLoading?: boolean;
 }
 
@@ -18,14 +17,14 @@ const CONFIG = [
     bgColor: "bg-[#BC2026]",
   },
   {
-    key: "facebook",
-    label: "Facebook",
-    icon: "/icons/facebook.svg",
-    bgColor: "bg-[#3748CE]",
+    key: "github",
+    label: "GitHub",
+    icon: "/icons/github.svg",
+    bgColor: "bg-[#553493]",
   },
   {
     key: "twitter",
-    label: "Twitter",
+    label: "X",
     icon: "/icons/twitter.svg",
     bgColor: "bg-[#353535]",
   },
@@ -33,7 +32,6 @@ const CONFIG = [
 
 export const SocialAuthButtons = ({
   handlers,
-  showAll = false,
   isLoading = false,
 }: ISocialAuthButtons) => {
   return (
@@ -41,7 +39,7 @@ export const SocialAuthButtons = ({
       {CONFIG.map(({ key, label, icon, bgColor }) => {
         const onClick = handlers[key];
 
-        if (!onClick && !showAll) return null;
+        if (!onClick) return null;
 
         return (
           <button

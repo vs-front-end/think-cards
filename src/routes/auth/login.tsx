@@ -92,14 +92,14 @@ const LoginComponent = () => {
     );
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleOAuth = async (provider: "google" | "github" | "x") => {
     if (isOAuthLoading) return;
 
     setAuthError("");
     setIsOAuthLoading(true);
 
     try {
-      await oAuthSignIn("google");
+      await oAuthSignIn(provider);
     } catch {
       setAuthError(t("authErrorGeneric"));
       setIsOAuthLoading(false);
@@ -176,7 +176,11 @@ const LoginComponent = () => {
           </div>
 
           <SocialAuthButtons
-            handlers={{ google: handleGoogleSignIn }}
+            handlers={{
+              google: () => handleOAuth("google"),
+              github: () => handleOAuth("github"),
+              twitter: () => handleOAuth("x"),
+            }}
             isLoading={isOAuthLoading}
           />
         </div>
