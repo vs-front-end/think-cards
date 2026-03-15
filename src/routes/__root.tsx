@@ -85,6 +85,8 @@ function RootComponent() {
   const user = useAuthStore((s) => s.user);
 
   const isLoggedIn = user !== null;
+  const isAuthRoute = pathname.startsWith("/auth/");
+  const showAppShell = isLoggedIn && !isAuthRoute;
   const isAppRoute = APP_ROUTES.some((r) => pathname.startsWith(r));
   const createIntent = useCreateIntentStore((s) => s.createIntent);
   const clearCreateIntent = useCreateIntentStore((s) => s.clearCreateIntent);
@@ -113,6 +115,9 @@ function RootComponent() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const isResetOrCallback =
+    pathname === "/auth/reset-password" || pathname === "/auth/callback";
+
   useEffect(() => {
     const isLoading = useAuthStore.getState().isLoading;
 
@@ -121,7 +126,11 @@ function RootComponent() {
     if (isAppRoute && !isLoggedIn) {
       navigate({ to: "/" });
     }
-  }, [isAppRoute, isLoggedIn, navigate]);
+
+    if (isLoggedIn && isAuthRoute && !isResetOrCallback) {
+      navigate({ to: "/dashboard" });
+    }
+  }, [isAppRoute, isAuthRoute, isLoggedIn, isResetOrCallback, pathname, navigate]);
 
   useEffect(() => {
     if (createIntent === "card") {
@@ -133,7 +142,7 @@ function RootComponent() {
   return (
     <ErrorBoundary>
       <div className="flex h-screen">
-        {isLoggedIn && (
+        {showAppShell && (
           <aside
             className={cn(
               "fixed inset-y-0 left-0 z-20 hidden flex-col border-r border-border bg-background md:flex",
@@ -147,10 +156,10 @@ function RootComponent() {
         <div
           className={cn(
             "flex min-w-0 flex-1 flex-col",
-            isLoggedIn && "md:ml-[250px]",
+            showAppShell && "md:ml-[250px]",
           )}
         >
-          {!isLoggedIn && <Header />}
+          {!showAppShell && !isLoggedIn && <Header />}
 
           <main className="flex flex-1 min-h-0 flex-col">
             <div className="mx-auto flex w-full max-w-[1440px] flex-1 min-h-0 flex-col">
@@ -158,10 +167,10 @@ function RootComponent() {
             </div>
           </main>
 
-          {isLoggedIn && <BottomTab />}
+          {showAppShell && <BottomTab />}
         </div>
 
-        {isLoggedIn && createIntent === "deck" && (
+        {showAppShell && createIntent === "deck" && (
           <DeckModal
             open={true}
             onOpenChange={(open) => !open && clearCreateIntent()}
