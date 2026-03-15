@@ -10,7 +10,6 @@ import type { IDeck } from "@/lib/db";
 import {
   DeckCard,
   DeckModal,
-  CardModal,
   DeleteDeckDialog,
   EmptyDecks,
   InstallPrompt,
@@ -60,7 +59,6 @@ type ActiveModal =
   | { type: "createDeck" }
   | { type: "editDeck"; deckId: string }
   | { type: "deleteDeck"; deckId: string }
-  | { type: "createCard" }
   | null;
 
 type DeckStatNode = {
@@ -313,7 +311,7 @@ function DashboardComponent() {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setModal({ type: "createCard" })}
+            onClick={() => navigate({ to: "/cards/new", search: { deckId: undefined } })}
             className="gap-1.5"
           >
             <Plus className="size-4" />
@@ -492,11 +490,6 @@ function DashboardComponent() {
           onOpenChange={(open) => !open && setModal(null)}
         />
       )}
-
-      <CardModal
-        open={modal?.type === "createCard"}
-        onOpenChange={(open) => !open && setModal(null)}
-      />
 
       {showOnboarding && (
         <OnboardingTour onDone={() => setOnboardingDismissed(true)} />

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, LayoutList } from "lucide-react";
 import { DeckModal } from "@/components/DeckModal";
-import { CardModal } from "@/components/CardModal";
 import { DeleteDeckDialog } from "@/components/DeleteDeckDialog";
 import { DeleteCardDialog } from "@/components/DeleteCardDialog";
 import { DeckTree } from "../../components/DeckTree";
@@ -10,7 +9,7 @@ import { CardPanel } from "../../components/CardPanel";
 import { useDecksList } from "@/hooks/useDecks";
 import { useCards } from "@/hooks/useCards";
 import type { ICard, IDeck } from "@/lib/db";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import {
   Drawer,
@@ -39,12 +38,12 @@ type ActiveDeckModal =
 
 type ActiveCardModal =
   | { type: "createCard"; deckId: string }
-  | { type: "editCard"; cardId: string }
   | { type: "deleteCard"; cardId: string }
   | null;
 
 function DecksComponent() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data: flatDecks = [] } = useDecksList();
 
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
@@ -82,9 +81,6 @@ function DecksComponent() {
     deckModal?.type === "deleteDeck"
       ? deckMap.get(deckModal.deckId)
       : undefined;
-
-  const editCard =
-    cardModal?.type === "editCard" ? cardMap.get(cardModal.cardId) : undefined;
 
   const deleteCard =
     cardModal?.type === "deleteCard"
@@ -150,9 +146,9 @@ function DecksComponent() {
           deckName={selectedDeck?.name ?? ""}
           onCreateCard={() =>
             selectedDeckId &&
-            setCardModal({ type: "createCard", deckId: selectedDeckId })
+            navigate({ to: "/cards/new", search: { deckId: selectedDeckId } })
           }
-          onEditCard={(id) => setCardModal({ type: "editCard", cardId: id })}
+          onEditCard={(id) => navigate({ to: "/cards/$cardId/edit", params: { cardId: id } })}
           onDeleteCard={(id: string) =>
             setCardModal({ type: "deleteCard", cardId: id })
           }
@@ -180,18 +176,6 @@ function DecksComponent() {
           }}
         />
       )}
-
-      <CardModal
-        card={cardModal?.type === "editCard" ? editCard : undefined}
-        defaultDeckId={
-          cardModal?.type === "createCard" ? cardModal.deckId : undefined
-        }
-        open={
-          cardModal?.type === "createCard" ||
-          (cardModal?.type === "editCard" && !!editCard)
-        }
-        onOpenChange={(open) => !open && setCardModal(null)}
-      />
 
       {deleteCard && (
         <DeleteCardDialog

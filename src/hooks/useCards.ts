@@ -25,6 +25,11 @@ export function useCards(deckId: string) {
   };
 }
 
+export function useCardById(cardId: string) {
+  const card = useLiveQuery(() => db.cards.get(cardId), [cardId]);
+  return { data: card ?? null, isLoading: card === undefined };
+}
+
 export function useCreateCard() {
   const qc = useQueryClient();
 

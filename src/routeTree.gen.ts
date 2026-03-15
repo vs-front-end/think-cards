@@ -22,6 +22,8 @@ import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppHelpRouteImport } from './routes/_app/help'
 import { Route as AppDecksRouteImport } from './routes/_app/decks'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppCardsNewRouteImport } from './routes/_app/cards/new'
+import { Route as AppCardsCardIdEditRouteImport } from './routes/_app/cards/$cardId.edit'
 
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
@@ -88,6 +90,16 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppCardsNewRoute = AppCardsNewRouteImport.update({
+  id: '/_app/cards/new',
+  path: '/cards/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppCardsCardIdEditRoute = AppCardsCardIdEditRouteImport.update({
+  id: '/_app/cards/$cardId/edit',
+  path: '/cards/$cardId/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,6 +115,8 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/cards/new': typeof AppCardsNewRoute
+  '/cards/$cardId/edit': typeof AppCardsCardIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +132,8 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/cards/new': typeof AppCardsNewRoute
+  '/cards/$cardId/edit': typeof AppCardsCardIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,6 +150,8 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/_app/cards/new': typeof AppCardsNewRoute
+  '/_app/cards/$cardId/edit': typeof AppCardsCardIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +169,8 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/sign-up'
     | '/legal/privacy'
+    | '/cards/new'
+    | '/cards/$cardId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,6 +186,8 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/sign-up'
     | '/legal/privacy'
+    | '/cards/new'
+    | '/cards/$cardId/edit'
   id:
     | '__root__'
     | '/'
@@ -181,6 +203,8 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/sign-up'
     | '/legal/privacy'
+    | '/_app/cards/new'
+    | '/_app/cards/$cardId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -197,6 +221,8 @@ export interface RootRouteChildren {
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
+  AppCardsNewRoute: typeof AppCardsNewRoute
+  AppCardsCardIdEditRoute: typeof AppCardsCardIdEditRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -292,6 +318,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/cards/new': {
+      id: '/_app/cards/new'
+      path: '/cards/new'
+      fullPath: '/cards/new'
+      preLoaderRoute: typeof AppCardsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/cards/$cardId/edit': {
+      id: '/_app/cards/$cardId/edit'
+      path: '/cards/$cardId/edit'
+      fullPath: '/cards/$cardId/edit'
+      preLoaderRoute: typeof AppCardsCardIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -309,6 +349,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthLoginRoute: AuthLoginRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
+  AppCardsNewRoute: AppCardsNewRoute,
+  AppCardsCardIdEditRoute: AppCardsCardIdEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

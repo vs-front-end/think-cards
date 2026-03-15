@@ -5,7 +5,7 @@ import { cn } from "@stellar-ui-kit/shared";
 import { Button, Text, Toaster } from "@stellar-ui-kit/web";
 import { useAuthStore, useCreateIntentStore } from "@/store";
 import { supabase } from "@/lib/supabase";
-import { Header, BottomTab, Sidebar, DeckModal, CardModal } from "@/components";
+import { Header, BottomTab, Sidebar, DeckModal } from "@/components";
 
 import {
   Outlet,
@@ -117,6 +117,13 @@ function RootComponent() {
     }
   }, [isAppRoute, isLoggedIn, navigate]);
 
+  useEffect(() => {
+    if (createIntent === "card") {
+      clearCreateIntent();
+      navigate({ to: "/cards/new", search: { deckId: undefined } });
+    }
+  }, [createIntent, clearCreateIntent, navigate]);
+
   return (
     <ErrorBoundary>
       <div className="flex h-screen">
@@ -148,22 +155,11 @@ function RootComponent() {
           {isLoggedIn && <BottomTab />}
         </div>
 
-        {isLoggedIn && (
-          <>
-            {createIntent === "deck" && (
-              <DeckModal
-                open={true}
-                onOpenChange={(open) => !open && clearCreateIntent()}
-              />
-            )}
-
-            {createIntent === "card" && (
-              <CardModal
-                open={true}
-                onOpenChange={(open) => !open && clearCreateIntent()}
-              />
-            )}
-          </>
+        {isLoggedIn && createIntent === "deck" && (
+          <DeckModal
+            open={true}
+            onOpenChange={(open) => !open && clearCreateIntent()}
+          />
         )}
 
         <Toaster />

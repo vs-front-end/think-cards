@@ -31,20 +31,37 @@ body {
     @apply scale-[0.98] brightness-95;
   }
 
-  .deck-tree-scroll {
+  .themed-scroll {
     scrollbar-width: thin;
     scrollbar-color: theme("colors.border") transparent;
   }
 
-  .deck-tree-scroll::-webkit-scrollbar {
+  .themed-scroll::-webkit-scrollbar {
     width: 6px;
   }
 
-  .deck-tree-scroll::-webkit-scrollbar-track {
+  .themed-scroll::-webkit-scrollbar-track {
     background: transparent;
   }
 
-  .deck-tree-scroll::-webkit-scrollbar-thumb {
+  .themed-scroll::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border;
+  }
+
+  .ProseMirror {
+    scrollbar-width: thin;
+    scrollbar-color: theme("colors.border") transparent;
+  }
+
+  .ProseMirror::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .ProseMirror::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .ProseMirror::-webkit-scrollbar-thumb {
     @apply rounded-full bg-border;
   }
 }

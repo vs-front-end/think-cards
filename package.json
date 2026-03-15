@@ -12,6 +12,7 @@
   "dependencies": {
     "@stellar-ui-kit/web": "^1.1.0",
     "@supabase/supabase-js": "^2.98.0",
+    "@tailwindcss/typography": "^0.5.19",
     "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-router": "^1.163.3",
     "@tanstack/react-virtual": "^3.13.21",

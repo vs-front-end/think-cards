@@ -186,8 +186,15 @@ export function StudySession({ deckId }: StudySessionProps) {
     ? parseClozeRevealed(currentCard.front)
     : currentCard.back;
 
-  const sanitizedFront = DOMPurify.sanitize(frontContent);
-  const sanitizedBack = DOMPurify.sanitize(backContent);
+  const sanitizedFront = DOMPurify.sanitize(frontContent, {
+    ADD_ATTR: ["target"],
+  });
+  const sanitizedBack = DOMPurify.sanitize(backContent, {
+    ADD_ATTR: ["target"],
+  });
+
+  const addLinkTargets = (html: string) =>
+    html.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
   const sanitizedCorrectAnswer = DOMPurify.sanitize(currentCard.back, {
     ALLOWED_TAGS: [],
   });
@@ -251,23 +258,27 @@ export function StudySession({ deckId }: StudySessionProps) {
               !isTyping && flipped && "[transform:rotateY(180deg)]",
             )}
           >
-            <Card className="flex min-h-48 w-full items-center justify-center p-6 [backface-visibility:hidden]">
+            <Card className="themed-scroll max-h-96 w-full overflow-y-auto rounded-lg py-2 [backface-visibility:hidden]">
               <div
-                className="prose prose-sm max-w-none text-center text-foreground dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: sanitizedFront }}
+                className="prose prose-sm max-w-none w-full px-6 text-foreground"
+                dangerouslySetInnerHTML={{
+                  __html: addLinkTargets(sanitizedFront),
+                }}
               />
             </Card>
 
             {!isTyping && (
               <Card
                 className={cn(
-                  "absolute inset-0 flex min-h-48 w-full items-center justify-center p-6",
+                  "themed-scroll absolute inset-0 max-h-96 w-full overflow-y-auto rounded-lg py-2",
                   "[backface-visibility:hidden] [transform:rotateY(180deg)]",
                 )}
               >
                 <div
-                  className="prose prose-sm max-w-none text-center text-foreground dark:prose-invert"
-                  dangerouslySetInnerHTML={{ __html: sanitizedBack }}
+                  className="prose prose-sm max-w-none w-full px-6 text-foreground"
+                  dangerouslySetInnerHTML={{
+                    __html: addLinkTargets(sanitizedBack),
+                  }}
                 />
               </Card>
             )}
@@ -307,7 +318,7 @@ export function StudySession({ deckId }: StudySessionProps) {
               <div className="flex w-full max-w-xl flex-col gap-4">
                 <div
                   className={cn(
-                    "flex items-start gap-2 rounded-lg p-4 text-white",
+                    "flex items-start gap-2 p-4 text-white",
                     typingCorrect ? "bg-success" : "bg-error",
                   )}
                 >

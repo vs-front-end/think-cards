@@ -183,7 +183,7 @@ export function DeckTree({
 
       <Separator className="my-1" />
 
-      <div className="deck-tree-scroll flex-1 min-h-0 overflow-y-auto">
+      <div className="themed-scroll flex-1 min-h-0 overflow-y-auto">
         {isLoading ? (
           <div className="flex flex-col gap-1.5 px-1">
             <Skeleton className="h-7 rounded-lg" />
