@@ -7,14 +7,14 @@ export const Header = () => {
 
   return (
     <header className="border-b border-border bg-background px-4">
-      <div className="flex w-full max-w-[1440px] items-center justify-between gap-4 py-4">
-        <Link to="/" className="flex items-center">
+      <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-4 py-4">
+        <Link
+          to="/"
+          className="flex items-center transition-transform duration-200 hover:scale-105"
+        >
           <Text as="span" className="text-xl font-semibold md:text-2xl">
             Think
-            <Text
-              as="span"
-              className="text-primary transition-colors duration-200 group-hover:text-primary/90"
-            >
+            <Text as="span" className="text-primary">
               Cards
             </Text>
           </Text>

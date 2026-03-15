@@ -3,6 +3,7 @@ import { cn } from "@stellar-ui-kit/shared";
 import { useTranslation } from "react-i18next";
 import { Pencil, Trash2 } from "lucide-react";
 import type { CardWithState, CardStatus } from "@/hooks/useCardsWithState";
+import { truncate } from "@/utils/format";
 
 import {
   Checkbox,
@@ -82,10 +83,11 @@ export function CardRow({
       />
 
       <div className="min-w-0 flex-1">
-        <Text as="p" className="truncate text-sm">
-          {front || "—"}
+        <Text as="p" className="text-sm">
+          {truncate(front, 180) || "—"}
         </Text>
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
           <span>
             {t("cardRowLabelStatus")}:{" "}
             <span className="text-foreground">{statusLabel(card.status)}</span>

@@ -71,7 +71,7 @@ export function Sidebar() {
   return (
     <div className="flex h-full flex-col bg-background">
       <div className="flex h-14 shrink-0 items-center border-b border-border px-4">
-        <Link to="/dashboard" className="flex items-center">
+        <Link to="/dashboard" className="flex items-center transition-transform duration-200 hover:scale-105">
           <Text as="span" className="text-2xl font-bold text-foreground">
             Think
             <Text as="span" className="text-primary">

@@ -53,6 +53,30 @@ export function useSignOut() {
   };
 }
 
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: async ({
+      currentPassword,
+      newPassword,
+      email,
+    }: {
+      currentPassword: string;
+      newPassword: string;
+      email: string;
+    }) => {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password: currentPassword,
+      });
+
+      if (signInError) throw new Error("wrongCurrentPassword");
+
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+    },
+  });
+}
+
 export function useOAuthSignIn() {
   return async (provider: Provider) => {
     const { error } = await supabase.auth.signInWithOAuth({

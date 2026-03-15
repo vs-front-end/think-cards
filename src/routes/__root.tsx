@@ -5,7 +5,6 @@ import { cn } from "@stellar-ui-kit/shared";
 import { Button, Text, Toaster } from "@stellar-ui-kit/web";
 import { useAuthStore, useCreateIntentStore } from "@/store";
 import { supabase } from "@/lib/supabase";
-import { useSync } from "@/hooks/useSync";
 import { Header, BottomTab, Sidebar, DeckModal, CardModal } from "@/components";
 
 import {
@@ -77,19 +76,6 @@ export const Route = createRootRoute({
   component: RootComponent,
 });
 
-function SyncIndicator() {
-  const { t } = useTranslation();
-  const { isSyncing } = useSync();
-
-  if (!isSyncing) return null;
-
-  return (
-    <div className="fixed bottom-24 right-4 z-50 flex items-center gap-2 rounded-full bg-surface px-3 py-1.5 shadow-md md:bottom-4">
-      <span className="size-2 animate-pulse rounded-full bg-primary" />
-      <span className="text-xs text-muted">{t("syncIndicator")}</span>
-    </div>
-  );
-}
 
 function RootComponent() {
   const navigate = useNavigate();
@@ -161,8 +147,6 @@ function RootComponent() {
 
           {isLoggedIn && <BottomTab />}
         </div>
-
-        {isLoggedIn && <SyncIndicator />}
 
         {isLoggedIn && (
           <>

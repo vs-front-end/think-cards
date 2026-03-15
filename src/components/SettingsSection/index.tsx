@@ -13,8 +13,8 @@ export function SettingsSection({ id, title, children }: SettingsSectionProps) {
         {title}
       </Text>
 
-      <Card className="border border-border bg-surface p-4">
-        <div className="flex w-full flex-col gap-3">{children}</div>
+      <Card className="border border-border bg-surface p-4 ">
+        <div className="flex w-full flex-col gap-4">{children}</div>
       </Card>
     </section>
   );

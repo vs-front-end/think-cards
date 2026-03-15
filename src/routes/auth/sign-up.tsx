@@ -28,7 +28,7 @@ const PASSWORD_REQUIREMENTS = [
 
 const SignUpComponent = () => {
   const { t } = useTranslation();
-  
+
   const signUp = useSignUp();
   const oAuthSignIn = useOAuthSignIn();
 
@@ -211,15 +211,17 @@ const SignUpComponent = () => {
                 htmlFor="terms"
                 className="cursor-pointer text-sm text-muted"
               >
-                {t("signUpTermsLabel")}{" "}
-                <Link
-                  to="/legal/privacy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-foreground underline ml-[-2px]"
-                >
-                  {t("signUpTermsPrivacyLink")}
-                </Link>
+                <Text as="p" className="text-sm text-muted">
+                  {t("signUpTermsLabel")}{" "}
+                  <a
+                    href="/legal/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-foreground underline"
+                  >
+                    {t("signUpTermsPrivacyLink")}
+                  </a>
+                </Text>
               </Label>
             </div>
 

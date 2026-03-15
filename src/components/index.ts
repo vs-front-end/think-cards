@@ -17,7 +17,6 @@ export * from "./Header";
 export * from "./InstallPrompt";
 export * from "./LanguageSection";
 export * from "./OnboardingTour";
-export * from "./ProfileSection";
 export * from "./RatingButton";
 export * from "./SessionBar";
 export * from "./SettingsSection";
