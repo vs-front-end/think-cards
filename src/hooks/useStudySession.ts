@@ -39,6 +39,11 @@ function stateOrder(state: number): number {
 }
 
 export function useStudySession(deckId: string) {
+  const startedAt = useRef(new Date());
+  const cardShownAt = useRef(new Date());
+  const sessionSaved = useRef(false);
+  const saveSessionRef = useRef<() => Promise<void>>(() => Promise.resolve());
+
   const f = useMemo(() => fsrs(), []);
   const userId = useAuthStore((s) => s.user?.id ?? null);
 
@@ -46,8 +51,6 @@ export function useStudySession(deckId: string) {
   const [index, setIndex] = useState(0);
   const [answeredCount, setAnsweredCount] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
-  const startedAt = useRef(new Date());
-  const sessionSaved = useRef(false);
 
   useEffect(() => {
     if (!deckId) return;
@@ -70,7 +73,6 @@ export function useStudySession(deckId: string) {
         .filter((s) => new Date(s.due) <= today)
         .toArray();
 
-      const stateMap = new Map(states.map((s) => [s.card_id, s]));
       const cardMap = new Map(cards.map((c) => [c.id, c]));
 
       const queued: QueuedCard[] = [];
@@ -85,8 +87,6 @@ export function useStudySession(deckId: string) {
 
       setQueue(queued);
       setIsLoaded(true);
-
-      void stateMap;
     }
 
     load().catch(console.error);
@@ -105,7 +105,6 @@ export function useStudySession(deckId: string) {
       difficulty: currentItem.state.difficulty,
       elapsed_days: 0,
       scheduled_days: 0,
-      learning_steps: 0,
       reps: currentItem.state.reps,
       lapses: currentItem.state.lapses,
       state: currentItem.state.state as State,
@@ -137,7 +136,6 @@ export function useStudySession(deckId: string) {
         difficulty: currentItem.state.difficulty,
         elapsed_days: 0,
         scheduled_days: 0,
-        learning_steps: 0,
         reps: currentItem.state.reps,
         lapses: currentItem.state.lapses,
         state: currentItem.state.state as State,
@@ -161,7 +159,7 @@ export function useStudySession(deckId: string) {
         pending_sync: 1,
       });
 
-      const elapsedMs = now.getTime() - startedAt.current.getTime();
+      const elapsedMs = now.getTime() - cardShownAt.current.getTime();
 
       await db.revlog.add({
         id: crypto.randomUUID(),
@@ -177,6 +175,7 @@ export function useStudySession(deckId: string) {
 
       setAnsweredCount((n) => n + 1);
       setIndex((i) => i + 1);
+      cardShownAt.current = new Date();
     },
     [currentItem, f],
   );
@@ -202,9 +201,11 @@ export function useStudySession(deckId: string) {
     if (uid) syncAll(uid).catch(console.error);
   }, [deckId, answeredCount]);
 
+  saveSessionRef.current = saveSession;
+
   useEffect(() => {
     return () => {
-      saveSession().catch(console.error);
+      saveSessionRef.current().catch(console.error);
     };
   }, []);
 
