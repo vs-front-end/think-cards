@@ -501,6 +501,7 @@ function WelcomeComponent() {
                 <button
                   key={value}
                   type="button"
+                  aria-label={`${value} theme`}
                   onClick={() => setTheme(value)}
                   className={cn(
                     "flex items-center justify-center rounded-full transition-colors p-1.5",
@@ -521,6 +522,7 @@ function WelcomeComponent() {
                 <button
                   key={value}
                   type="button"
+                  aria-label={`Change language to ${label}`}
                   onClick={() => setLang(value)}
                   className={cn(
                     "p-2 text-xs transition-colors rounded-full",
@@ -540,6 +542,7 @@ function WelcomeComponent() {
               href="https://github.com/vs-front-end/think-cards"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="ThinkCards on GitHub"
               className="flex items-center gap-1.5 text-xs text-muted transition-colors hover:text-foreground"
             >
               <Github className="size-3.5" />

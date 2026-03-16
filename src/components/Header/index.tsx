@@ -20,7 +20,7 @@ export const Header = () => {
           </Text>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <nav aria-label="Main navigation" className="flex items-center gap-2">
           <Link to="/auth/login">
             <Button type="button" variant="ghost" size="sm">
               {t("headerLogin")}
@@ -32,7 +32,7 @@ export const Header = () => {
               {t("headerSignUp")}
             </Button>
           </Link>
-        </div>
+        </nav>
       </div>
     </header>
   );
