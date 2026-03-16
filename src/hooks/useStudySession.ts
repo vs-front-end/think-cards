@@ -107,6 +107,7 @@ export function useStudySession(deckId: string) {
       scheduled_days: 0,
       reps: currentItem.state.reps,
       lapses: currentItem.state.lapses,
+      learning_steps: currentItem.state.learning_steps ?? 0,
       state: currentItem.state.state as State,
       last_review: currentItem.state.last_review
         ? new Date(currentItem.state.last_review)
@@ -138,6 +139,7 @@ export function useStudySession(deckId: string) {
         scheduled_days: 0,
         reps: currentItem.state.reps,
         lapses: currentItem.state.lapses,
+        learning_steps: currentItem.state.learning_steps ?? 0,
         state: currentItem.state.state as State,
         last_review: currentItem.state.last_review
           ? new Date(currentItem.state.last_review)
@@ -155,6 +157,7 @@ export function useStudySession(deckId: string) {
         state: nextCard.state,
         reps: nextCard.reps,
         lapses: nextCard.lapses,
+        learning_steps: nextCard.learning_steps,
         updated_at: now.toISOString(),
         pending_sync: 1,
       });

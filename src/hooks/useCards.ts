@@ -69,6 +69,7 @@ export function useCreateCard() {
         state: fsrsCard.state,
         reps: fsrsCard.reps,
         lapses: fsrsCard.lapses,
+        learning_steps: fsrsCard.learning_steps,
         updated_at: now,
         pending_sync: 1,
       };

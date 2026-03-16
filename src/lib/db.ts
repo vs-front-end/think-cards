@@ -38,6 +38,7 @@ export interface ICardState {
   state: number;
   reps: number;
   lapses: number;
+  learning_steps: number;
   updated_at: string;
   pending_sync: SyncFlag;
 }
@@ -100,6 +101,14 @@ class ThinkCardsDB extends Dexie {
     }).upgrade(async (tx) => {
       await tx.table("revlog").toCollection().modify({ pending_sync: 0 });
       await tx.table("session_log").toCollection().modify({ pending_sync: 0 });
+    });
+
+    this.version(4).stores({}).upgrade(async (tx) => {
+      await tx.table("card_state").toCollection().modify((record) => {
+        if (record.learning_steps === undefined) {
+          record.learning_steps = 0;
+        }
+      });
     });
   }
 }
