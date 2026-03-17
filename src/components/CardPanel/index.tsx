@@ -1,15 +1,17 @@
 import {
   useCallback,
   useDeferredValue,
+  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+
 import { useTranslation } from "react-i18next";
 import { useNavigateToStudy } from "@/hooks";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { BookOpen, Play, Plus } from "lucide-react";
 import type { CardStatus, CardWithState } from "@/hooks/useCardsWithState";
+import { CARDS_PAGE_SIZE } from "@/hooks/useCardsWithState";
 import { CardRow, EmptyCards } from "@/components";
 
 import {
@@ -27,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
   Skeleton,
+  Spinner,
   Text,
 } from "@stellar-ui-kit/web";
 
@@ -46,6 +49,8 @@ type VirtualizedCardListProps = {
   onToggle: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  onLoadMore: () => void;
+  hasMore: boolean;
 };
 
 function VirtualizedCardList({
@@ -54,46 +59,47 @@ function VirtualizedCardList({
   onToggle,
   onEdit,
   onDelete,
+  onLoadMore,
+  hasMore,
 }: VirtualizedCardListProps) {
-  const parentRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const virtualizer = useVirtualizer({
-    count: cards.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 72,
-  });
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) onLoadMore();
+      },
+      { rootMargin: "200px" },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, onLoadMore]);
 
   return (
-    <div
-      ref={parentRef}
-      className="themed-scroll min-w-0 flex-1 overflow-y-auto pb-20 md:pb-0"
-    >
-      <div
-        className="relative w-full"
-        style={{ height: `${virtualizer.getTotalSize()}px` }}
-      >
-        {virtualizer.getVirtualItems().map((virtualRow) => {
-          const card = cards[virtualRow.index];
+    <div className="themed-scroll min-w-0 flex-1 overflow-y-auto pb-20 md:pb-0">
+      {cards.map((card) => (
+        <CardRow
+          key={card.id}
+          card={card}
+          selected={selected.has(card.id)}
+          onToggle={onToggle}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+      ))}
 
-          return (
-            <div
-              key={card.id}
-              data-index={virtualRow.index}
-              ref={virtualizer.measureElement}
-              className="absolute left-0 w-full"
-              style={{ transform: `translateY(${virtualRow.start}px)` }}
-            >
-              <CardRow
-                card={card}
-                selected={selected.has(card.id)}
-                onToggle={onToggle}
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
-            </div>
-          );
-        })}
-      </div>
+      {hasMore && (
+        <div
+          ref={sentinelRef}
+          className="flex items-center justify-center py-4"
+        >
+          <Spinner className="size-4 text-muted" />
+        </div>
+      )}
     </div>
   );
 }
@@ -119,7 +125,13 @@ export function CardPanel({
   const moveCards = useMoveCards();
   const bulkDelete = useBulkDeleteCards();
   const { data: allDecks = [] } = useDecksList();
-  const { data: cards = [], isLoading } = useCardsWithState(deckId);
+
+  const [limit, setLimit] = useState(CARDS_PAGE_SIZE);
+  const {
+    data: cards = [],
+    isLoading,
+    hasMore,
+  } = useCardsWithState(deckId, limit);
 
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<CardTypeFilter>("all");
@@ -129,7 +141,16 @@ export function CardPanel({
   const [confirmBulkDeleteOpen, setConfirmBulkDeleteOpen] = useState(false);
   const [confirmBulkMoveOpen, setConfirmBulkMoveOpen] = useState(false);
 
+  useEffect(() => {
+    setLimit(CARDS_PAGE_SIZE);
+    setSelected(new Set());
+  }, [deckId]);
+
   const deferredSearch = useDeferredValue(search);
+
+  const handleLoadMore = useCallback(() => {
+    setLimit((prev) => prev + CARDS_PAGE_SIZE);
+  }, []);
 
   const toggleSelect = useCallback((id: string) => {
     setSelected((prev) => {
@@ -238,9 +259,7 @@ export function CardPanel({
             variant="outline"
             size="sm"
             className="gap-1.5"
-            onClick={() =>
-              navigateToStudy(deckId!)
-            }
+            onClick={() => navigateToStudy(deckId!)}
           >
             <Play className="size-3.5" />
             {t("cardPanelStudy")}
@@ -393,6 +412,8 @@ export function CardPanel({
           onToggle={toggleSelect}
           onEdit={onEditCard}
           onDelete={onDeleteCard}
+          onLoadMore={handleLoadMore}
+          hasMore={hasMore}
         />
       )}
 

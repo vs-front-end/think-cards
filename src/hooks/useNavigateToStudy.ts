@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { db } from "@/lib/db";
+import { getAllDescendantDeckIds } from "@/utils";
 
 export function useNavigateToStudy() {
   const navigate = useNavigate();
@@ -13,9 +14,11 @@ export function useNavigateToStudy() {
       const today = new Date();
       today.setHours(23, 59, 59, 999);
 
+      const deckIds = await getAllDescendantDeckIds(deckId);
+
       const cards = await db.cards
         .where("deck_id")
-        .equals(deckId)
+        .anyOf(deckIds)
         .filter((c) => c.deleted_at === null)
         .toArray();
 

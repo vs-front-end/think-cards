@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { State } from "ts-fsrs";
 import type { CardType } from "@/lib/db";
 
+export const CARDS_PAGE_SIZE = 100;
+
 export type CardStatus = "new" | "learning" | "review";
 
 export type CardWithState = {
@@ -26,7 +28,20 @@ function toStatus(state: number): CardStatus {
   return "review";
 }
 
-export function useCardsWithState(deckId: string | null) {
+export function useCardsWithState(
+  deckId: string | null,
+  limit = CARDS_PAGE_SIZE,
+) {
+  const total = useLiveQuery(async () => {
+    if (!deckId) return 0;
+
+    return db.cards
+      .where("deck_id")
+      .equals(deckId)
+      .filter((c) => c.deleted_at === null)
+      .count();
+  }, [deckId]);
+
   const result = useLiveQuery(async () => {
     if (!deckId) return [];
 
@@ -34,6 +49,7 @@ export function useCardsWithState(deckId: string | null) {
       .where("deck_id")
       .equals(deckId)
       .filter((c) => c.deleted_at === null)
+      .limit(limit)
       .toArray();
 
     const cardIds = cards.map((c) => c.id);
@@ -59,11 +75,13 @@ export function useCardsWithState(deckId: string | null) {
         state: s?.state ?? State.New,
       };
     });
-  }, [deckId]);
+  }, [deckId, limit]);
 
   return {
     data: result ?? [],
     isLoading: result === undefined,
+    total: total ?? 0,
+    hasMore: (result?.length ?? 0) < (total ?? 0),
   };
 }
 

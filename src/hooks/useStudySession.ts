@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import type { ICard, ICardState, Rating as DBRating } from "@/lib/db";
 import { useAuthStore } from "@/store";
 import { syncAll } from "@/lib/sync";
+import { getAllDescendantDeckIds } from "@/utils";
 
 type QueuedCard = {
   card: ICard;
@@ -38,6 +39,37 @@ function stateOrder(state: number): number {
   return 2;
 }
 
+function interleaveDecks(
+  buckets: Map<string, QueuedCard[]>,
+  totalLimit: number,
+): QueuedCard[] {
+  const queues = [...buckets.values()].filter((b) => b.length > 0);
+  const result: QueuedCard[] = [];
+
+  let i = 0;
+
+  while (result.length < totalLimit) {
+    let advanced = false;
+
+    for (let qi = 0; qi < queues.length; qi++) {
+      const idx = (i + qi) % queues.length;
+      const queue = queues[idx];
+
+      if (queue.length > 0) {
+        result.push(queue.shift()!);
+        advanced = true;
+
+        if (result.length >= totalLimit) break;
+      }
+    }
+
+    if (!advanced) break;
+    i = (i + 1) % queues.length;
+  }
+
+  return result;
+}
+
 export function useStudySession(deckId: string) {
   const startedAt = useRef(new Date());
   const cardShownAt = useRef(new Date());
@@ -59,31 +91,60 @@ export function useStudySession(deckId: string) {
     today.setHours(23, 59, 59, 999);
 
     async function load() {
-      const cards = await db.cards
+      const deckIds = await getAllDescendantDeckIds(deckId);
+
+      const deckRecords = await db.decks
+        .where("id")
+        .anyOf(deckIds)
+        .filter((d) => d.deleted_at === null)
+        .toArray();
+
+      const deckLimitMap = new Map(
+        deckRecords.map((d) => [d.id, d.daily_goal]),
+      );
+      const rootLimit = deckLimitMap.get(deckId) ?? 9999;
+
+      const allCards = await db.cards
         .where("deck_id")
-        .equals(deckId)
+        .anyOf(deckIds)
         .filter((c) => c.deleted_at === null)
         .toArray();
 
-      const cardIds = cards.map((c) => c.id);
+      const cardIds = allCards.map((c) => c.id);
 
-      const states = await db.card_state
+      const dueStates = await db.card_state
         .where("card_id")
         .anyOf(cardIds)
         .filter((s) => new Date(s.due) <= today)
         .toArray();
 
-      const cardMap = new Map(cards.map((c) => [c.id, c]));
+      const cardMap = new Map(allCards.map((c) => [c.id, c]));
 
-      const queued: QueuedCard[] = [];
-      for (const state of states) {
-        const card = cardMap.get(state.card_id);
-        if (card) queued.push({ card, state });
+      const buckets = new Map<string, QueuedCard[]>();
+
+      for (const did of deckIds) {
+        buckets.set(did, []);
       }
 
-      queued.sort(
-        (a, b) => stateOrder(a.state.state) - stateOrder(b.state.state),
-      );
+      for (const state of dueStates) {
+        const card = cardMap.get(state.card_id);
+        if (!card) continue;
+        buckets.get(card.deck_id)?.push({ card, state });
+      }
+
+      for (const [did, bucket] of buckets) {
+        bucket.sort(
+          (a, b) => stateOrder(a.state.state) - stateOrder(b.state.state),
+        );
+
+        const limit =
+          did === deckId ? Infinity : (deckLimitMap.get(did) ?? 9999);
+        if (bucket.length > limit) {
+          bucket.splice(limit);
+        }
+      }
+
+      const queued = interleaveDecks(buckets, rootLimit);
 
       setQueue(queued);
       setIsLoaded(true);

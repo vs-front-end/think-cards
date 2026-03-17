@@ -3,7 +3,13 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@stellar-ui-kit/shared";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSyncStore } from "@/store";
-import { useDashboardData, useDecksList, useIsMobile, useSync, useDocumentHead } from "@/hooks";
+import {
+  useDashboardData,
+  useDecksList,
+  useIsMobile,
+  useSync,
+  useDocumentHead,
+} from "@/hooks";
 import { formatTimePerCard } from "@/utils";
 import type { IDeck } from "@/lib/db";
 
@@ -71,6 +77,15 @@ type DeckStatNode = {
   children: DeckStatNode[];
 };
 
+function aggregateCounts(node: DeckStatNode): void {
+  for (const child of node.children) {
+    aggregateCounts(child);
+    node.new += child.new;
+    node.learning += child.learning;
+    node.review += child.review;
+  }
+}
+
 function buildDeckTree(
   stats: Array<{
     id: string;
@@ -103,6 +118,10 @@ function buildDeckTree(
     } else {
       roots.push(node);
     }
+  }
+
+  for (const root of roots) {
+    aggregateCounts(root);
   }
 
   return roots;
@@ -297,6 +316,7 @@ function DashboardComponent() {
             size="sm"
             onClick={() => setModal({ type: "createDeck" })}
             className="gap-1.5"
+            disabled={!initialSyncDone}
           >
             <Plus className="size-4 hidden min-[340px]:block" />
             {t("dashboardNewDeck")}
@@ -306,6 +326,7 @@ function DashboardComponent() {
             type="button"
             variant="outline"
             size="sm"
+            disabled={!initialSyncDone}
             onClick={() =>
               navigate({ to: "/cards/new", search: { deckId: undefined } })
             }
@@ -440,16 +461,16 @@ function DashboardComponent() {
           )}
         </div>
 
-        {isLoading && (
+        {(isLoading || !initialSyncDone) && (
           <div className="flex flex-col gap-4">
             <Skeleton className="h-24 rounded-xl" />
             <Skeleton className="h-24 rounded-xl" />
           </div>
         )}
 
-        {!isLoading && deckTree.length === 0 ? (
+        {!isLoading && initialSyncDone && deckTree.length === 0 ? (
           <EmptyDecks onCreateDeck={() => setModal({ type: "createDeck" })} />
-        ) : (
+        ) : !isLoading && initialSyncDone ? (
           <div className="flex flex-col gap-4">
             {filteredDeckTree.length === 0 ? (
               <Text as="p" styleVariant="muted" className="py-8 text-center">
@@ -468,7 +489,7 @@ function DashboardComponent() {
               ))
             )}
           </div>
-        )}
+        ) : null}
       </section>
 
       <DeckModal

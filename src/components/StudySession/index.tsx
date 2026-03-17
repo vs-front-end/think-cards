@@ -25,6 +25,7 @@ export function StudySession({ deckId }: StudySessionProps) {
     remainingCount,
     answeredCount,
     isDone,
+    isLoaded,
     previewIntervals,
     sessionStats,
     startedAt,
@@ -153,6 +154,8 @@ export function StudySession({ deckId }: StudySessionProps) {
   }
 
   if (!currentCard) {
+    if (!isLoaded) return null;
+
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-12 text-center">
         <div className="flex size-14 items-center justify-center rounded-full bg-success-soft text-success">
@@ -249,18 +252,21 @@ export function StudySession({ deckId }: StudySessionProps) {
 
       <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-8">
         <div
-          className="relative w-full max-w-xl"
+          className="w-full max-w-xl"
           style={{ perspective: "1200px" }}
         >
           <div
             className={cn(
-              "relative transition-transform duration-500 [transform-style:preserve-3d]",
+              "grid transition-transform duration-500 [transform-style:preserve-3d]",
               !isTyping && flipped && "[transform:rotateY(180deg)]",
             )}
           >
-            <Card className="themed-scroll max-h-96 w-full overflow-y-auto rounded-lg py-2 [backface-visibility:hidden]">
+            <Card
+              className="themed-scroll flex flex-col overflow-y-auto rounded-lg [backface-visibility:hidden] [grid-area:1/1]"
+              style={{ maxHeight: "42svh", minHeight: "14rem" }}
+            >
               <div
-                className="prose prose-sm max-w-none w-full px-6 text-foreground"
+                className="prose prose-sm my-auto max-w-none w-full px-6 py-6 text-center text-foreground"
                 dangerouslySetInnerHTML={{
                   __html: addLinkTargets(sanitizedFront),
                 }}
@@ -269,13 +275,11 @@ export function StudySession({ deckId }: StudySessionProps) {
 
             {!isTyping && (
               <Card
-                className={cn(
-                  "themed-scroll absolute inset-0 max-h-96 w-full overflow-y-auto rounded-lg py-2",
-                  "[backface-visibility:hidden] [transform:rotateY(180deg)]",
-                )}
+                className="themed-scroll flex flex-col overflow-y-auto rounded-lg [backface-visibility:hidden] [grid-area:1/1] [transform:rotateY(180deg)]"
+                style={{ maxHeight: "42svh", minHeight: "14rem" }}
               >
                 <div
-                  className="prose prose-sm max-w-none w-full px-6 text-foreground"
+                  className="prose prose-sm my-auto max-w-none w-full px-6 py-6 text-center text-foreground"
                   dangerouslySetInnerHTML={{
                     __html: addLinkTargets(sanitizedBack),
                   }}

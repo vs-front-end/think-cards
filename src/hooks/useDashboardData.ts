@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { db } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store";
 import { State } from "ts-fsrs";
 
 type DeckStats = {
@@ -57,8 +59,10 @@ function computeStreak(reviewedDates: string[]): number {
 }
 
 export function useDashboardData() {
+  const userId = useAuthStore((s) => s.user?.id ?? null);
+
   return useQuery<DashboardData>({
-    queryKey: ["dashboard"],
+    queryKey: ["dashboard", userId],
 
     queryFn: async () => {
       const todayEnd = new Date();
@@ -70,14 +74,27 @@ export function useDashboardData() {
       const todayEndIso = todayEnd.toISOString();
       const todayStartIso = todayStart.toISOString();
 
-      const [decks, cards, allCardStates, todayRevlogs, allRevlogs] =
-        await Promise.all([
-          db.decks.filter((d) => d.deleted_at === null).toArray(),
-          db.cards.filter((c) => c.deleted_at === null).toArray(),
-          db.card_state.toArray(),
-          db.revlog.filter((r) => r.reviewed_at >= todayStartIso).toArray(),
-          db.revlog.toArray(),
-        ]);
+      const [
+        decks,
+        cards,
+        allCardStates,
+        todayRevlogs,
+        allRevlogs,
+        profileRes,
+      ] = await Promise.all([
+        db.decks.filter((d) => d.deleted_at === null).toArray(),
+        db.cards.filter((c) => c.deleted_at === null).toArray(),
+        db.card_state.toArray(),
+        db.revlog.filter((r) => r.reviewed_at >= todayStartIso).toArray(),
+        db.revlog.toArray(),
+        userId
+          ? supabase
+              .from("profiles")
+              .select("daily_goal_default")
+              .eq("id", userId)
+              .single()
+          : Promise.resolve({ data: null }),
+      ]);
 
       const cardStateMap = new Map(allCardStates.map((s) => [s.card_id, s]));
       const cardDeckMap = new Map(cards.map((c) => [c.id, c.deck_id]));
@@ -96,13 +113,9 @@ export function useDashboardData() {
       const avgSecondsPerCard =
         studiedToday > 0 ? Math.round(studyTimeSeconds / studiedToday) : 0;
 
-      const deckGoals = new Map(decks.map((d) => [d.id, d.daily_goal]));
       const globalGoal =
-        decks.length > 0
-          ? Math.round(
-              decks.reduce((sum, d) => sum + d.daily_goal, 0) / decks.length,
-            )
-          : 20;
+        (profileRes.data as { daily_goal_default?: number } | null)
+          ?.daily_goal_default ?? 20;
 
       const deckCounters = new Map<
         string,
@@ -126,7 +139,6 @@ export function useDashboardData() {
 
         const counter = deckCounters.get(deckId)!;
         if (state.state === State.New) counter.newCount++;
-        
         else if (
           state.state === State.Learning ||
           state.state === State.Relearning
@@ -139,7 +151,7 @@ export function useDashboardData() {
         id: d.id,
         name: d.name,
         parent_id: d.parent_id,
-        daily_goal: deckGoals.get(d.id) ?? 20,
+        daily_goal: d.daily_goal,
         ...(deckCounters.get(d.id) ?? {
           newCount: 0,
           learningCount: 0,
