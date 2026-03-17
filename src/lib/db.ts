@@ -69,6 +69,7 @@ export interface ISessionLog {
 export interface ISyncMeta {
   user_id: string;
   last_synced_at: string | null;
+  initial_pull_done: boolean;
 }
 
 class ThinkCardsDB extends Dexie {
@@ -107,6 +108,14 @@ class ThinkCardsDB extends Dexie {
       await tx.table("card_state").toCollection().modify((record) => {
         if (record.learning_steps === undefined) {
           record.learning_steps = 0;
+        }
+      });
+    });
+
+    this.version(5).stores({}).upgrade(async (tx) => {
+      await tx.table("sync_meta").toCollection().modify((record) => {
+        if (record.initial_pull_done === undefined) {
+          record.initial_pull_done = false;
         }
       });
     });

@@ -19,9 +19,14 @@ const SYNCABLE_TABLES: SyncableTable[] = [
 
 const PAGE_SIZE = 500;
 
-async function getLastSyncedAt(userId: string): Promise<string | null> {
+async function getSyncMeta(
+  userId: string,
+): Promise<{ lastSyncedAt: string | null; initialPullDone: boolean }> {
   const meta = await db.sync_meta.get(userId);
-  return meta?.last_synced_at ?? null;
+  return {
+    lastSyncedAt: meta?.last_synced_at ?? null,
+    initialPullDone: meta?.initial_pull_done ?? false,
+  };
 }
 
 async function countPending(): Promise<number> {
@@ -186,19 +191,22 @@ async function push(full: boolean): Promise<void> {
 async function fetchAllPages<T>(
   table: string,
   column: string,
-  since: string,
+  since: string | null,
   orderColumn?: string,
 ): Promise<T[]> {
   const all: T[] = [];
   let from = 0;
 
   while (true) {
-    const query = supabase
+    let query = supabase
       .from(table)
       .select("*")
-      .gt(column, since)
       .order(orderColumn ?? column, { ascending: true })
       .range(from, from + PAGE_SIZE - 1);
+
+    if (since !== null) {
+      query = query.gt(column, since);
+    }
 
     const { data, error } = await query;
     if (error) throw error;
@@ -212,7 +220,7 @@ async function fetchAllPages<T>(
   return all;
 }
 
-async function pullDecks(lastSyncedAt: string): Promise<void> {
+async function pullDecks(lastSyncedAt: string | null): Promise<void> {
   const data = await fetchAllPages<Record<string, unknown>>(
     "decks",
     "updated_at",
@@ -248,7 +256,7 @@ async function pullDecks(lastSyncedAt: string): Promise<void> {
   }
 }
 
-async function pullCards(lastSyncedAt: string): Promise<void> {
+async function pullCards(lastSyncedAt: string | null): Promise<void> {
   const data = await fetchAllPages<Record<string, unknown>>(
     "cards",
     "updated_at",
@@ -284,7 +292,7 @@ async function pullCards(lastSyncedAt: string): Promise<void> {
   }
 }
 
-async function pullCardState(lastSyncedAt: string): Promise<void> {
+async function pullCardState(lastSyncedAt: string | null): Promise<void> {
   const data = await fetchAllPages<Record<string, unknown>>(
     "card_state",
     "updated_at",
@@ -309,7 +317,7 @@ async function pullCardState(lastSyncedAt: string): Promise<void> {
   }
 }
 
-async function pullRevlog(lastSyncedAt: string): Promise<void> {
+async function pullRevlog(lastSyncedAt: string | null): Promise<void> {
   const data = await fetchAllPages<Record<string, unknown>>(
     "revlog",
     "reviewed_at",
@@ -332,7 +340,7 @@ async function pullRevlog(lastSyncedAt: string): Promise<void> {
   }
 }
 
-async function pullSessionLog(lastSyncedAt: string): Promise<void> {
+async function pullSessionLog(lastSyncedAt: string | null): Promise<void> {
   const data = await fetchAllPages<Record<string, unknown>>(
     "session_log",
     "started_at",
@@ -355,7 +363,7 @@ async function pullSessionLog(lastSyncedAt: string): Promise<void> {
   }
 }
 
-async function pull(lastSyncedAt: string): Promise<void> {
+async function pull(lastSyncedAt: string | null): Promise<void> {
   await Promise.all([
     pullDecks(lastSyncedAt),
     pullCards(lastSyncedAt),
@@ -374,7 +382,9 @@ async function getServerTimestamp(): Promise<string> {
 export async function syncAll(userId: string): Promise<boolean> {
   if (!navigator.onLine) return false;
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session) return false;
 
   const { isSyncing, setIsSyncing, setLastSyncedAt, setPendingCount } =
@@ -382,23 +392,30 @@ export async function syncAll(userId: string): Promise<boolean> {
 
   if (isSyncing) return false;
 
-  const lastSyncedAt = await getLastSyncedAt(userId);
+  const { lastSyncedAt, initialPullDone } = await getSyncMeta(userId);
   const pendingCount = await countPending();
-  const needsPull = lastSyncedAt ? await hasRemoteChanges(lastSyncedAt) : true;
+
+  // If the initial pull never completed, we must re-pull everything regardless
+  // of lastSyncedAt — otherwise records created before lastSyncedAt are invisible.
+  const pullSince = initialPullDone ? lastSyncedAt : null;
+
+  const needsPull = pullSince ? await hasRemoteChanges(pullSince) : true;
 
   if (!pendingCount && !needsPull) return false;
 
   setIsSyncing(true);
 
   try {
-    const syncFrom = lastSyncedAt ?? new Date(0).toISOString();
-
     const full = lastSyncedAt === null;
     await push(full);
-    await pull(syncFrom);
+    await pull(pullSince);
 
     const now = await getServerTimestamp();
-    await db.sync_meta.put({ user_id: userId, last_synced_at: now });
+    await db.sync_meta.put({
+      user_id: userId,
+      last_synced_at: now,
+      initial_pull_done: true,
+    });
 
     setLastSyncedAt(new Date(now));
     setPendingCount(0);
