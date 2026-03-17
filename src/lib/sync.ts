@@ -202,6 +202,7 @@ async function fetchAllPages<T>(
       .from(table)
       .select("*")
       .order(orderColumn ?? column, { ascending: true })
+      .order("id", { ascending: true })
       .range(from, from + PAGE_SIZE - 1);
 
     if (since !== null) {
