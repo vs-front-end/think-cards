@@ -28,6 +28,8 @@ import {
   useDeleteAccount,
   useProfile,
   useResetData,
+  useResetStats,
+  useSetPassword,
   useSignOut,
   useUpdateProfile,
   useUploadAvatar,
@@ -41,10 +43,15 @@ export function AccountSection() {
   const user = useAuthStore((s) => s.user);
   const { data: profile, isLoading } = useProfile();
 
+  const hasPasswordProvider =
+    user?.identities?.some((identity) => identity.provider === "email") ?? false;
+
   const uploadAvatar = useUploadAvatar();
   const updateProfile = useUpdateProfile();
   const deleteAccount = useDeleteAccount();
   const changePassword = useChangePassword();
+  const setPassword = useSetPassword();
+  const resetStats = useResetStats();
   const resetData = useResetData();
   const signOut = useSignOut();
 
@@ -63,6 +70,9 @@ export function AccountSection() {
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
+
+  const [resetStatsOpen, setResetStatsOpen] = useState(false);
+  const [resetStatsConfirmText, setResetStatsConfirmText] = useState("");
 
   const [resetOpen, setResetOpen] = useState(false);
   const [resetConfirmText, setResetConfirmText] = useState("");
@@ -118,6 +128,32 @@ export function AccountSection() {
     }
   };
 
+  const handleSetPassword = async () => {
+    setPasswordError("");
+
+    const meetsRequirements = PASSWORD_REQUIREMENTS.every((re) =>
+      re.test(passwordForm.next),
+    );
+
+    if (!meetsRequirements) {
+      setPasswordError(t("changePasswordErrorRequirements"));
+      return;
+    }
+
+    if (passwordForm.next !== passwordForm.confirm) {
+      setPasswordError(t("changePasswordErrorMismatch"));
+      return;
+    }
+
+    try {
+      await setPassword.mutateAsync({ newPassword: passwordForm.next });
+      toast.success(t("addPasswordSuccess"));
+      setChangePasswordOpen(false);
+    } catch {
+      setPasswordError(t("changePasswordErrorGeneric"));
+    }
+  };
+
   const handleChangePassword = async () => {
     setPasswordError("");
 
@@ -164,6 +200,16 @@ export function AccountSection() {
       navigate({ to: "/" });
     } catch {
       toast.error(t("accountDeleteError"));
+    }
+  };
+
+  const handleResetStats = async () => {
+    try {
+      await resetStats.mutateAsync();
+      toast.success(t("settingsResetStatsSuccess"));
+      setResetStatsOpen(false);
+    } catch {
+      toast.error(t("settingsResetStatsError"));
     }
   };
 
@@ -288,10 +334,10 @@ export function AccountSection() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <Text as="p" className="text-sm font-semibold">
-            {t("changePasswordTitle")}
+            {t(hasPasswordProvider ? "changePasswordTitle" : "addPasswordTitle")}
           </Text>
           <Text as="p" className="text-xs text-muted">
-            {t("changePasswordDesc")}
+            {t(hasPasswordProvider ? "changePasswordDesc" : "addPasswordDesc")}
           </Text>
         </div>
 
@@ -306,7 +352,7 @@ export function AccountSection() {
           }}
         >
           <KeyRound className="size-4" />
-          {t("changePasswordButton")}
+          {t(hasPasswordProvider ? "changePasswordButton" : "addPasswordButton")}
         </Button>
       </div>
 
@@ -339,6 +385,32 @@ export function AccountSection() {
         <Text as="h3" className="text-lg font-bold text-error">
           {t("settingsDangerZone")}
         </Text>
+
+        <Separator className="bg-error" variant="dashed" />
+
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <Text as="p" className="text-sm font-semibold">
+              {t("settingsResetStats")}
+            </Text>
+            <Text as="p" className="text-xs text-muted">
+              {t("settingsResetStatsDesc")}
+            </Text>
+          </div>
+
+          <Button
+            type="button"
+            size="sm"
+            variant="destructive"
+            className="w-full md:w-32"
+            onClick={() => {
+              setResetStatsConfirmText("");
+              setResetStatsOpen(true);
+            }}
+          >
+            {t("settingsResetStatsButton")}
+          </Button>
+        </div>
 
         <Separator className="bg-error" variant="dashed" />
 
@@ -402,22 +474,26 @@ export function AccountSection() {
       >
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>{t("changePasswordTitle")}</DialogTitle>
+            <DialogTitle>
+              {t(hasPasswordProvider ? "changePasswordTitle" : "addPasswordTitle")}
+            </DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <InputPassword
-                label={t("changePasswordCurrentLabel")}
-                value={passwordForm.current}
-                onChange={(v) => {
-                  setPasswordForm((p) => ({ ...p, current: v }));
-                  setPasswordError("");
-                }}
-                placeholder="••••••••"
-                containerClassName="w-full max-w-full"
-              />
-            </div>
+            {hasPasswordProvider && (
+              <div className="flex flex-col gap-1.5">
+                <InputPassword
+                  label={t("changePasswordCurrentLabel")}
+                  value={passwordForm.current}
+                  onChange={(v) => {
+                    setPasswordForm((p) => ({ ...p, current: v }));
+                    setPasswordError("");
+                  }}
+                  placeholder="••••••••"
+                  containerClassName="w-full max-w-full"
+                />
+              </div>
+            )}
 
             <div className="flex flex-col gap-1.5">
               <InputPassword
@@ -458,7 +534,7 @@ export function AccountSection() {
               variant="ghost"
               size="sm"
               onClick={() => setChangePasswordOpen(false)}
-              disabled={changePassword.isPending}
+              disabled={changePassword.isPending || setPassword.isPending}
             >
               {t("settingsCancel")}
             </Button>
@@ -466,14 +542,61 @@ export function AccountSection() {
             <Button
               type="button"
               size="sm"
-              onClick={handleChangePassword}
-              disabled={changePassword.isPending}
+              onClick={hasPasswordProvider ? handleChangePassword : handleSetPassword}
+              disabled={changePassword.isPending || setPassword.isPending}
             >
-              {changePassword.isPending && (
+              {(changePassword.isPending || setPassword.isPending) && (
                 <Spinner className="size-4 text-white" />
               )}
 
               {t("changePasswordSave")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={resetStatsOpen} onOpenChange={setResetStatsOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t("settingsResetStatsConfirmTitle")}</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-2.5">
+            <Text as="p" className="text-xs text-muted">
+              {t("settingsResetStatsConfirmDesc")}
+            </Text>
+
+            <InputText
+              value={resetStatsConfirmText}
+              onChange={setResetStatsConfirmText}
+              placeholder={t("settingsResetStatsConfirmPlaceholder")}
+              containerClassName="w-full max-w-full"
+            />
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setResetStatsOpen(false)}
+              disabled={resetStats.isPending}
+            >
+              {t("settingsCancel")}
+            </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              disabled={
+                resetStatsConfirmText !== t("settingsResetStatsConfirmPlaceholder") ||
+                resetStats.isPending
+              }
+              onClick={handleResetStats}
+            >
+              {resetStats.isPending && <Spinner className="size-4 text-white" />}
+              {t("settingsResetStats")}
             </Button>
           </DialogFooter>
         </DialogContent>

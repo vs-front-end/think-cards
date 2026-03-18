@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { db } from "@/lib/db";
+import { useAuthStore } from "@/store";
 import { State } from "ts-fsrs";
 
 type DailyActivity = {
@@ -91,18 +92,24 @@ function computeStreaks(reviewedDates: string[]): {
 }
 
 export function useStatisticsData() {
+  const userId = useAuthStore((s) => s.user?.id ?? "");
+
   return useQuery<StatisticsData>({
-    queryKey: ["statistics"],
+    queryKey: ["statistics", userId],
     queryFn: async () => {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
       const [allRevlogs, allCardStates, decks, sessionLogs] = await Promise.all(
         [
-          db.revlog.toArray(),
+          db.revlog.where("user_id").equals(userId).toArray(),
           db.card_state.toArray(),
-          db.decks.filter((d) => d.deleted_at === null).toArray(),
-          db.session_log.toArray(),
+          db.decks
+            .where("user_id")
+            .equals(userId)
+            .filter((d) => d.deleted_at === null)
+            .toArray(),
+          db.session_log.where("user_id").equals(userId).toArray(),
         ],
       );
 

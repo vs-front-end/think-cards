@@ -4,9 +4,9 @@ interface ISocialAuthButtons {
   handlers: {
     google?: () => void;
     github?: () => void;
-    twitter?: () => void;
+    x?: () => void;
   };
-  isLoading?: boolean;
+  loadingProvider?: string | null;
 }
 
 const CONFIG = [
@@ -23,7 +23,7 @@ const CONFIG = [
     bgColor: "bg-[#553493]",
   },
   {
-    key: "twitter",
+    key: "x",
     label: "X",
     icon: "/icons/twitter.svg",
     bgColor: "bg-[#353535]",
@@ -32,12 +32,15 @@ const CONFIG = [
 
 export const SocialAuthButtons = ({
   handlers,
-  isLoading = false,
+  loadingProvider = null,
 }: ISocialAuthButtons) => {
   return (
     <div className="flex justify-center gap-4">
       {CONFIG.map(({ key, label, icon, bgColor }) => {
         const onClick = handlers[key];
+
+        const isThisLoading = loadingProvider === key;
+        const isAnyLoading = loadingProvider !== null;
 
         if (!onClick) return null;
 
@@ -46,11 +49,11 @@ export const SocialAuthButtons = ({
             key={key}
             type="button"
             onClick={onClick}
-            disabled={!onClick || isLoading}
+            disabled={isAnyLoading}
             aria-label={label}
             className={`flex h-9 w-9 items-center justify-center rounded-full ${bgColor} disabled:cursor-not-allowed disabled:opacity-40`}
           >
-            {isLoading ? (
+            {isThisLoading ? (
               <Spinner className="size-4 text-white" />
             ) : (
               <img

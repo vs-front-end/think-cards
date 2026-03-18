@@ -9,6 +9,7 @@ type SyncStore = {
   setInitialSyncDone: () => void;
   setLastSyncedAt: (lastSyncedAt: Date | null) => void;
   setPendingCount: (pendingCount: number) => void;
+  reset: () => void;
 };
 
 export const useSyncStore = create<SyncStore>()((set) => ({
@@ -20,4 +21,6 @@ export const useSyncStore = create<SyncStore>()((set) => ({
   setInitialSyncDone: () => set({ initialSyncDone: true }),
   setLastSyncedAt: (lastSyncedAt) => set({ lastSyncedAt }),
   setPendingCount: (pendingCount) => set({ pendingCount }),
+  reset: () =>
+    set({ isSyncing: false, initialSyncDone: false, lastSyncedAt: null, pendingCount: 0 }),
 }));

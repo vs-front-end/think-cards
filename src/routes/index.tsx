@@ -268,7 +268,7 @@ function WelcomeComponent() {
 
         <div className="grid gap-6 md:grid-cols-3">
           {steps.map((s) => (
-            <div key={s.step} className="flex flex-col gap-3">
+            <div key={s.step} className="flex flex-col items-center gap-3 text-center md:items-start md:text-left">
               <div className="flex size-10 items-center justify-center rounded-xl bg-primary-soft">
                 <Text as="span" className="text-sm font-bold text-primary">
                   {s.step}
@@ -307,7 +307,7 @@ function WelcomeComponent() {
           {features.map((f) => (
             <Card
               key={f.id}
-              className="flex flex-col gap-3 border border-border bg-surface p-5"
+              className="flex flex-col items-center gap-3 border border-border bg-surface p-5 text-center sm:items-start sm:text-left"
             >
               <div
                 className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${f.color}`}

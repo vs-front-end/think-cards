@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { isNotEmpty, isValidEmail, hasMinLength } from "@/utils/validation";
@@ -47,7 +47,16 @@ const LoginComponent = () => {
   });
 
   const [authError, setAuthError] = useState("");
-  const [isOAuthLoading, setIsOAuthLoading] = useState(false);
+  const [oAuthProvider, setOAuthProvider] = useState<string | null>(null);
+
+  useEffect(() => {
+    const reset = () => {
+      if (document.visibilityState === "visible") setOAuthProvider(null);
+    };
+    
+    document.addEventListener("visibilitychange", reset);
+    return () => document.removeEventListener("visibilitychange", reset);
+  }, []);
 
   const handleEmailChange = (value: string) => {
     setForm((prev) => ({ ...prev, email: value }));
@@ -96,16 +105,16 @@ const LoginComponent = () => {
   };
 
   const handleOAuth = async (provider: "google" | "github" | "x") => {
-    if (isOAuthLoading) return;
+    if (oAuthProvider !== null) return;
 
     setAuthError("");
-    setIsOAuthLoading(true);
+    setOAuthProvider(provider);
 
     try {
       await oAuthSignIn(provider);
     } catch {
       setAuthError(t("authErrorGeneric"));
-      setIsOAuthLoading(false);
+      setOAuthProvider(null);
     }
   };
 
@@ -156,7 +165,7 @@ const LoginComponent = () => {
           <Button
             type="button"
             onClick={handleSubmit}
-            disabled={signIn.isPending}
+            disabled={signIn.isPending || oAuthProvider !== null}
             className="w-full"
           >
             {signIn.isPending && <Spinner className="size-4 text-white" />}
@@ -182,9 +191,9 @@ const LoginComponent = () => {
             handlers={{
               google: () => handleOAuth("google"),
               github: () => handleOAuth("github"),
-              twitter: () => handleOAuth("x"),
+              x: () => handleOAuth("x"),
             }}
-            isLoading={isOAuthLoading}
+            loadingProvider={oAuthProvider}
           />
         </div>
 

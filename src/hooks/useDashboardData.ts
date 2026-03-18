@@ -82,11 +82,19 @@ export function useDashboardData() {
         allRevlogs,
         profileRes,
       ] = await Promise.all([
-        db.decks.filter((d) => d.deleted_at === null).toArray(),
+        db.decks
+          .where("user_id")
+          .equals(userId ?? "")
+          .filter((d) => d.deleted_at === null)
+          .toArray(),
         db.cards.filter((c) => c.deleted_at === null).toArray(),
         db.card_state.toArray(),
-        db.revlog.filter((r) => r.reviewed_at >= todayStartIso).toArray(),
-        db.revlog.toArray(),
+        db.revlog
+          .where("user_id")
+          .equals(userId ?? "")
+          .filter((r) => r.reviewed_at >= todayStartIso)
+          .toArray(),
+        db.revlog.where("user_id").equals(userId ?? "").toArray(),
         userId
           ? supabase
               .from("profiles")

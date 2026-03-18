@@ -34,7 +34,7 @@ function SettingsComponent() {
         </Text>
       </div>
 
-      <div className="flex flex-col gap-4 md:flex-row">
+      <div className="flex flex-col gap-4 lg:flex-row">
         <SettingsSection title={t("settingsSectionAccount")}>
           <AccountSection />
         </SettingsSection>

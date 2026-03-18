@@ -5,9 +5,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSyncStore, useAuthStore } from "@/store";
 import { syncAll } from "@/lib/sync";
 
-const { setInitialSyncDone } = useSyncStore.getState();
-
 let syncScheduled = false;
+let currentSyncSession = 0;
+
+export function resetSyncState() {
+  syncScheduled = false;
+  currentSyncSession++;
+  useSyncStore.getState().reset();
+}
 
 async function runSyncInternal(
   userId: string,
@@ -52,9 +57,12 @@ export function useSync() {
 
     if (!syncScheduled) {
       syncScheduled = true;
+      const sessionAtStart = currentSyncSession;
       runSync(userId, false).finally(() => {
         syncScheduled = false;
-        setInitialSyncDone();
+        if (currentSyncSession === sessionAtStart) {
+          useSyncStore.getState().setInitialSyncDone();
+        }
       });
     }
 

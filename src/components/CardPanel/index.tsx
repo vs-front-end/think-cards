@@ -131,6 +131,7 @@ export function CardPanel({
     data: cards = [],
     isLoading,
     hasMore,
+    total,
   } = useCardsWithState(deckId, limit);
 
   const [search, setSearch] = useState("");
@@ -209,6 +210,10 @@ export function CardPanel({
     });
   }, [cards, typeFilter, statusFilter, deferredSearch]);
 
+  const hasActiveFilters =
+    typeFilter !== "all" || statusFilter !== "all" || deferredSearch !== "";
+  const displayCount = hasActiveFilters ? filtered.length : total;
+
   const allSelected =
     filtered.length > 0 && filtered.every((c) => selected.has(c.id));
 
@@ -234,10 +239,10 @@ export function CardPanel({
           <Text as="span" className="shrink-0 text-muted">
             (
             {t(
-              filtered.length === 1
+              displayCount === 1
                 ? "cardPanelCardCount_one"
                 : "cardPanelCardCount_other",
-              { count: filtered.length },
+              { count: displayCount },
             )}
             )
           </Text>

@@ -148,7 +148,10 @@ function DashboardComponent() {
   );
 
   const showOnboarding =
-    initialSyncDone && !onboardingDismissed && (data?.totalDecks ?? 0) === 0;
+    initialSyncDone &&
+    !isLoading &&
+    !onboardingDismissed &&
+    (data?.totalDecks ?? 0) === 0;
 
   const deckMap = new Map<string, IDeck>(flatDecks.map((d) => [d.id, d]));
   const editDeck =
@@ -341,8 +344,8 @@ function DashboardComponent() {
       <InstallPrompt visible={!showOnboarding} />
 
       <section>
-        {isLoading ? (
-          <Skeleton className="h-20 rounded-xl p-6" />
+        {isLoading || isSyncing ? (
+          <Skeleton className="h-48 rounded-xl p-6" />
         ) : (
           <Card className="border border-border bg-surface p-4 sm:p-5">
             <div className="flex items-center justify-between gap-2">
@@ -451,14 +454,16 @@ function DashboardComponent() {
             </TooltipProvider>
           </div>
 
-          {!isLoading && deckTree.length > 0 && (
+          {isLoading || isSyncing ? (
+            <Skeleton className="h-8 w-full max-w-xs flex-1 rounded-lg" />
+          ) : !isLoading && deckTree.length > 0 ? (
             <InputSearch
               placeholder={t("dashboardSearchDecks")}
               value={deckSearch}
               onChange={setDeckSearch}
               className="max-w-xs flex-1"
             />
-          )}
+          ) : null}
         </div>
 
         {(isLoading || !initialSyncDone) && (

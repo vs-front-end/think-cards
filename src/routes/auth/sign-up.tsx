@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { isNotEmpty, isValidEmail } from "@/utils/validation";
@@ -51,7 +51,16 @@ const SignUpComponent = () => {
 
   const [authError, setAuthError] = useState("");
   const [emailSent, setEmailSent] = useState(false);
-  const [isOAuthLoading, setIsOAuthLoading] = useState(false);
+  const [oAuthProvider, setOAuthProvider] = useState<string | null>(null);
+
+  useEffect(() => {
+    const reset = () => {
+      if (document.visibilityState === "visible") setOAuthProvider(null);
+    };
+    
+    document.addEventListener("visibilitychange", reset);
+    return () => document.removeEventListener("visibilitychange", reset);
+  }, []);
 
   const handleEmailChange = (value: string) => {
     setForm((prev) => ({ ...prev, email: value }));
@@ -120,16 +129,16 @@ const SignUpComponent = () => {
   };
 
   const handleOAuth = async (provider: "google" | "github" | "x") => {
-    if (isOAuthLoading) return;
+    if (oAuthProvider !== null) return;
 
     setAuthError("");
-    setIsOAuthLoading(true);
+    setOAuthProvider(provider);
 
     try {
       await oAuthSignIn(provider);
     } catch {
       setAuthError(t("authErrorGeneric"));
-      setIsOAuthLoading(false);
+      setOAuthProvider(null);
     }
   };
 
@@ -238,7 +247,7 @@ const SignUpComponent = () => {
           <Button
             type="button"
             onClick={handleSubmit}
-            disabled={signUp.isPending}
+            disabled={signUp.isPending || oAuthProvider !== null}
             className="w-full"
           >
             {signUp.isPending && <Spinner className="size-4 text-white" />}
@@ -263,9 +272,9 @@ const SignUpComponent = () => {
             handlers={{
               google: () => handleOAuth("google"),
               github: () => handleOAuth("github"),
-              twitter: () => handleOAuth("x"),
+              x: () => handleOAuth("x"),
             }}
-            isLoading={isOAuthLoading}
+            loadingProvider={oAuthProvider}
           />
         </div>
 

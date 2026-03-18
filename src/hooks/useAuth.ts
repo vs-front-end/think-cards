@@ -1,6 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { useAuthStore } from "@/store";
+import { resetSyncState } from "@/hooks/useSync";
 import type { Provider } from "@supabase/supabase-js";
 
 export function useSession() {
@@ -48,7 +50,16 @@ export function useSignOut() {
   const logout = useAuthStore((s) => s.logout);
 
   return async () => {
+    resetSyncState();
     await supabase.auth.signOut({ scope: "global" });
+    await Promise.all([
+      db.decks.clear(),
+      db.cards.clear(),
+      db.card_state.clear(),
+      db.revlog.clear(),
+      db.session_log.clear(),
+      db.sync_meta.clear(),
+    ]);
     logout();
   };
 }
@@ -71,6 +82,15 @@ export function useChangePassword() {
 
       if (signInError) throw new Error("wrongCurrentPassword");
 
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+    },
+  });
+}
+
+export function useSetPassword() {
+  return useMutation({
+    mutationFn: async ({ newPassword }: { newPassword: string }) => {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
     },

@@ -26,9 +26,15 @@ function buildTree(decks: IDeck[]): DeckNode[] {
 }
 
 export function useDecks() {
+  const userId = useAuthStore((s) => s.user?.id);
   const decks = useLiveQuery(
-    () => db.decks.filter((d) => d.deleted_at === null).toArray(),
-    [],
+    () =>
+      db.decks
+        .where("user_id")
+        .equals(userId ?? "")
+        .filter((d) => d.deleted_at === null)
+        .toArray(),
+    [userId],
   );
 
   return {
@@ -38,9 +44,15 @@ export function useDecks() {
 }
 
 export function useDecksList() {
+  const userId = useAuthStore((s) => s.user?.id);
   const decks = useLiveQuery(
-    () => db.decks.filter((d) => d.deleted_at === null).toArray(),
-    [],
+    () =>
+      db.decks
+        .where("user_id")
+        .equals(userId ?? "")
+        .filter((d) => d.deleted_at === null)
+        .toArray(),
+    [userId],
   );
 
   return {
