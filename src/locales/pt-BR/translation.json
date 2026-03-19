@@ -176,7 +176,7 @@
   "changePasswordErrorGeneric": "Falha ao atualizar a senha. Tente novamente.",
   "addPasswordTitle": "Adicionar senha",
   "addPasswordDesc": "Crie uma senha para também entrar com e-mail.",
-  "addPasswordButton": "Adicionar senha",
+  "addPasswordButton": "Adicionar",
   "addPasswordSuccess": "Senha adicionada com sucesso.",
   "settingsDangerZone": "Zona de perigo",
   "settingsResetButton": "Apagar",

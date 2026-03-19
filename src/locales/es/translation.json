@@ -173,7 +173,7 @@
   "changePasswordErrorGeneric": "Error al actualizar la contraseña. Inténtalo de nuevo.",
   "addPasswordTitle": "Agregar contraseña",
   "addPasswordDesc": "Establece una contraseña para iniciar sesión también con correo.",
-  "addPasswordButton": "Agregar contraseña",
+  "addPasswordButton": "Agregar",
   "addPasswordSuccess": "Contraseña agregada correctamente.",
   "settingsDangerZone": "Zona de peligro",
   "settingsResetButton": "Borrar",

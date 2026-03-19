@@ -22,14 +22,13 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-  const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
-    global: { headers: { Authorization: authHeader } },
-  });
+  const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
+  const token = authHeader.replace("Bearer ", "");
   const {
     data: { user },
     error: userError,
-  } = await userClient.auth.getUser();
+  } = await adminClient.auth.getUser(token);
 
   if (userError || !user) {
     return new Response(JSON.stringify({ error: "Invalid token" }), {
@@ -37,8 +36,6 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-
-  const adminClient = createClient(supabaseUrl, serviceRoleKey);
   const userId = user.id;
 
   const { data: deckIds } = await adminClient

@@ -176,7 +176,7 @@
   "changePasswordErrorGeneric": "Failed to update password. Please try again.",
   "addPasswordTitle": "Add password",
   "addPasswordDesc": "Set a password to also sign in with email.",
-  "addPasswordButton": "Add password",
+  "addPasswordButton": "Add",
   "addPasswordSuccess": "Password added successfully.",
   "settingsDangerZone": "Danger zone",
   "settingsResetButton": "Reset",

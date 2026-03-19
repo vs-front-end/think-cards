@@ -2,7 +2,7 @@ import DOMPurify from "dompurify";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { Button, Card, InputText, Text } from "@stellar-ui-kit/web";
+import { Button, InputText, Text } from "@stellar-ui-kit/web";
 import { cn } from "@stellar-ui-kit/shared";
 import { BookOpen, CheckCircle, PartyPopper, XCircle } from "lucide-react";
 import { CompletionScreen, RatingButton, SessionBar } from "@/components";
@@ -261,30 +261,30 @@ export function StudySession({ deckId }: StudySessionProps) {
               !isTyping && flipped && "[transform:rotateY(180deg)]",
             )}
           >
-            <Card
-              className="themed-scroll flex flex-col overflow-y-auto rounded-lg [backface-visibility:hidden] [grid-area:1/1]"
-              style={{ maxHeight: "42svh", minHeight: "14rem" }}
+            <div
+              className="themed-scroll rounded-xl border border-border bg-surface text-foreground shadow-sm [backface-visibility:hidden] [grid-area:1/1]"
+              style={{ height: "42svh", overflow: "auto", display: "grid", alignContent: "safe center" }}
             >
               <div
-                className="prose prose-sm my-auto max-w-none w-full px-6 py-6 text-center text-foreground"
+                className="prose prose-sm max-w-none w-full px-6 py-6 text-foreground"
                 dangerouslySetInnerHTML={{
                   __html: addLinkTargets(sanitizedFront),
                 }}
               />
-            </Card>
+            </div>
 
             {!isTyping && (
-              <Card
-                className="themed-scroll flex flex-col overflow-y-auto rounded-lg [backface-visibility:hidden] [grid-area:1/1] [transform:rotateY(180deg)]"
-                style={{ maxHeight: "42svh", minHeight: "14rem" }}
+              <div
+                className="themed-scroll rounded-xl border border-border bg-surface text-foreground shadow-sm [backface-visibility:hidden] [grid-area:1/1] [transform:rotateY(180deg)]"
+                style={{ height: "42svh", overflow: "auto", display: "grid", alignContent: "safe center" }}
               >
                 <div
-                  className="prose prose-sm my-auto max-w-none w-full px-6 py-6 text-center text-foreground"
+                  className="prose prose-sm max-w-none w-full px-6 py-6 text-foreground"
                   dangerouslySetInnerHTML={{
                     __html: addLinkTargets(sanitizedBack),
                   }}
                 />
-              </Card>
+              </div>
             )}
           </div>
         </div>

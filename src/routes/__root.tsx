@@ -5,6 +5,7 @@ import { cn } from "@stellar-ui-kit/shared";
 import { Button, Text, Toaster } from "@stellar-ui-kit/web";
 import { useAuthStore, useCreateIntentStore } from "@/store";
 import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { Header, BottomTab, Sidebar, DeckModal } from "@/components";
 
 import {
@@ -96,6 +97,14 @@ function RootComponent() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT" || !session) {
+        void Promise.all([
+          db.decks.clear(),
+          db.cards.clear(),
+          db.card_state.clear(),
+          db.revlog.clear(),
+          db.session_log.clear(),
+          db.sync_meta.clear(),
+        ]);
         setSession(null);
         setUser(null);
         setIsLoading(false);
