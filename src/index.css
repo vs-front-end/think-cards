@@ -18,6 +18,21 @@ body {
   @apply bg-background text-foreground;
 }
 
+.prose pre {
+  background-color: var(--color-background) !important;
+  color: var(--color-foreground);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
 @layer components {
   button {
     @apply transition-all duration-150 ease-out;
