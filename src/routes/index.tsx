@@ -1,26 +1,18 @@
 import { useEffect } from "react";
-import { useAuthStore, useLanguageStore, useThemeStore } from "@/store";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { cn } from "@stellar-ui-kit/shared";
+import { useAuthStore, useLanguageStore, useThemeStore } from "@/store";
 import type { ThemeVariant } from "@/store";
 import { useDocumentHead } from "@/hooks";
+import { CompareCell } from "@/utils";
 
-import {
-  Badge,
-  Button,
-  Card,
-  Separator,
-  Spinner,
-  Text,
-} from "@stellar-ui-kit/web";
+import { Button, Spinner, Text } from "@stellar-ui-kit/web";
 
 import {
   ArrowRight,
   BarChart3,
   Brain,
-  Clock,
-  Flame,
   Github,
   Layers,
   Moon,
@@ -56,9 +48,9 @@ function WelcomeComponent() {
   }, [isLoading, user, navigate]);
 
   const THEMES: { value: ThemeVariant; icon: React.ReactNode }[] = [
-    { value: "light", icon: <Sun className="size-3.5" /> },
-    { value: "dark", icon: <Moon className="size-3.5" /> },
-    { value: "ocean", icon: <Waves className="size-3.5" /> },
+    { value: "light", icon: <Sun className="size-3" /> },
+    { value: "dark", icon: <Moon className="size-3" /> },
+    { value: "ocean", icon: <Waves className="size-3" /> },
   ];
 
   const LANGS: { value: "en" | "es" | "pt-BR"; label: string }[] = [
@@ -83,420 +75,567 @@ function WelcomeComponent() {
       icon: Brain,
       label: t("welcomeFeatureFsrsLabel"),
       description: t("welcomeFeatureFsrsDesc"),
-      color: "bg-error-soft text-error",
+      tag: "FSRS",
     },
     {
       id: "srs",
       icon: Repeat2,
       label: t("welcomeFeatureSrsLabel"),
       description: t("welcomeFeatureSrsDesc"),
-      color: "bg-warning-soft text-warning",
+      tag: "SRS",
     },
     {
       id: "stats",
       icon: BarChart3,
       label: t("welcomeFeatureStatsLabel"),
       description: t("welcomeFeatureStatsDesc"),
-      color: "bg-success-soft text-success",
+      tag: "Stats",
     },
     {
       id: "decks",
       icon: Layers,
       label: t("welcomeFeatureDecksLabel"),
       description: t("welcomeFeatureDecksDesc"),
-      color: "bg-primary-soft text-primary",
+      tag: "Decks",
     },
     {
       id: "offline",
       icon: Zap,
       label: t("welcomeFeatureOfflineLabel"),
       description: t("welcomeFeatureOfflineDesc"),
-      color: "bg-secondary-soft text-secondary",
+      tag: "Offline",
     },
     {
       id: "pwa",
       icon: Smartphone,
       label: t("welcomeFeaturePwaLabel"),
       description: t("welcomeFeaturePwaDesc"),
-      color: "bg-[#f6cc91] text-[#925913]",
+      tag: "PWA",
     },
   ];
 
-  const steps = [
+  const compareRows = [
     {
-      step: "01",
-      title: t("welcomeStep01Title"),
-      description: t("welcomeStep01Desc"),
+      feature: t("welcomeCompareFeatureScheduling"),
+      fsrs: t("welcomeCompareAdaptive"),
+      sm2: t("welcomeCompareFixed"),
+      leitner: t("welcomeCompareBoxBased"),
     },
     {
-      step: "02",
-      title: t("welcomeStep02Title"),
-      description: t("welcomeStep02Desc"),
+      feature: t("welcomeCompareFeatureAdapts"),
+      fsrs: "check",
+      sm2: "no",
+      leitner: "no",
     },
     {
-      step: "03",
-      title: t("welcomeStep03Title"),
-      description: t("welcomeStep03Desc"),
+      feature: t("welcomeCompareFeatureRetention"),
+      fsrs: t("welcomeCompareConfigurable"),
+      sm2: t("welcomeCompareNone"),
+      leitner: t("welcomeCompareNone"),
     },
+    {
+      feature: t("welcomeCompareFeatureOpenSource"),
+      fsrs: "check",
+      sm2: "partial",
+      leitner: "check",
+    },
+  ];
+
+  const faq = [
+    { q: t("welcomeFaq1Q"), a: t("welcomeFaq1A") },
+    { q: t("welcomeFaq2Q"), a: t("welcomeFaq2A") },
+    { q: t("welcomeFaq3Q"), a: t("welcomeFaq3A") },
+    { q: t("welcomeFaq4Q"), a: t("welcomeFaq4A") },
+    { q: t("welcomeFaq5Q"), a: t("welcomeFaq5A") },
+    { q: t("welcomeFaq6Q"), a: t("welcomeFaq6A") },
   ];
 
   return (
     <div className="flex flex-1 flex-col">
-      <section className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-6 pb-20 pt-16 md:flex-row md:items-start md:gap-16 md:pb-24 md:pt-24">
-        <div className="flex flex-1 flex-col items-center gap-6 text-center md:items-start md:text-left">
-          <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-foreground md:text-5xl">
-            {t("welcomeHeroTitle")}
-            <br />
-            <span className="text-primary">{t("welcomeHeroTitleAccent")}</span>
-          </h1>
+      <section className="w-full border-b border-border">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="grid gap-0 md:grid-cols-[1fr_380px] lg:grid-cols-[1fr_440px]">
+            <div className="flex flex-col items-center py-12 text-center md:items-start md:border-r md:border-border md:pr-10 md:py-16 md:text-left lg:py-20">
+              <Text as="span" className="text-xs font-medium text-muted">
+                {t("welcomeHeroBadge")}
+              </Text>
 
-          <Text
-            as="p"
-            className="max-w-sm text-base leading-relaxed text-muted"
+              <h1
+                className="mt-4 text-foreground"
+                style={{
+                  fontSize: "clamp(2.8rem, 6vw, 5.5rem)",
+                  fontWeight: 700,
+                  lineHeight: 1.05,
+                  letterSpacing: "-0.03em",
+                }}
+              >
+                {t("welcomeHeroTitle")}
+                <br />
+                <span className="text-primary">
+                  {t("welcomeHeroTitleAccent")}
+                </span>
+              </h1>
+
+              <p
+                className="mt-6 max-w-[52ch] leading-relaxed text-muted"
+                style={{ fontSize: "1.0625rem" }}
+              >
+                {t("welcomeHeroDesc")}
+              </p>
+
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-3 md:justify-start">
+                <Link to="/auth/sign-up">
+                  <Button size="lg" className="gap-2 rounded-lg font-medium">
+                    {t("welcomeHeroCta")}
+                    <ArrowRight className="size-3.5" />
+                  </Button>
+                </Link>
+
+                <Link to="/auth/login">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="rounded-lg font-medium shadow-none"
+                  >
+                    {t("welcomeHeroLogin")}
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="mt-12 grid grid-cols-3 gap-0 overflow-hidden rounded-xl border border-border">
+                {[
+                  { val: "FSRS", label: t("welcomeFeatureFsrsLabel") },
+                  { val: "100%", label: t("welcomeCompareFeatureOpenSource") },
+                  { val: "PWA", label: t("welcomeFeatureOfflineLabel") },
+                ].map((s, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "flex flex-col gap-1 px-4 py-3",
+                      i < 2 && "border-r border-border",
+                    )}
+                  >
+                    <span
+                      className="font-mono font-bold text-foreground"
+                      style={{ fontSize: "1.4rem" }}
+                    >
+                      {s.val}
+                    </span>
+                    <span className="text-[10px] text-muted">{s.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="hidden flex-col justify-center gap-0 py-12 md:flex md:pl-10 lg:py-16">
+              <Text as="span" className="mb-3 text-xs text-muted">
+                {t("welcomeHeroCardDeck")}
+              </Text>
+
+              <div className="overflow-hidden rounded-xl border border-border bg-surface">
+                <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+                  <span className="text-xs font-medium text-muted">
+                    {t("welcomeHeroCardDeck")}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-1.5 w-20 overflow-hidden rounded-full bg-border">
+                      <div className="h-full w-12 rounded-full bg-primary" />
+                    </div>
+                    <span className="font-mono text-[10px] text-muted">
+                      60%
+                    </span>
+                  </div>
+                </div>
+
+                <div className="border-b border-border bg-background px-4 py-5">
+                  <Text
+                    as="span"
+                    className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted"
+                  >
+                    {t("cardModalQuestionPlaceholder")}
+                  </Text>
+                  <p className="text-sm font-medium leading-snug text-foreground">
+                    {t("welcomeHeroCardQuestion")}
+                  </p>
+                </div>
+
+                <div className="border-b border-border px-4 py-5">
+                  <Text
+                    as="span"
+                    className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted"
+                  >
+                    {t("welcomeHeroCardAnswerLabel")}
+                  </Text>
+                  <p className="text-sm leading-relaxed text-foreground">
+                    {t("welcomeHeroCardAnswer")}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-4 divide-x divide-border">
+                  {[
+                    {
+                      label: t("studyRatingAgain"),
+                      color: "text-error-text bg-error-soft",
+                    },
+                    {
+                      label: t("studyRatingHard"),
+                      color: "text-warning-text bg-warning-soft",
+                    },
+                    {
+                      label: t("studyRatingGood"),
+                      color: "text-primary-text bg-primary-soft",
+                    },
+                    {
+                      label: t("studyRatingEasy"),
+                      color: "text-success-text bg-success-soft",
+                    },
+                  ].map((r) => (
+                    <div
+                      key={r.label}
+                      className={cn(
+                        "flex items-center justify-center py-2.5",
+                        r.color,
+                      )}
+                    >
+                      <span className="text-[9px] font-semibold uppercase tracking-wider">
+                        {r.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-3 rounded-xl border border-border bg-surface p-3.5">
+                <Text as="span" className="mb-2 block text-[10px] text-muted">
+                  {t("statsDistribution")}
+                </Text>
+                <div className="flex h-1.5 overflow-hidden rounded-full">
+                  <div className="w-[20%] bg-primary" />
+                  <div className="w-[30%] bg-secondary" />
+                  <div className="w-[50%] bg-success" />
+                </div>
+                <div className="mt-2.5 flex items-center gap-4">
+                  {[
+                    { color: "bg-primary", label: t("statsNew") },
+                    { color: "bg-secondary", label: t("statsLearning") },
+                    { color: "bg-success", label: t("statsReview") },
+                  ].map((d) => (
+                    <div key={d.label} className="flex items-center gap-1.5">
+                      <div className={cn("size-1.5 rounded-full", d.color)} />
+                      <span className="text-[10px] text-muted">{d.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="w-full border-b border-border bg-surface">
+        <div className="mx-auto max-w-7xl px-6 py-14 md:py-16">
+          <h2
+            className="mb-10 text-center text-foreground md:text-left"
+            style={{
+              fontSize: "clamp(1.5rem, 2.5vw, 2.25rem)",
+              fontWeight: 700,
+              letterSpacing: "-0.025em",
+            }}
           >
-            {t("welcomeHeroDesc")}
-          </Text>
+            {t("welcomeHowItWorksTitle")}
+          </h2>
 
-          <div className="flex items-center gap-6">
-            <Link to="/auth/sign-up">
-              <Button className="gap-1 rounded-full">
-                {t("welcomeHeroCta")}
+          <div className="grid gap-0 overflow-hidden rounded-xl border border-border md:grid-cols-3">
+            {[
+              {
+                number: "01",
+                title: t("welcomeStep01Title"),
+                description: t("welcomeStep01Desc"),
+              },
+              {
+                number: "02",
+                title: t("welcomeStep02Title"),
+                description: t("welcomeStep02Desc"),
+              },
+              {
+                number: "03",
+                title: t("welcomeStep03Title"),
+                description: t("welcomeStep03Desc"),
+              },
+            ].map((step, i) => (
+              <div
+                key={step.number}
+                className={cn(
+                  "flex flex-col gap-4 p-8 text-center md:text-left",
+                  i < 2 && "border-b border-border md:border-b-0 md:border-r",
+                )}
+              >
+                <span
+                  className="font-mono font-bold text-primary"
+                  style={{ fontSize: "2rem", lineHeight: 1 }}
+                >
+                  {step.number}
+                </span>
+                <h3 className="text-base font-semibold text-foreground">
+                  {step.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-muted">
+                  {step.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="w-full border-b border-border">
+        <div className="mx-auto max-w-7xl px-6 py-14 md:py-16">
+          <h2
+            className="mb-10 text-center text-foreground md:text-left"
+            style={{
+              fontSize: "clamp(1.5rem, 2.5vw, 2.25rem)",
+              fontWeight: 700,
+              letterSpacing: "-0.025em",
+            }}
+          >
+            {t("welcomeFeaturesTitle")}
+          </h2>
+
+          <div className="grid overflow-hidden rounded-xl border border-border md:grid-cols-2 lg:grid-cols-3">
+            {features.map((f, i) => (
+              <div
+                key={f.id}
+                className={cn(
+                  "flex flex-col gap-3 border-border p-7 text-center md:text-left",
+                  i < features.length - 1 && "border-b",
+                  i % 2 === 0 && "md:border-r",
+                  i % 3 !== 2 && "lg:border-r",
+                  i >= features.length - 3 && "lg:border-b-0",
+                  i >= features.length - 2 && "md:border-b-0",
+                )}
+              >
+                <div className="flex w-full items-center justify-between">
+                  <f.icon className="size-4 text-muted" />
+                  <span className="rounded border border-border px-1.5 py-0.5 text-[9px] font-medium text-muted">
+                    {f.tag}
+                  </span>
+                </div>
+                <h3 className="text-base font-semibold text-foreground">
+                  {f.label}
+                </h3>
+                <p className="text-sm leading-relaxed text-muted">
+                  {f.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="w-full border-b border-border bg-surface">
+        <div className="mx-auto max-w-7xl px-6 py-14 md:py-16">
+          <h2
+            className="text-center text-foreground md:text-left"
+            style={{
+              fontSize: "clamp(1.5rem, 2.5vw, 2.25rem)",
+              fontWeight: 700,
+              letterSpacing: "-0.025em",
+            }}
+          >
+            {t("welcomeCompareTitle")}
+          </h2>
+          <p className="mt-2 mb-10 text-center text-sm text-muted md:text-left">
+            {t("welcomeCompareSubtitle")}
+          </p>
+
+          <div className="flex flex-col gap-3 md:hidden">
+            {compareRows.map((row) => (
+              <div
+                key={row.feature}
+                className="overflow-hidden rounded-xl border border-border"
+              >
+                <div className="border-b border-border px-4 py-3 text-center">
+                  <span className="text-sm font-semibold text-foreground">
+                    {row.feature}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 divide-x divide-border">
+                  {[
+                    {
+                      label: t("welcomeCompareFsrs"),
+                      value: row.fsrs,
+                      soft: true,
+                    },
+                    {
+                      label: t("welcomeCompareSm2"),
+                      value: row.sm2,
+                      soft: false,
+                    },
+                    {
+                      label: t("welcomeCompareLeitner"),
+                      value: row.leitner,
+                      soft: false,
+                    },
+                  ].map((col) => (
+                    <div
+                      key={col.label}
+                      className={cn(
+                        "flex flex-col items-center gap-1 px-3 py-3 text-center",
+                        col.soft && "bg-primary-soft",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "text-[10px] font-semibold",
+                          col.soft ? "text-primary-text" : "text-muted",
+                        )}
+                      >
+                        {col.label}
+                      </span>
+                      <CompareCell value={col.value} onSoft={col.soft} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-hidden rounded-xl border border-border md:block">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="px-5 py-3.5 text-left">
+                    <span className="text-xs font-medium text-muted">
+                      {t("welcomeFeatureFsrsLabel")}
+                    </span>
+                  </th>
+                  <th className="bg-primary-soft px-5 py-3.5 text-center">
+                    <span className="text-xs font-bold text-primary-text">
+                      {t("welcomeCompareFsrs")}
+                    </span>
+                  </th>
+                  <th className="px-5 py-3.5 text-center">
+                    <span className="text-xs font-medium text-muted">
+                      {t("welcomeCompareSm2")}
+                    </span>
+                  </th>
+                  <th className="px-5 py-3.5 text-center">
+                    <span className="text-xs font-medium text-muted">
+                      {t("welcomeCompareLeitner")}
+                    </span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {compareRows.map((row, i) => (
+                  <tr
+                    key={row.feature}
+                    className={cn(
+                      "border-b border-border last:border-none",
+                      i % 2 === 1 && "bg-background",
+                    )}
+                  >
+                    <td className="px-5 py-4 font-medium text-foreground">
+                      {row.feature}
+                    </td>
+                    <td className="bg-primary-soft px-5 py-4 text-center">
+                      <CompareCell value={row.fsrs} onSoft />
+                    </td>
+                    <td className="px-5 py-4 text-center">
+                      <CompareCell value={row.sm2} />
+                    </td>
+                    <td className="px-5 py-4 text-center">
+                      <CompareCell value={row.leitner} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section className="w-full border-b border-border">
+        <div className="mx-auto max-w-7xl px-6 py-14 md:py-16">
+          <h2
+            className="text-center text-foreground md:text-left"
+            style={{
+              fontSize: "clamp(1.5rem, 2.5vw, 2.25rem)",
+              fontWeight: 700,
+              letterSpacing: "-0.025em",
+            }}
+          >
+            {t("welcomeFaqTitle")}
+          </h2>
+          <p className="mt-2 mb-10 text-center text-sm text-muted md:text-left">
+            {t("welcomeFaqSubtitle")}
+          </p>
+
+          <div className="grid gap-0 overflow-hidden rounded-xl border border-border md:grid-cols-2">
+            {faq.map(({ q, a }, i) => (
+              <div
+                key={q}
+                className={cn(
+                  "flex flex-col gap-2 border-b border-border p-6 text-center md:text-left",
+                  i % 2 === 0 && "md:border-r",
+                  i >= faq.length - 2 && "md:border-b-0",
+                  i === faq.length - 1 && "border-b-0",
+                )}
+              >
+                <h3 className="text-sm font-semibold leading-snug text-foreground">
+                  {q}
+                </h3>
+                <p className="text-sm leading-relaxed text-muted">{a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="w-full border-b border-border bg-surface">
+        <div className="mx-auto max-w-7xl px-6 py-16 md:py-20">
+          <div className="flex flex-col items-center justify-between gap-8 overflow-hidden rounded-2xl border border-border bg-primary px-10 py-12 text-center md:flex-row md:items-center md:text-left">
+            <div className="flex flex-col gap-2 md:items-start">
+              <h2
+                className="text-white"
+                style={{
+                  fontSize: "clamp(1.6rem, 3vw, 2.4rem)",
+                  fontWeight: 700,
+                  lineHeight: 1.1,
+                  letterSpacing: "-0.025em",
+                }}
+              >
+                {t("welcomeCtaTitle")}
+              </h2>
+              <p
+                className="text-sm leading-relaxed text-white"
+                style={{ opacity: 0.75 }}
+              >
+                {t("welcomeCtaDesc")}
+              </p>
+            </div>
+
+            <Link to="/auth/sign-up" className="shrink-0 mt-0 md:mt-3">
+              <Button
+                size="lg"
+                className="gap-2 rounded-lg bg-white font-medium text-primary hover:bg-white"
+              >
+                {t("welcomeCtaButton")}
                 <ArrowRight className="size-3.5" />
               </Button>
             </Link>
-
-            <Link
-              to="/auth/login"
-              className="text-sm text-muted transition-colors hover:text-foreground"
-            >
-              {t("welcomeHeroLogin")}
-            </Link>
-          </div>
-        </div>
-
-        <div className="relative hidden w-80 shrink-0 mr-6 md:block md:mt-6">
-          <div className="absolute -left-3 -top-6 w-full rounded-2xl border border-border bg-surface p-5 shadow-sm">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex size-6 items-center justify-center rounded-md bg-secondary-soft">
-                    <Brain className="size-3.5 text-secondary" />
-                  </div>
-                  <Text as="span" className="text-xs font-medium text-muted">
-                    {t("welcomeHeroCardDeck")}
-                  </Text>
-                </div>
-                <div className="h-1.5 w-16 overflow-hidden rounded-full bg-border">
-                  <div className="h-full w-10 rounded-full bg-primary" />
-                </div>
-              </div>
-              <Text as="p" className="text-sm font-medium text-foreground">
-                {t("welcomeHeroCardQuestion")}
-              </Text>
-            </div>
-          </div>
-
-          <div className="relative ml-6 mt-14 w-full rounded-2xl border border-border bg-background p-5 shadow-sm">
-            <div className="flex flex-col gap-4">
-              <Text as="p" className="text-sm text-muted">
-                {t("welcomeHeroCardAnswerLabel")}
-              </Text>
-              <Text as="p" className="text-sm leading-relaxed text-foreground">
-                {t("welcomeHeroCardAnswer")}
-              </Text>
-              <div className="flex items-center gap-1.5 border-t border-border pt-3">
-                <div className="flex h-7 flex-1 items-center justify-center rounded-lg bg-error-soft">
-                  <Text
-                    as="span"
-                    className="text-xs font-medium text-error-text"
-                  >
-                    {t("studyRatingAgain")}
-                  </Text>
-                </div>
-                <div className="flex h-7 flex-1 items-center justify-center rounded-lg bg-warning-soft">
-                  <Text
-                    as="span"
-                    className="text-xs font-medium text-warning-text"
-                  >
-                    {t("studyRatingHard")}
-                  </Text>
-                </div>
-                <div className="flex h-7 flex-1 items-center justify-center rounded-lg bg-primary-soft">
-                  <Text
-                    as="span"
-                    className="text-xs font-medium text-primary-text"
-                  >
-                    {t("studyRatingGood")}
-                  </Text>
-                </div>
-                <div className="flex h-7 flex-1 items-center justify-center rounded-lg bg-success-soft">
-                  <Text
-                    as="span"
-                    className="text-xs font-medium text-success-text"
-                  >
-                    {t("studyRatingEasy")}
-                  </Text>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="absolute -bottom-3 -right-3 flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 shadow-sm">
-            <Flame className="size-3.5 text-warning" />
-            <Text as="span" className="text-xs font-medium text-foreground">
-              {t("welcomeHeroCardStreak")}
-            </Text>
           </div>
         </div>
       </section>
 
-      <Separator />
-
-      <section className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-6 py-20">
-        <div className="flex flex-col gap-2 text-center">
-          <Text
-            as="h2"
-            className="text-2xl font-bold tracking-tight text-foreground md:text-3xl"
-          >
-            {t("welcomeHowItWorksTitle")}
-          </Text>
-
-          <Text as="p" className="mx-auto max-w-lg text-sm text-muted">
-            {t("welcomeHowItWorksSubtitle")}
-          </Text>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-3">
-          {steps.map((s) => (
-            <div key={s.step} className="flex flex-col items-center gap-3 text-center md:items-start md:text-left">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-primary-soft">
-                <Text as="span" className="text-sm font-bold text-primary">
-                  {s.step}
-                </Text>
-              </div>
-
-              <Text as="h3" className="text-base font-semibold text-foreground">
-                {s.title}
-              </Text>
-
-              <Text as="p" className="text-sm leading-relaxed text-muted">
-                {s.description}
-              </Text>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <Separator />
-
-      <section className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-6 py-20">
-        <div className="flex flex-col gap-2 text-center">
-          <Text
-            as="h2"
-            className="text-2xl font-bold tracking-tight text-foreground md:text-3xl"
-          >
-            {t("welcomeFeaturesTitle")}
-          </Text>
-
-          <Text as="p" className="mx-auto max-w-lg text-sm text-muted">
-            {t("welcomeFeaturesSubtitle")}
-          </Text>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((f) => (
-            <Card
-              key={f.id}
-              className="flex flex-col items-center gap-3 border border-border bg-surface p-5 text-center sm:items-start sm:text-left"
-            >
-              <div
-                className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${f.color}`}
-              >
-                <f.icon className="size-5" />
-              </div>
-
-              <Text as="h3" className="text-sm font-semibold text-foreground">
-                {f.label}
-              </Text>
-
-              <Text as="p" className="text-sm leading-relaxed text-muted">
-                {f.description}
-              </Text>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      <Separator />
-
-      <section className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-20">
-        <div className="flex flex-col gap-2 text-center">
-          <Text
-            as="h2"
-            className="text-2xl font-bold tracking-tight text-foreground md:text-3xl"
-          >
-            {t("welcomeWhyFsrsTitle")}
-          </Text>
-
-          <Text as="p" className="mx-auto max-w-lg text-sm text-muted">
-            {t("welcomeWhyFsrsSubtitle")}
-          </Text>
-        </div>
-
-        <Card className="border border-border bg-surface p-6 md:p-8">
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4 md:flex-row md:gap-8">
-              <div className="flex flex-1 flex-col gap-4">
-                <Text
-                  as="h3"
-                  className="text-base font-semibold text-foreground"
-                >
-                  {t("welcomeWhyFsrsName")}
-                </Text>
-
-                <Text as="p" className="text-sm leading-relaxed text-muted">
-                  {t("welcomeWhyFsrsDesc1")}
-                </Text>
-
-                <Text as="p" className="text-sm leading-relaxed text-muted">
-                  {t("welcomeWhyFsrsDesc2")}
-                </Text>
-              </div>
-
-              <div className="flex flex-col gap-3 rounded-xl border border-border bg-background p-5 md:w-64">
-                <Text
-                  as="span"
-                  className="text-xs font-semibold uppercase tracking-wider text-muted"
-                >
-                  {t("welcomeCompareTitle")}
-                </Text>
-
-                <div className="flex flex-col gap-2.5">
-                  <div className="flex items-center justify-between">
-                    <Text as="span" className="text-sm text-foreground">
-                      {t("welcomeCompareFsrs")}
-                    </Text>
-
-                    <Badge>{t("welcomeCompareFsrsBadge")}</Badge>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <Text as="span" className="text-sm text-muted">
-                      {t("welcomeCompareSm2")}
-                    </Text>
-
-                    <Badge variant="outline">
-                      {t("welcomeCompareSm2Badge")}
-                    </Badge>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <Text as="span" className="text-sm text-muted">
-                      {t("welcomeCompareLeitner")}
-                    </Text>
-
-                    <Badge variant="outline">
-                      {t("welcomeCompareLeitnerBadge")}
-                    </Badge>
-                  </div>
-                </div>
-
-                <Separator variant="dashed" />
-
-                <Text as="p" className="text-xs leading-relaxed text-muted">
-                  {t("welcomeCompareDesc")}
-                </Text>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-around gap-4 border-t border-border pt-6">
-              <div className="flex flex-col items-center gap-1 text-center">
-                <div className="flex items-center gap-2">
-                  <Clock className="size-5 text-primary" />
-
-                  <Text
-                    as="span"
-                    className="text-lg font-bold tabular-nums text-foreground md:text-xl"
-                  >
-                    {t("welcomeStatRetentionValue")}
-                  </Text>
-                </div>
-
-                <Text as="span" className="text-xs text-muted">
-                  {t("welcomeStatRetentionLabel")}
-                </Text>
-              </div>
-
-              <div className="flex flex-col items-center gap-1 text-center">
-                <div className="flex items-center gap-2">
-                  <Repeat2 className="size-5 text-primary" />
-
-                  <Text
-                    as="span"
-                    className="text-lg font-bold tabular-nums text-foreground md:text-xl"
-                  >
-                    {t("welcomeStatReviewsValue")}
-                  </Text>
-                </div>
-
-                <Text as="span" className="text-xs text-muted">
-                  {t("welcomeStatReviewsLabel")}
-                </Text>
-              </div>
-
-              <div className="flex flex-col items-center gap-1 text-center">
-                <div className="flex items-center gap-2">
-                  <Flame className="size-5 text-primary" />
-
-                  <Text
-                    as="span"
-                    className="text-lg font-bold tabular-nums text-foreground md:text-xl"
-                  >
-                    {t("welcomeStatRecallValue")}
-                  </Text>
-                </div>
-
-                <Text as="span" className="text-xs text-muted">
-                  {t("welcomeStatRecallLabel")}
-                </Text>
-              </div>
-            </div>
-          </div>
-        </Card>
-      </section>
-
-      <section className="border-t border-border bg-surface">
-        <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-8 px-6 py-20 text-center">
-          <div className="flex flex-col gap-2 text-center">
-            <Text
-              as="h2"
-              className="text-2xl font-bold tracking-tight text-foreground md:text-3xl"
-            >
-              {t("welcomeCtaTitle")}
-            </Text>
-
-            <Text as="p" className="text-sm text-muted">
-              {t("welcomeCtaDesc")}
-            </Text>
-          </div>
-
-          <Link to="/auth/sign-up">
-            <Button size="lg" className="gap-2">
-              {t("welcomeCtaButton")}
-              <ArrowRight className="size-4" />
-            </Button>
-          </Link>
-        </div>
-      </section>
-
-      <footer className="border-t border-border bg-background">
-        <div className="mx-auto flex w-full max-w-4xl flex-col items-center gap-4 px-6 py-5 sm:flex-row sm:justify-between">
+      <footer className="w-full bg-surface">
+        <div className="mx-auto flex w-full max-w-7xl flex-col-reverse items-center justify-between gap-5 px-6 py-6 sm:flex-row">
           <Text as="span" className="text-xs text-muted">
-            © {new Date().getFullYear()} ThinkCards
+            &copy; {new Date().getFullYear()} ThinkCards
           </Text>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-0.5">
               {THEMES.map(({ value, icon }) => (
                 <button
                   key={value}
@@ -504,10 +643,10 @@ function WelcomeComponent() {
                   aria-label={`${value} theme`}
                   onClick={() => setTheme(value)}
                   className={cn(
-                    "flex items-center justify-center rounded-full transition-colors p-1.5",
+                    "flex items-center justify-center p-1.5 transition-colors",
                     theme === value
                       ? "text-foreground"
-                      : "text-muted hover:text-foreground opacity-80",
+                      : "text-muted hover:text-foreground",
                   )}
                 >
                   {icon}
@@ -515,9 +654,9 @@ function WelcomeComponent() {
               ))}
             </div>
 
-            <div className="h-3.5 w-px bg-border" />
+            <div className="h-3 w-px bg-border" />
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               {LANGS.map(({ value, label }) => (
                 <button
                   key={value}
@@ -525,10 +664,10 @@ function WelcomeComponent() {
                   aria-label={`Change language to ${label}`}
                   onClick={() => setLang(value)}
                   className={cn(
-                    "p-2 text-xs transition-colors rounded-full",
+                    "px-1.5 py-1 text-xs transition-colors",
                     lang === value
-                      ? "text-foreground"
-                      : "text-muted hover:text-foreground opacity-80",
+                      ? "font-medium text-foreground"
+                      : "text-muted hover:text-foreground",
                   )}
                 >
                   {label}
@@ -536,7 +675,7 @@ function WelcomeComponent() {
               ))}
             </div>
 
-            <div className="h-3.5 w-px bg-border" />
+            <div className="h-3 w-px bg-border" />
 
             <a
               href="https://github.com/vs-front-end/think-cards"

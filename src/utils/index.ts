@@ -1,3 +1,4 @@
+export * from "./compare-cell";
 export * from "./cloze";
 export * from "./deck";
 export * from "./format";

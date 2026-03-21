@@ -6,13 +6,13 @@ export const Header = () => {
   const { t } = useTranslation();
 
   return (
-    <header className="border-b border-border bg-background px-4">
-      <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-4 py-4">
-        <Link
-          to="/"
-          className="flex items-center transition-transform duration-200 hover:scale-105"
-        >
-          <Text as="span" className="text-xl font-semibold md:text-2xl">
+    <header className="w-full border-b border-border bg-background">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-6">
+        <Link to="/" className="flex items-center">
+          <Text
+            as="span"
+            className="text-lg md:text-xl font-bold tracking-tight text-foreground"
+          >
             Think
             <Text as="span" className="text-primary">
               Cards
@@ -22,13 +22,17 @@ export const Header = () => {
 
         <nav aria-label="Main navigation" className="flex items-center gap-2">
           <Link to="/auth/login">
-            <Button type="button" variant="ghost" size="sm">
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-7 rounded-lg font-normal"
+            >
               {t("headerLogin")}
             </Button>
           </Link>
 
           <Link to="/auth/sign-up">
-            <Button type="button" size="sm">
+            <Button type="button" className="h-7 rounded-lg font-normal">
               {t("headerSignUp")}
             </Button>
           </Link>

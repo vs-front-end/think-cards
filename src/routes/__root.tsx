@@ -171,7 +171,12 @@ function RootComponent() {
           {!showAppShell && !isLoggedIn && <Header />}
 
           <main className="flex flex-1 min-h-0 flex-col">
-            <div className="mx-auto flex w-full max-w-[1440px] flex-1 min-h-0 flex-col">
+            <div
+              className={cn(
+                "mx-auto flex w-full flex-1 min-h-0 flex-col",
+                showAppShell && "max-w-[1440px]",
+              )}
+            >
               <Outlet />
             </div>
           </main>
