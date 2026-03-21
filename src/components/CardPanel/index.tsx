@@ -1,3 +1,5 @@
+import type { RefObject } from "react";
+
 import {
   useCallback,
   useDeferredValue,
@@ -51,6 +53,7 @@ type VirtualizedCardListProps = {
   onDelete: (id: string) => void;
   onLoadMore: () => void;
   hasMore: boolean;
+  scrollRootRef: RefObject<HTMLDivElement | null>;
 };
 
 function VirtualizedCardList({
@@ -61,26 +64,28 @@ function VirtualizedCardList({
   onDelete,
   onLoadMore,
   hasMore,
+  scrollRootRef,
 }: VirtualizedCardListProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    if (!sentinel || !hasMore) return;
+    const root = scrollRootRef.current;
+    if (!sentinel || !hasMore || !root) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) onLoadMore();
       },
-      { rootMargin: "200px" },
+      { root, rootMargin: "200px" },
     );
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, onLoadMore]);
+  }, [hasMore, onLoadMore, scrollRootRef]);
 
   return (
-    <div className="themed-scroll min-w-0 flex-1 overflow-y-auto pb-20 md:pb-0">
+    <div className="flex min-w-0 flex-col gap-2">
       {cards.map((card) => (
         <CardRow
           key={card.id}
@@ -217,6 +222,9 @@ export function CardPanel({
   const allSelected =
     filtered.length > 0 && filtered.every((c) => selected.has(c.id));
 
+  const scrollRootRef = useRef<HTMLDivElement>(null);
+  const showCardChrome = !isLoading && filtered.length > 0;
+
   if (!deckId) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
@@ -229,198 +237,225 @@ export function CardPanel({
   }
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border px-4 py-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <Text as="h2" className="truncate font-semibold text-lg">
-            {deckName}
-          </Text>
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background">
+      <div
+        ref={scrollRootRef}
+        className="themed-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
+      >
+        <div className="sticky top-0 z-10 bg-background px-4 pb-3 pt-3">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border pb-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <Text as="h2" className="truncate font-semibold text-lg">
+                {deckName}
+              </Text>
 
-          <Text as="span" className="shrink-0 text-muted">
-            (
-            {t(
-              displayCount === 1
-                ? "cardPanelCardCount_one"
-                : "cardPanelCardCount_other",
-              { count: displayCount },
-            )}
-            )
-          </Text>
-        </div>
-
-        <div className="flex shrink-0 items-center gap-2">
-          <Button
-            type="button"
-            size="sm"
-            className="gap-1.5"
-            onClick={onCreateCard}
-          >
-            <Plus className="size-3.5" />
-            {t("cardPanelNewCard")}
-          </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="gap-1.5"
-            onClick={() => navigateToStudy(deckId!)}
-          >
-            <Play className="size-3.5" />
-            {t("cardPanelStudy")}
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex min-w-0 flex-wrap items-center gap-2 border-b border-border px-4 py-3">
-        <div className="min-w-[7.5rem] flex-1">
-          <Select
-            value={typeFilter}
-            onValueChange={(v) => setTypeFilter(v as CardTypeFilter)}
-          >
-            <SelectTrigger className="h-8 w-full text-xs">
-              <SelectValue />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem value="all">{t("cardPanelAllTypes")}</SelectItem>
-              <SelectItem value="basic">{t("cardPanelTypeBasic")}</SelectItem>
-              <SelectItem value="cloze">{t("cardPanelTypeCloze")}</SelectItem>
-              <SelectItem value="typing">{t("cardPanelTypeTyping")}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="min-w-[7.5rem] flex-1">
-          <Select
-            value={statusFilter}
-            onValueChange={(v) => setStatusFilter(v as StatusFilter)}
-          >
-            <SelectTrigger className="h-8 w-full text-xs">
-              <SelectValue />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem value="all">{t("cardPanelAllStatuses")}</SelectItem>
-              <SelectItem value="new">{t("cardPanelStatusNew")}</SelectItem>
-              <SelectItem value="learning">
-                {t("cardPanelStatusLearning")}
-              </SelectItem>
-              <SelectItem value="review">
-                {t("cardPanelStatusReview")}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="min-w-[7.5rem] flex-1">
-          <InputSearch
-            value={search}
-            onChange={setSearch}
-            placeholder={t("dashboardSearchDecks")}
-          />
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="flex flex-col gap-0">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="border-b border-border px-4 py-3">
-              <Skeleton className="mb-2 h-4 w-3/4" />
-              <Skeleton className="h-3 w-24" />
+              <Text as="span" className="shrink-0 text-muted">
+                (
+                {t(
+                  displayCount === 1
+                    ? "cardPanelCardCount_one"
+                    : "cardPanelCardCount_other",
+                  { count: displayCount },
+                )}
+                )
+              </Text>
             </div>
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <EmptyCards onCreateCard={onCreateCard} hasSearch={!!search} />
-      ) : null}
 
-      {!isLoading && filtered.length > 0 && selected.size > 0 && (
-        <div className="flex min-w-0 flex-wrap items-center gap-2 border-b border-border px-4 py-3">
-          <Select value={movingTo} onValueChange={setMovingTo}>
-            <SelectTrigger size="sm" className="h-8 flex-1 text-xs">
-              <SelectValue placeholder={t("cardPanelMoveTo")} />
-            </SelectTrigger>
+            <div className="flex shrink-0 items-center gap-2 flex-1 md:flex-none">
+              <Button
+                type="button"
+                size="sm"
+                className="gap-1.5 flex-1 font-normal"
+                onClick={onCreateCard}
+              >
+                <Plus className="size-3.5" />
+                {t("cardPanelNewCard")}
+              </Button>
 
-            <SelectContent>
-              {allDecks
-                .filter((d) => d.id !== deckId)
-                .map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.name}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-1.5 flex-1 font-normal"
+                onClick={() => navigateToStudy(deckId!)}
+              >
+                <Play className="size-3.5" />
+                {t("cardPanelStudy")}
+              </Button>
+            </div>
+          </div>
+
+          <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
+            <div className="min-w-[7.5rem] flex-1">
+              <Select
+                value={typeFilter}
+                onValueChange={(v) => setTypeFilter(v as CardTypeFilter)}
+              >
+                <SelectTrigger className="h-8 w-full text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="all">{t("cardPanelAllTypes")}</SelectItem>
+                  <SelectItem value="basic">
+                    {t("cardPanelTypeBasic")}
                   </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
+                  <SelectItem value="cloze">
+                    {t("cardPanelTypeCloze")}
+                  </SelectItem>
+                  <SelectItem value="typing">
+                    {t("cardPanelTypeTyping")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          {movingTo && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8"
-              onClick={() => setConfirmBulkMoveOpen(true)}
-              disabled={moveCards.isPending}
-            >
-              {t("cardPanelMove")}
-            </Button>
+            <div className="min-w-[7.5rem] flex-1">
+              <Select
+                value={statusFilter}
+                onValueChange={(v) => setStatusFilter(v as StatusFilter)}
+              >
+                <SelectTrigger className="h-8 w-full text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="all">
+                    {t("cardPanelAllStatuses")}
+                  </SelectItem>
+                  <SelectItem value="new">{t("cardPanelStatusNew")}</SelectItem>
+                  <SelectItem value="learning">
+                    {t("cardPanelStatusLearning")}
+                  </SelectItem>
+                  <SelectItem value="review">
+                    {t("cardPanelStatusReview")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="min-w-[7.5rem] flex-1">
+              <InputSearch
+                value={search}
+                onChange={setSearch}
+                placeholder={t("dashboardSearchDecks")}
+              />
+            </div>
+          </div>
+
+          {showCardChrome && selected.size > 0 && (
+            <div className="mt-3 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 flex-1">
+                <Select value={movingTo} onValueChange={setMovingTo}>
+                  <SelectTrigger size="sm" className="h-8 w-full text-xs">
+                    <SelectValue placeholder={t("cardPanelMoveTo")} />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {allDecks
+                      .filter((d) => d.id !== deckId)
+                      .map((d) => (
+                        <SelectItem key={d.id} value={d.id}>
+                          {d.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {movingTo && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 font-normal flex-1"
+                    onClick={() => setConfirmBulkMoveOpen(true)}
+                    disabled={moveCards.isPending}
+                  >
+                    {t("cardPanelMove")}
+                  </Button>
+                )}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 font-normal flex-1"
+                  onClick={() => setSelected(new Set())}
+                >
+                  {t("cardPanelClear")}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="h-8 font-normal flex-1"
+                  onClick={() => setConfirmBulkDeleteOpen(true)}
+                  disabled={bulkDelete.isPending}
+                >
+                  {t("cardPanelDelete")}
+                </Button>
+              </div>
+            </div>
           )}
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-8"
-            onClick={() => setSelected(new Set())}
-          >
-            {t("cardPanelClear")}
-          </Button>
+          {showCardChrome && (
+            <div className="mt-3 flex min-w-0 flex-wrap items-center justify-between gap-2">
+              <label className="flex cursor-pointer items-center gap-2 my-0.5">
+                <Checkbox
+                  checked={allSelected}
+                  onCheckedChange={toggleAll}
+                  className="shrink-0"
+                />
+                <Text as="span" className="text-xs text-muted pt-0.5">
+                  {t("cardPanelSelectAll")}
+                </Text>
+              </label>
 
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            className="h-8"
-            onClick={() => setConfirmBulkDeleteOpen(true)}
-            disabled={bulkDelete.isPending}
-          >
-            {t("cardPanelDelete")}
-          </Button>
+              {selected.size > 0 && (
+                <Text as="span" className="text-xs font-medium">
+                  {t("cardPanelSelected", { count: selected.size })}
+                </Text>
+              )}
+            </div>
+          )}
+
+          <div className="mt-3 h-px w-full bg-border" aria-hidden />
         </div>
-      )}
 
-      {!isLoading && filtered.length > 0 && (
-        <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
-          <label className="flex cursor-pointer items-center gap-2">
-            <Checkbox
-              checked={allSelected}
-              onCheckedChange={toggleAll}
-              className="shrink-0"
+        <div className="px-4 pb-20 pt-3 md:pb-4">
+          {isLoading ? (
+            <div className="flex flex-col gap-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="rounded-lg bg-surface px-3 py-3 md:px-4"
+                >
+                  <Skeleton className="mb-2 h-4 w-3/4" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex min-h-[min(50vh,24rem)] flex-col items-center justify-center py-10">
+              <EmptyCards onCreateCard={onCreateCard} hasSearch={!!search} />
+            </div>
+          ) : (
+            <VirtualizedCardList
+              cards={filtered}
+              selected={selected}
+              onToggle={toggleSelect}
+              onEdit={onEditCard}
+              onDelete={onDeleteCard}
+              onLoadMore={handleLoadMore}
+              hasMore={hasMore}
+              scrollRootRef={scrollRootRef}
             />
-            <Text as="span" className="text-xs text-muted">
-              {t("cardPanelSelectAll")}
-            </Text>
-          </label>
-
-          {selected.size > 0 && (
-            <Text as="span" className="text-xs font-medium">
-              {t("cardPanelSelected", { count: selected.size })}
-            </Text>
           )}
         </div>
-      )}
-
-      {!isLoading && filtered.length > 0 && (
-        <VirtualizedCardList
-          cards={filtered}
-          selected={selected}
-          onToggle={toggleSelect}
-          onEdit={onEditCard}
-          onDelete={onDeleteCard}
-          onLoadMore={handleLoadMore}
-          hasMore={hasMore}
-        />
-      )}
+      </div>
 
       <Dialog
         open={confirmBulkDeleteOpen}

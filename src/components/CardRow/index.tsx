@@ -70,12 +70,7 @@ export function CardRow({
   };
 
   return (
-    <div
-      className={cn(
-        "flex min-w-0 items-start gap-3 border-b border-border px-4 py-3",
-        selected && "bg-primary/5",
-      )}
-    >
+    <div className="flex min-w-0 items-start gap-3 rounded-xl border border-border bg-surface px-3 py-3 shadow-sm transition-colors md:px-4">
       <Checkbox
         checked={selected}
         onCheckedChange={() => onToggle(card.id)}
