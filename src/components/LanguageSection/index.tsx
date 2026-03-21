@@ -3,7 +3,7 @@ import i18next from "i18next";
 import { useTranslation } from "react-i18next";
 import { cn } from "@stellar-ui-kit/shared";
 import { Languages } from "lucide-react";
-import { Text } from "@stellar-ui-kit/web";
+import { Button, Text } from "@stellar-ui-kit/web";
 
 type SupportedLanguage = "en" | "es" | "pt-BR";
 
@@ -37,20 +37,20 @@ export function LanguageSection() {
 
       <div className="inline-flex flex-wrap gap-2">
         {LANGUAGES.map(({ value, label }) => (
-          <button
+          <Button
             key={value}
-            type="button"
+            variant="outline"
             onClick={() => handleSelect(value)}
             className={cn(
-              "inline-flex flex-1 items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors",
+              "flex-1 h-8 font-normal",
               selectedLanguage === value
                 ? "border-primary bg-primary-soft text-primary"
-                : "border-border bg-background text-muted hover:border-primary hover:text-foreground",
+                : "border-border bg-transparent text-muted hover:border-foreground hover:text-foreground",
             )}
           >
             <Languages className="size-4" />
             <span className="truncate">{label}</span>
-          </button>
+          </Button>
         ))}
       </div>
     </div>

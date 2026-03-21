@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { cn } from "@stellar-ui-kit/shared";
 import { Moon, Sun, Waves } from "lucide-react";
-import { Text } from "@stellar-ui-kit/web";
+import { Button, Text } from "@stellar-ui-kit/web";
 import { useThemeStore } from "@/store";
 import type { ThemeVariant } from "@/store";
 
@@ -40,20 +40,20 @@ export function AppearanceSection() {
 
       <div className="inline-flex flex-wrap gap-2">
         {THEMES.map(({ value, label, icon }) => (
-          <button
+          <Button
             key={value}
-            type="button"
+            variant="outline"
             onClick={() => setTheme(value)}
             className={cn(
-              "inline-flex flex-1 items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors",
+              "flex-1 h-8 font-normal",
               theme === value
                 ? "border-primary bg-primary-soft text-primary"
-                : "border-border bg-background text-muted hover:border-primary hover:text-foreground",
+                : "border-border bg-transparent text-muted hover:border-foreground hover:text-foreground",
             )}
           >
             {icon}
             <span className="truncate">{label}</span>
-          </button>
+          </Button>
         ))}
       </div>
     </div>
