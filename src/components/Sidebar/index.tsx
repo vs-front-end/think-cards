@@ -2,7 +2,6 @@ import { useAuthStore } from "@/store";
 import { cn } from "@stellar-ui-kit/shared";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { useSyncStore } from "@/store";
 import { useDashboardData, useProfile, useSignOut } from "@/hooks";
 
 import {
@@ -38,12 +37,12 @@ export function Sidebar() {
   const navigate = useNavigate();
   const pathname = useLocation({ select: (loc) => loc.pathname });
 
-  const { data: profile } = useProfile();
-  const { data: dashboard } = useDashboardData();
+  const { data: profile, isLoading: profileLoading } = useProfile();
+  const { data: dashboard, isLoading: dashboardLoading } = useDashboardData();
+  const footerLoading = profileLoading || dashboardLoading;
 
   const signOut = useSignOut();
   const user = useAuthStore((s) => s.user);
-  const initialSyncDone = useSyncStore((s) => s.initialSyncDone);
 
   const streak = dashboard?.streak ?? 0;
   const studiedToday = dashboard?.studiedToday ?? 0;
@@ -90,22 +89,6 @@ export function Sidebar() {
         <ul className="space-y-2">
           {ROUTES.map(({ to, labelKey, Icon }) => {
             const isActive = pathname === to;
-            const disabled = !initialSyncDone && to !== "/dashboard";
-
-            if (disabled) {
-              return (
-                <li key={to}>
-                  <span
-                    className={cn(
-                      "flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted opacity-40",
-                    )}
-                  >
-                    <Icon className="size-4 shrink-0" />
-                    {t(labelKey)}
-                  </span>
-                </li>
-              );
-            }
 
             return (
               <li key={to}>
@@ -114,8 +97,8 @@ export function Sidebar() {
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                     isActive
-                      ? "bg-primary-soft font-medium text-primary-text"
-                      : "text-muted hover:bg-surface hover:text-foreground",
+                      ? "bg-surface font-medium text-foreground shadow-xs"
+                      : "text-muted hover:bg-surface hover:text-foreground opacity-90",
                   )}
                 >
                   <Icon className="size-4 shrink-0" />
@@ -129,7 +112,7 @@ export function Sidebar() {
 
       <div className="shrink-0 p-3">
         <div className="rounded-xl bg-surface p-3 border border-border">
-          {!initialSyncDone ? (
+          {footerLoading ? (
             <>
               <div className="flex items-center gap-3">
                 <Skeleton className="size-9 shrink-0 rounded-full" />

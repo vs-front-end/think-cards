@@ -40,7 +40,7 @@ export function EmptyCards({ onCreateCard, hasSearch }: EmptyCardsProps) {
         type="button"
         size="sm"
         onClick={onCreateCard}
-        className="gap-1.5"
+        className="gap-1.5 font-normal"
       >
         <Plus className="size-3.5" />
         {t("emptyCardsButton")}

@@ -89,8 +89,9 @@ function DecksComponent() {
 
   return (
     <div className="flex flex-1 overflow-hidden">
-      <aside className="hidden h-full w-72 shrink-0 flex-col border-r border-border bg-background p-3 md:flex">
+      <aside className="hidden h-full w-72 shrink-0 flex-col bg-background p-3 md:flex md:pr-0 md:ml-2">
         <DeckTree
+          appearance="rail"
           selectedId={selectedDeckId}
           onSelect={handleSelectDeck}
           onEdit={handleEditDeck}
@@ -99,7 +100,7 @@ function DecksComponent() {
         />
       </aside>
 
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden md:pl-1">
         <div className="flex items-center gap-2 border-b border-border bg-surface px-4 py-2 md:hidden">
           <Drawer open={mobileDrawerOpen} onOpenChange={setMobileDrawerOpen}>
             <DrawerTrigger asChild>
@@ -144,6 +145,7 @@ function DecksComponent() {
         <CardPanel
           deckId={selectedDeckId}
           deckName={selectedDeck?.name ?? ""}
+          onCreateDeck={() => setDeckModal({ type: "createDeck" })}
           onCreateCard={() =>
             selectedDeckId &&
             navigate({ to: "/cards/new", search: { deckId: selectedDeckId } })

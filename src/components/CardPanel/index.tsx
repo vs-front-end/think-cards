@@ -11,7 +11,7 @@ import {
 
 import { useTranslation } from "react-i18next";
 import { useNavigateToStudy } from "@/hooks";
-import { BookOpen, Play, Plus } from "lucide-react";
+import { BookOpen, Layers, Play, Plus } from "lucide-react";
 import type { CardStatus, CardWithState } from "@/hooks/useCardsWithState";
 import { CARDS_PAGE_SIZE } from "@/hooks/useCardsWithState";
 import { CardRow, EmptyCards } from "@/components";
@@ -112,6 +112,7 @@ function VirtualizedCardList({
 type CardPanelProps = {
   deckId: string | null;
   deckName: string;
+  onCreateDeck: () => void;
   onCreateCard: () => void;
   onEditCard: (id: string) => void;
   onDeleteCard: (id: string) => void;
@@ -120,6 +121,7 @@ type CardPanelProps = {
 export function CardPanel({
   deckId,
   deckName,
+  onCreateDeck,
   onCreateCard,
   onEditCard,
   onDeleteCard,
@@ -129,7 +131,7 @@ export function CardPanel({
 
   const moveCards = useMoveCards();
   const bulkDelete = useBulkDeleteCards();
-  const { data: allDecks = [] } = useDecksList();
+  const { data: allDecks = [], isLoading: decksLoading } = useDecksList();
 
   const [limit, setLimit] = useState(CARDS_PAGE_SIZE);
   const {
@@ -226,6 +228,47 @@ export function CardPanel({
   const showCardChrome = !isLoading && filtered.length > 0;
 
   if (!deckId) {
+    if (decksLoading) {
+      return (
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6">
+          <Skeleton className="size-12 shrink-0 rounded-lg" />
+          <div className="flex w-full max-w-sm flex-col items-center gap-2">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+          </div>
+          <Skeleton className="h-9 w-40" />
+        </div>
+      );
+    }
+
+    if (allDecks.length === 0) {
+      return (
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+          <Layers className="size-12 shrink-0 text-muted" />
+
+          <div className="flex max-w-md flex-col gap-2">
+            <Text as="h2" className="text-lg font-semibold text-foreground">
+              {t("cardPanelNoDecksTitle")}
+            </Text>
+
+            <Text as="p" className="text-sm text-muted">
+              {t("cardPanelNoDecksDescription")}
+            </Text>
+          </div>
+
+          <Button
+            type="button"
+            className="gap-1.5 h-8 font-normal"
+            onClick={onCreateDeck}
+          >
+            <Plus className="size-4" />
+            {t("cardPanelCreateFirstDeck")}
+          </Button>
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
         <BookOpen className="size-10 text-muted" />

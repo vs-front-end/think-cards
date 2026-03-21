@@ -27,37 +27,43 @@ import {
 function DeckTreeItem({
   node,
   depth,
+  firstChild,
   selectedId,
   onSelect,
   onEdit,
   onDelete,
+  appearance,
 }: {
   node: DeckNode;
   depth: number;
+  firstChild: boolean;
   selectedId: string | null;
   onSelect: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  appearance: "drawer" | "rail";
 }) {
   const navigateToStudy = useNavigateToStudy();
-  
+
   const [expanded, setExpanded] = useState(true);
   const hasChildren = node.children.length > 0;
   const isSelected = selectedId === node.id;
+  const isRail = appearance === "rail";
 
   return (
     <li
       className={cn(
-        depth === 0 && "pb-2 border-b border-border last:border-b-0",
+        depth === 0 && "border-b border-border pb-3 last:border-b-0",
         "mb-2",
+        !firstChild && "pt-1",
       )}
     >
       <div
         className={cn(
-          "group flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1.5 text-sm transition-colors",
+          "group flex cursor-pointer items-center rounded-lg px-2 py-1 text-sm transition-colors",
           isSelected
-            ? "bg-primary-soft text-primary font-medium"
-            : "text-foreground hover:bg-surface",
+            ? "bg-surface text-foreground font-medium"
+            : "text-muted hover:bg-surface",
         )}
         style={{ paddingLeft: `${8 + depth * 16}px` }}
         onClick={() => onSelect(node.id)}
@@ -70,7 +76,7 @@ function DeckTreeItem({
           }}
           className={cn(
             "flex size-4 shrink-0 items-center justify-center rounded transition-transform",
-            !hasChildren && "invisible",
+            !hasChildren && "hidden",
             expanded && "rotate-90",
           )}
           aria-label={expanded ? "Collapse" : "Expand"}
@@ -78,7 +84,7 @@ function DeckTreeItem({
           <ChevronRight className="size-5" />
         </button>
 
-        <span className="flex-1 truncate">{node.name}</span>
+        <span className="flex-1 truncate pl-2">{node.name}</span>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -88,7 +94,8 @@ function DeckTreeItem({
               onClick={(e) => e.stopPropagation()}
               className={cn(
                 "flex size-7 items-center justify-center rounded",
-                isSelected ? "text-primary" : "text-muted",
+                isSelected && !isRail && "text-foreground",
+                (!isSelected || isRail) && "text-muted",
               )}
             >
               <MoreVertical className="size-4" />
@@ -100,11 +107,7 @@ function DeckTreeItem({
             className="min-w-[160px]"
             onClick={(e) => e.stopPropagation()}
           >
-            <DropdownMenuItem
-              onClick={() =>
-                navigateToStudy(node.id)
-              }
-            >
+            <DropdownMenuItem onClick={() => navigateToStudy(node.id)}>
               <Play className="mr-2 size-4" />
               <span>Study</span>
             </DropdownMenuItem>
@@ -127,15 +130,17 @@ function DeckTreeItem({
 
       {hasChildren && expanded && (
         <ul className="mt-2">
-          {node.children.map((child) => (
+          {node.children.map((child, index) => (
             <DeckTreeItem
               key={child.id}
               node={child}
               depth={depth + 1}
+              firstChild={index === 0}
               selectedId={selectedId}
               onSelect={onSelect}
               onEdit={onEdit}
               onDelete={onDelete}
+              appearance={appearance}
             />
           ))}
         </ul>
@@ -145,6 +150,7 @@ function DeckTreeItem({
 }
 
 type DeckTreeProps = {
+  appearance?: "drawer" | "rail";
   selectedId: string | null;
   onSelect: (id: string) => void;
   onEdit: (id: string) => void;
@@ -153,6 +159,7 @@ type DeckTreeProps = {
 };
 
 export function DeckTree({
+  appearance = "drawer",
   selectedId,
   onSelect,
   onEdit,
@@ -163,8 +170,8 @@ export function DeckTree({
   const { data: decks = [], isLoading } = useDecks();
 
   return (
-    <div className="flex h-full flex-col gap-2">
-      <div className="flex items-center justify-between px-1">
+    <div className="flex h-full flex-col gap-1 mt-1">
+      <div className="flex items-center justify-between">
         <Text as="h2" className="text-sm font-semibold text-muted">
           {t("deckTreeDecksLabel")}
         </Text>
@@ -180,7 +187,7 @@ export function DeckTree({
         </Button>
       </div>
 
-      <Separator className="my-1" />
+      <Separator className="my-2" />
 
       <div className="themed-scroll flex-1 min-h-0 overflow-y-auto">
         {isLoading ? (
@@ -190,30 +197,34 @@ export function DeckTree({
             <Skeleton className="h-7 rounded-lg" />
           </div>
         ) : decks.length === 0 ? (
-          <div className="px-2 py-4 text-center">
-            <Text as="p" className="text-xs text-muted">
+          <div className="flex flex-col items-center justify-center px-2 py-4 text-center gap-3">
+            <Text as="p" className="text-muted text-sm">
               {t("deckTreeNoDecks")}
             </Text>
 
-            <button
-              type="button"
+            <Button
+              variant="outline"
+              size="sm"
               onClick={onCreateDeck}
-              className="mt-1 text-xs text-primary hover:underline"
+              className="flex gap-1.5 text-xs text-muted text-xs h-7 font-normal"
             >
+              <Plus className="size-3.5" />
               {t("deckTreeCreateOne")}
-            </button>
+            </Button>
           </div>
         ) : (
           <ul className="pb-1">
-            {decks.map((node) => (
+            {decks.map((node, index) => (
               <DeckTreeItem
                 key={node.id}
                 node={node}
                 depth={0}
+                firstChild={index === 0}
                 selectedId={selectedId}
                 onSelect={onSelect}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                appearance={appearance}
               />
             ))}
           </ul>
