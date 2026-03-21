@@ -128,7 +128,7 @@ export function Sidebar() {
       </nav>
 
       <div className="shrink-0 p-3">
-        <div className="rounded-xl bg-surface p-3">
+        <div className="rounded-xl bg-surface p-3 border border-border">
           {!initialSyncDone ? (
             <>
               <div className="flex items-center gap-3">

@@ -25,3 +25,4 @@ export * from "./Sidebar";
 export * from "./SocialAuthButtons";
 export * from "./StudySection";
 export * from "./StudySession";
+export * from "./AvatarCropDialog";

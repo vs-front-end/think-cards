@@ -4,6 +4,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Camera, KeyRound, LogOut, Save } from "lucide-react";
 import { useAuthStore } from "@/store";
+import { createImageUrl } from "@/utils";
+import { AvatarCropDialog } from "../AvatarCropDialog";
 
 import {
   Avatar,
@@ -44,7 +46,8 @@ export function AccountSection() {
   const { data: profile, isLoading } = useProfile();
 
   const hasPasswordProvider =
-    user?.identities?.some((identity) => identity.provider === "email") ?? false;
+    user?.identities?.some((identity) => identity.provider === "email") ??
+    false;
 
   const uploadAvatar = useUploadAvatar();
   const updateProfile = useUpdateProfile();
@@ -54,6 +57,9 @@ export function AccountSection() {
   const resetStats = useResetStats();
   const resetData = useResetData();
   const signOut = useSignOut();
+
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
 
   const [username, setUsername] = useState("");
   const [usernameDirty, setUsernameDirty] = useState(false);
@@ -91,7 +97,7 @@ export function AccountSection() {
     /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
   ];
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -103,8 +109,13 @@ export function AccountSection() {
       return;
     }
 
+    setCropImageSrc(createImageUrl(file));
+    setCropOpen(true);
+  };
+
+  const handleCropConfirm = async (croppedFile: File) => {
     try {
-      await uploadAvatar.mutateAsync(file);
+      await uploadAvatar.mutateAsync(croppedFile);
       toast.success(t("profileAvatarUpdated"));
     } catch (err) {
       const message =
@@ -113,6 +124,16 @@ export function AccountSection() {
           : t("profileAvatarError");
 
       toast.error(message);
+    } finally {
+      closeCropDialog();
+    }
+  };
+
+  const closeCropDialog = () => {
+    setCropOpen(false);
+    if (cropImageSrc) {
+      URL.revokeObjectURL(cropImageSrc);
+      setCropImageSrc(null);
     }
   };
 
@@ -253,7 +274,7 @@ export function AccountSection() {
             aria-label="Change avatar"
             onClick={() => fileRef.current?.click()}
             disabled={uploadAvatar.isPending}
-            className="absolute -bottom-1 -right-1 flex size-8 items-center justify-center rounded-full border border-border bg-surface text-muted shadow disabled:opacity-60"
+            className="absolute -bottom-1 -right-1 flex size-8 items-center justify-center rounded-full bg-primary text-white/80 shadow disabled:opacity-60"
           >
             {uploadAvatar.isPending ? (
               <Spinner className="size-4" />
@@ -334,7 +355,9 @@ export function AccountSection() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <Text as="p" className="text-sm font-semibold">
-            {t(hasPasswordProvider ? "changePasswordTitle" : "addPasswordTitle")}
+            {t(
+              hasPasswordProvider ? "changePasswordTitle" : "addPasswordTitle",
+            )}
           </Text>
           <Text as="p" className="text-xs text-muted">
             {t(hasPasswordProvider ? "changePasswordDesc" : "addPasswordDesc")}
@@ -352,7 +375,9 @@ export function AccountSection() {
           }}
         >
           <KeyRound className="size-4" />
-          {t(hasPasswordProvider ? "changePasswordButton" : "addPasswordButton")}
+          {t(
+            hasPasswordProvider ? "changePasswordButton" : "addPasswordButton",
+          )}
         </Button>
       </div>
 
@@ -475,7 +500,11 @@ export function AccountSection() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>
-              {t(hasPasswordProvider ? "changePasswordTitle" : "addPasswordTitle")}
+              {t(
+                hasPasswordProvider
+                  ? "changePasswordTitle"
+                  : "addPasswordTitle",
+              )}
             </DialogTitle>
           </DialogHeader>
 
@@ -542,7 +571,9 @@ export function AccountSection() {
             <Button
               type="button"
               size="sm"
-              onClick={hasPasswordProvider ? handleChangePassword : handleSetPassword}
+              onClick={
+                hasPasswordProvider ? handleChangePassword : handleSetPassword
+              }
               disabled={changePassword.isPending || setPassword.isPending}
             >
               {(changePassword.isPending || setPassword.isPending) && (
@@ -590,12 +621,15 @@ export function AccountSection() {
               size="sm"
               variant="destructive"
               disabled={
-                resetStatsConfirmText !== t("settingsResetStatsConfirmPlaceholder") ||
+                resetStatsConfirmText !==
+                  t("settingsResetStatsConfirmPlaceholder") ||
                 resetStats.isPending
               }
               onClick={handleResetStats}
             >
-              {resetStats.isPending && <Spinner className="size-4 text-white" />}
+              {resetStats.isPending && (
+                <Spinner className="size-4 text-white" />
+              )}
               {t("settingsResetStats")}
             </Button>
           </DialogFooter>
@@ -697,6 +731,14 @@ export function AccountSection() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AvatarCropDialog
+        open={cropOpen}
+        imageSrc={cropImageSrc}
+        isPending={uploadAvatar.isPending}
+        onConfirm={handleCropConfirm}
+        onCancel={closeCropDialog}
+      />
     </>
   );
 }

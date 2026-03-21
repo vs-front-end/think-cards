@@ -344,7 +344,7 @@ function DashboardComponent() {
       <InstallPrompt visible={!showOnboarding} />
 
       <section>
-        {isLoading || isSyncing ? (
+        {isLoading ? (
           <Skeleton className="h-48 rounded-xl p-6" />
         ) : (
           <Card className="border border-border bg-surface p-4 sm:p-5">
@@ -454,7 +454,7 @@ function DashboardComponent() {
             </TooltipProvider>
           </div>
 
-          {isLoading || isSyncing ? (
+          {isLoading ? (
             <Skeleton className="h-8 w-full max-w-xs flex-1 rounded-lg" />
           ) : !isLoading && deckTree.length > 0 ? (
             <InputSearch
