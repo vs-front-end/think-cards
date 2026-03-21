@@ -36,6 +36,7 @@ body {
 @layer components {
   button {
     @apply transition-all duration-150 ease-out;
+    font-weight: normal !important;
   }
 
   button:hover {
@@ -78,5 +79,11 @@ body {
 
   .ProseMirror::-webkit-scrollbar-thumb {
     @apply rounded-full bg-border;
+  }
+}
+
+@media (max-width: 640px) {
+  [data-slot="dialog-content"] {
+    max-width: calc(100vw - 2rem) !important;
   }
 }
