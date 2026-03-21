@@ -318,7 +318,7 @@ function DashboardComponent() {
             type="button"
             size="sm"
             onClick={() => setModal({ type: "createDeck" })}
-            className="gap-1.5"
+            className="gap-1.5 flex-none max-[425px]:flex-1"
             disabled={!initialSyncDone}
           >
             <Plus className="size-4 hidden min-[340px]:block" />
@@ -333,7 +333,7 @@ function DashboardComponent() {
             onClick={() =>
               navigate({ to: "/cards/new", search: { deckId: undefined } })
             }
-            className="gap-1.5"
+            className="gap-1.5 flex-none max-[425px]:flex-1"
           >
             <Plus className="size-4 hidden min-[340px]:block" />
             {t("dashboardNewCard")}
