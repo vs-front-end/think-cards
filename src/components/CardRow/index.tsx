@@ -1,5 +1,4 @@
 import DOMPurify from "dompurify";
-import { cn } from "@stellar-ui-kit/shared";
 import { useTranslation } from "react-i18next";
 import { Pencil, Trash2 } from "lucide-react";
 import type { CardWithState, CardStatus } from "@/hooks/useCardsWithState";
