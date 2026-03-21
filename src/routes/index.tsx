@@ -13,6 +13,7 @@ import {
   ArrowRight,
   BarChart3,
   Brain,
+  Flame,
   Github,
   Layers,
   Moon,
@@ -217,7 +218,7 @@ function WelcomeComponent() {
                   >
                     <span
                       className="font-mono font-bold text-foreground"
-                      style={{ fontSize: "1.4rem" }}
+                      style={{ fontSize: "1.2rem" }}
                     >
                       {s.val}
                     </span>
@@ -227,9 +228,9 @@ function WelcomeComponent() {
               </div>
             </div>
 
-            <div className="hidden flex-col justify-center gap-0 py-12 md:flex md:pl-10 lg:py-16">
+            <div className="hidden flex-col justify-center gap-0 mt-2 py-12 md:flex md:pl-10 lg:py-16">
               <Text as="span" className="mb-3 text-xs text-muted">
-                {t("welcomeHeroCardDeck")}
+                {t("welcomeHeroCardLabel")}
               </Text>
 
               <div className="overflow-hidden rounded-xl border border-border bg-surface">
@@ -297,7 +298,7 @@ function WelcomeComponent() {
                         r.color,
                       )}
                     >
-                      <span className="text-[9px] font-semibold uppercase tracking-wider">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider">
                         {r.label}
                       </span>
                     </div>
@@ -306,7 +307,34 @@ function WelcomeComponent() {
               </div>
 
               <div className="mt-3 rounded-xl border border-border bg-surface p-3.5">
-                <Text as="span" className="mb-2 block text-[10px] text-muted">
+                <div className="mb-2.5 flex items-center gap-1.5">
+                  <Flame className="size-3.5 text-warning mb-0.5" />
+                  <span className="text-[10px] font-semibold text-foreground tabular-nums">
+                    7
+                  </span>
+                  <span className="text-[10px] text-muted uppercase tracking-wider">
+                    {t("statsStreakLabel")}
+                  </span>
+                </div>
+
+                <div className="flex gap-1">
+                  {Array.from({ length: 14 }, (_, i) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        "h-2 flex-1 rounded-sm",
+                        i >= 7 ? "bg-border" : "bg-warning",
+                      )}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-3 rounded-xl border border-border bg-surface p-3.5">
+                <Text
+                  as="span"
+                  className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-muted"
+                >
                   {t("statsDistribution")}
                 </Text>
                 <div className="flex h-1.5 overflow-hidden rounded-full">
@@ -322,7 +350,7 @@ function WelcomeComponent() {
                   ].map((d) => (
                     <div key={d.label} className="flex items-center gap-1.5">
                       <div className={cn("size-1.5 rounded-full", d.color)} />
-                      <span className="text-[10px] text-muted">{d.label}</span>
+                      <span className="text-xs text-muted">{d.label}</span>
                     </div>
                   ))}
                 </div>
