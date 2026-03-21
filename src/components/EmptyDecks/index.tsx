@@ -10,7 +10,7 @@ export function EmptyDecks({ onCreateDeck }: EmptyDecksProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border bg-surface/50 py-16 text-center">
+    <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border bg-surface/50 px-4 py-16 text-center sm:px-6">
       <div className="flex size-14 items-center justify-center rounded-full bg-primary-soft text-primary">
         <Layers className="size-7" />
       </div>
