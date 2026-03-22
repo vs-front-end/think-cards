@@ -3,6 +3,9 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@stellar-ui-kit/shared";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSyncStore } from "@/store";
+import { formatTimePerCard } from "@/utils";
+import type { IDeck } from "@/lib/db";
+
 import {
   useDashboardData,
   useDecksList,
@@ -10,8 +13,6 @@ import {
   useSync,
   useDocumentHead,
 } from "@/hooks";
-import { formatTimePerCard } from "@/utils";
-import type { IDeck } from "@/lib/db";
 
 import {
   DeckCard,
@@ -44,7 +45,6 @@ import {
   BarChart3,
   BookOpen,
   CalendarCheck,
-  Check,
   ChevronDown,
   Clock,
   Flame,
