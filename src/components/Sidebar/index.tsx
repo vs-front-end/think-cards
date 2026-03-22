@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/store";
+import { useAuthStore, useSyncStore } from "@/store";
 import { cn } from "@stellar-ui-kit/shared";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
@@ -43,6 +43,7 @@ export function Sidebar() {
 
   const signOut = useSignOut();
   const user = useAuthStore((s) => s.user);
+  const initialSyncDone = useSyncStore((s) => s.initialSyncDone);
 
   const streak = dashboard?.streak ?? 0;
   const studiedToday = dashboard?.studiedToday ?? 0;
@@ -74,7 +75,11 @@ export function Sidebar() {
       <div className="flex h-14 shrink-0 items-center border-b border-border px-4">
         <Link
           to="/dashboard"
-          className="flex items-center"
+          className={cn(
+            "flex items-center",
+            !initialSyncDone && "pointer-events-none",
+          )}
+          tabIndex={!initialSyncDone ? -1 : undefined}
         >
           <Text as="span" className="text-xl font-bold text-foreground">
             Think
@@ -89,21 +94,32 @@ export function Sidebar() {
         <ul className="space-y-2">
           {ROUTES.map(({ to, labelKey, Icon }) => {
             const isActive = pathname === to;
+            const disabled = !initialSyncDone;
 
             return (
               <li key={to}>
-                <Link
-                  to={to}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                    isActive
-                      ? "bg-surface font-medium text-foreground shadow-xs"
-                      : "text-muted hover:bg-surface hover:text-foreground opacity-90",
-                  )}
-                >
-                  <Icon className="size-4 shrink-0" />
-                  {t(labelKey)}
-                </Link>
+                {disabled ? (
+                  <span
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted opacity-50 cursor-not-allowed"
+                    aria-disabled="true"
+                  >
+                    <Icon className="size-4 shrink-0" />
+                    {t(labelKey)}
+                  </span>
+                ) : (
+                  <Link
+                    to={to}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                      isActive
+                        ? "bg-surface font-medium text-foreground shadow-xs"
+                        : "text-muted hover:bg-surface hover:text-foreground opacity-90",
+                    )}
+                  >
+                    <Icon className="size-4 shrink-0" />
+                    {t(labelKey)}
+                  </Link>
+                )}
               </li>
             );
           })}
@@ -188,6 +204,7 @@ export function Sidebar() {
           variant="outline"
           className="w-full mt-3 text-muted"
           onClick={handleLogout}
+          disabled={!initialSyncDone}
           aria-label={t("headerLogout")}
         >
           {t("headerLogout")}
