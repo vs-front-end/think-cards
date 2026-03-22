@@ -400,9 +400,6 @@ function DashboardComponent() {
                   goalReached ? "font-medium text-success" : "text-muted",
                 )}
               >
-                {goalReached && (
-                  <Check className="mr-1 inline-block size-3.5 align-text-bottom" />
-                )}
                 {goalReached
                   ? t("dashboardGoalReached")
                   : t("dashboardGoalRemaining", {
