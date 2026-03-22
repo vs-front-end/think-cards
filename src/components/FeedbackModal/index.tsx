@@ -70,7 +70,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader>
+        <DialogHeader className="text-left">
           <DialogTitle>{t("feedbackTitle")}</DialogTitle>
         </DialogHeader>
 

@@ -38,7 +38,7 @@ export function DeleteDeckDialog({
         aria-describedby={undefined}
         className="max-h-[90dvh] w-full max-w-[calc(100%-2rem)] flex flex-col overflow-hidden sm:max-w-sm"
       >
-        <DialogHeader>
+        <DialogHeader className="text-left">
           <DialogTitle>{t("deleteDeckTitle")}</DialogTitle>
         </DialogHeader>
 

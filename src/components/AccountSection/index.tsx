@@ -498,7 +498,7 @@ export function AccountSection() {
         }}
       >
         <DialogContent className="max-w-sm">
-          <DialogHeader>
+          <DialogHeader className="text-left">
             <DialogTitle>
               {t(
                 hasPasswordProvider
@@ -588,7 +588,7 @@ export function AccountSection() {
 
       <Dialog open={resetStatsOpen} onOpenChange={setResetStatsOpen}>
         <DialogContent className="max-w-sm">
-          <DialogHeader>
+          <DialogHeader className="text-left">
             <DialogTitle>{t("settingsResetStatsConfirmTitle")}</DialogTitle>
           </DialogHeader>
 
@@ -638,7 +638,7 @@ export function AccountSection() {
 
       <Dialog open={resetOpen} onOpenChange={setResetOpen}>
         <DialogContent className="max-w-sm">
-          <DialogHeader>
+          <DialogHeader className="text-left">
             <DialogTitle>{t("settingsResetConfirmTitle")}</DialogTitle>
           </DialogHeader>
 
@@ -685,7 +685,7 @@ export function AccountSection() {
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="max-w-sm">
-          <DialogHeader>
+          <DialogHeader className="text-left">
             <DialogTitle>{t("settingsDeleteConfirmTitle")}</DialogTitle>
           </DialogHeader>
 

@@ -521,7 +521,7 @@ export function CardPanel({
         }}
       >
         <DialogContent aria-describedby={undefined}>
-          <DialogHeader>
+          <DialogHeader className="text-left">
             <DialogTitle>{t("cardPanelDelete")}</DialogTitle>
           </DialogHeader>
 
@@ -563,7 +563,7 @@ export function CardPanel({
         }}
       >
         <DialogContent aria-describedby={undefined}>
-          <DialogHeader>
+          <DialogHeader className="text-left">
             <DialogTitle>{t("cardPanelMove")}</DialogTitle>
           </DialogHeader>
 

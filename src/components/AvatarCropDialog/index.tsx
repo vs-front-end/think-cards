@@ -57,7 +57,7 @@ export function AvatarCropDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-sm">
-        <DialogHeader>
+        <DialogHeader className="text-left">
           <DialogTitle>{t("avatarCropTitle")}</DialogTitle>
         </DialogHeader>
 

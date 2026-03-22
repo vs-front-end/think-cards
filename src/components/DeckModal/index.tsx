@@ -101,7 +101,7 @@ export function DeckModal({ deck, open, onOpenChange }: IDeckModalProps) {
         aria-describedby={undefined}
         className="max-h-[90dvh] w-full max-w-[calc(100%-2rem)] flex flex-col overflow-hidden sm:max-w-md"
       >
-        <DialogHeader>
+        <DialogHeader className="text-left">
           <DialogTitle>
             {isEdit ? t("deckModalEditTitle") : t("deckModalCreateTitle")}
           </DialogTitle>
