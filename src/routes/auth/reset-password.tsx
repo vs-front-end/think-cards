@@ -54,7 +54,7 @@ const ResetPasswordComponent = () => {
 
     const timer = setTimeout(() => {
       setState((prev) => (prev === "loading" ? "expired" : prev));
-    }, 5000);
+    }, 15000);
 
     return () => {
       subscription.unsubscribe();

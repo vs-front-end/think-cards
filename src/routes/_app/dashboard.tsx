@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@stellar-ui-kit/shared";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSyncStore } from "@/store";
-import { formatTimePerCard } from "@/utils";
+import { filterTree, formatTimePerCard } from "@/utils";
 import type { IDeck } from "@/lib/db";
 
 import {
@@ -170,9 +170,7 @@ function DashboardComponent() {
   const deckTree = buildDeckTree(data?.deckStats ?? []);
 
   const filteredDeckTree = deckSearch
-    ? deckTree.filter((deck) =>
-        deck.name.toLowerCase().includes(deckSearch.toLowerCase()),
-      )
+    ? filterTree(deckTree, deckSearch.toLowerCase())
     : deckTree;
 
   const renderMetricsGrid = () => (

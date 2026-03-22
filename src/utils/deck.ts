@@ -1,5 +1,23 @@
 import { db } from "@/lib/db";
 
+type TreeNode = { name: string; children: TreeNode[] };
+
+export function filterTree<T extends TreeNode>(
+  nodes: T[],
+  query: string,
+): T[] {
+  return nodes.reduce<T[]>((acc, node) => {
+    const filteredChildren = filterTree(node.children, query) as T[];
+    if (
+      node.name.toLowerCase().includes(query) ||
+      filteredChildren.length > 0
+    ) {
+      acc.push({ ...node, children: filteredChildren });
+    }
+    return acc;
+  }, []);
+}
+
 export async function getAllDescendantDeckIds(
   rootDeckId: string,
 ): Promise<string[]> {
