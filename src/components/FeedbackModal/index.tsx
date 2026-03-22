@@ -91,7 +91,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
         ) : (
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <Text as="label" className="text-sm font-medium text-foreground">
+              <Text as="span" className="text-sm font-medium text-foreground">
                 {t("feedbackCategoryLabel")}
               </Text>
               <Select
@@ -102,15 +102,21 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="bug">{t("feedbackCategoryBug")}</SelectItem>
-                  <SelectItem value="suggestion">{t("feedbackCategorySuggestion")}</SelectItem>
-                  <SelectItem value="other">{t("feedbackCategoryOther")}</SelectItem>
+                  <SelectItem value="bug">
+                    {t("feedbackCategoryBug")}
+                  </SelectItem>
+                  <SelectItem value="suggestion">
+                    {t("feedbackCategorySuggestion")}
+                  </SelectItem>
+                  <SelectItem value="other">
+                    {t("feedbackCategoryOther")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="flex flex-col gap-2">
-              <Text as="label" className="text-sm font-medium text-foreground">
+              <Text as="span" className="text-sm font-medium text-foreground">
                 {t("feedbackMessageLabel")}
               </Text>
               <TextArea
