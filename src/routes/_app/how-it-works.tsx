@@ -4,7 +4,7 @@ import { Separator, Text } from "@stellar-ui-kit/web";
 import { cn } from "@stellar-ui-kit/shared";
 import { AuthGuard } from "@/components/AuthGuard";
 
-export const Route = createFileRoute("/_app/help")({
+export const Route = createFileRoute("/_app/how-it-works")({
   component: () => (
     <AuthGuard>
       <HelpComponent />

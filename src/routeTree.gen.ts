@@ -20,7 +20,7 @@ import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AppStudyRouteImport } from './routes/_app/study'
 import { Route as AppStatisticsRouteImport } from './routes/_app/statistics'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
-import { Route as AppHelpRouteImport } from './routes/_app/help'
+import { Route as AppHowItWorksRouteImport } from './routes/_app/how-it-works'
 import { Route as AppDecksRouteImport } from './routes/_app/decks'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppCardsNewRouteImport } from './routes/_app/cards/new'
@@ -81,9 +81,9 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppHelpRoute = AppHelpRouteImport.update({
-  id: '/_app/help',
-  path: '/help',
+const AppHowItWorksRoute = AppHowItWorksRouteImport.update({
+  id: '/_app/how-it-works',
+  path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppDecksRoute = AppDecksRouteImport.update({
@@ -112,7 +112,7 @@ export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/dashboard': typeof AppDashboardRoute
   '/decks': typeof AppDecksRoute
-  '/help': typeof AppHelpRoute
+  '/how-it-works': typeof AppHowItWorksRoute
   '/settings': typeof AppSettingsRoute
   '/statistics': typeof AppStatisticsRoute
   '/study': typeof AppStudyRoute
@@ -130,7 +130,7 @@ export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/dashboard': typeof AppDashboardRoute
   '/decks': typeof AppDecksRoute
-  '/help': typeof AppHelpRoute
+  '/how-it-works': typeof AppHowItWorksRoute
   '/settings': typeof AppSettingsRoute
   '/statistics': typeof AppStatisticsRoute
   '/study': typeof AppStudyRoute
@@ -149,7 +149,7 @@ export interface FileRoutesById {
   '/$': typeof SplatRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/decks': typeof AppDecksRoute
-  '/_app/help': typeof AppHelpRoute
+  '/_app/how-it-works': typeof AppHowItWorksRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/statistics': typeof AppStatisticsRoute
   '/_app/study': typeof AppStudyRoute
@@ -169,7 +169,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/dashboard'
     | '/decks'
-    | '/help'
+    | '/how-it-works'
     | '/settings'
     | '/statistics'
     | '/study'
@@ -187,7 +187,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/dashboard'
     | '/decks'
-    | '/help'
+    | '/how-it-works'
     | '/settings'
     | '/statistics'
     | '/study'
@@ -205,7 +205,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/_app/dashboard'
     | '/_app/decks'
-    | '/_app/help'
+    | '/_app/how-it-works'
     | '/_app/settings'
     | '/_app/statistics'
     | '/_app/study'
@@ -224,7 +224,7 @@ export interface RootRouteChildren {
   SplatRoute: typeof SplatRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppDecksRoute: typeof AppDecksRoute
-  AppHelpRoute: typeof AppHelpRoute
+  AppHowItWorksRoute: typeof AppHowItWorksRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStatisticsRoute: typeof AppStatisticsRoute
   AppStudyRoute: typeof AppStudyRoute
@@ -317,11 +317,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app/help': {
-      id: '/_app/help'
-      path: '/help'
-      fullPath: '/help'
-      preLoaderRoute: typeof AppHelpRouteImport
+    '/_app/how-it-works': {
+      id: '/_app/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof AppHowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/decks': {
@@ -360,7 +360,7 @@ const rootRouteChildren: RootRouteChildren = {
   SplatRoute: SplatRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppDecksRoute: AppDecksRoute,
-  AppHelpRoute: AppHelpRoute,
+  AppHowItWorksRoute: AppHowItWorksRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStatisticsRoute: AppStatisticsRoute,
   AppStudyRoute: AppStudyRoute,

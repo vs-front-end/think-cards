@@ -25,9 +25,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Flame,
-  HelpCircle,
   Layers,
   LayoutDashboard,
+  BadgeQuestionMark,
   LogOut,
   MessageSquarePlus,
   Settings,
@@ -37,12 +37,10 @@ const ROUTES = [
   { to: "/dashboard", labelKey: "navDashboard", Icon: LayoutDashboard },
   { to: "/decks", labelKey: "navDecks", Icon: Layers },
   { to: "/statistics", labelKey: "navStatistics", Icon: BarChart3 },
+  { to: "/how-it-works", labelKey: "navHowItWorks", Icon: BadgeQuestionMark },
   { to: "/settings", labelKey: "navSettings", Icon: Settings },
 ] as const;
 
-const BOTTOM_ROUTES = [
-  { to: "/help", labelKey: "navHelp", Icon: HelpCircle },
-] as const;
 
 export function Sidebar() {
   const { t } = useTranslation();
@@ -178,40 +176,6 @@ export function Sidebar() {
               ) : (
                 <Link to={to} className={linkClasses}>
                   {linkContent}
-                </Link>
-              );
-
-              if (collapsed) {
-                return (
-                  <li key={to}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>{item}</TooltipTrigger>
-                      <TooltipContent side="right">{label}</TooltipContent>
-                    </Tooltip>
-                  </li>
-                );
-              }
-
-              return <li key={to}>{item}</li>;
-            })}
-
-            {BOTTOM_ROUTES.map(({ to, labelKey, Icon }) => {
-              const isActive = pathname === to;
-              const label = t(labelKey);
-
-              const item = (
-                <Link
-                  to={to}
-                  className={cn(
-                    "flex items-center rounded-lg text-sm transition-colors",
-                    collapsed ? "justify-center size-10 mx-auto" : "gap-3 px-3 py-2",
-                    isActive
-                      ? "bg-surface font-medium text-foreground shadow-xs"
-                      : "text-muted hover:bg-surface hover:text-foreground opacity-90",
-                  )}
-                >
-                  <Icon className="size-4 shrink-0" />
-                  {!collapsed && label}
                 </Link>
               );
 

@@ -48,7 +48,7 @@ import {
   ChevronDown,
   Clock,
   Flame,
-  HelpCircle,
+  BadgeQuestionMark,
   Layers,
   Plus,
   RefreshCw,
@@ -457,14 +457,14 @@ function DashboardComponent() {
                     variant="ghost"
                     size="icon"
                     className="size-7 text-muted hover:text-foreground"
-                    onClick={() => navigate({ to: "/help" })}
+                    onClick={() => navigate({ to: "/how-it-works" })}
                   >
-                    <HelpCircle className="size-4" />
+                    <BadgeQuestionMark className="size-4" />
                   </Button>
                 </TooltipTrigger>
 
                 <TooltipContent>
-                  <p>{t("navHelp")}</p>
+                  <p>{t("navHowItWorks")}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
