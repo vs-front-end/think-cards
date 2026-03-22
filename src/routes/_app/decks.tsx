@@ -89,7 +89,7 @@ function DecksComponent() {
 
   return (
     <div className="flex flex-1 overflow-hidden">
-      <aside className="hidden h-full w-72 shrink-0 flex-col bg-background p-3 md:flex md:pr-0 md:ml-2">
+      <aside className="hidden h-full w-72 shrink-0 flex-col bg-background p-3 pt-6 md:flex md:pr-0 md:ml-2 md:pt-8">
         <DeckTree
           appearance="rail"
           selectedId={selectedDeckId}
@@ -101,7 +101,7 @@ function DecksComponent() {
       </aside>
 
       <div className="flex flex-1 flex-col overflow-hidden md:pl-1">
-        <div className="flex items-center gap-2 border-b border-border bg-surface px-4 py-2 md:hidden">
+        <div className="flex items-center gap-2 border-b border-border bg-surface px-4 pb-2 pt-6 md:hidden">
           <Drawer open={mobileDrawerOpen} onOpenChange={setMobileDrawerOpen}>
             <DrawerTrigger asChild>
               <Button

@@ -44,6 +44,7 @@ import {
   BarChart3,
   BookOpen,
   CalendarCheck,
+  Check,
   ChevronDown,
   Clock,
   Flame,
@@ -163,6 +164,8 @@ function DashboardComponent() {
     data && data.dailyGoal > 0
       ? Math.min(100, (data.studiedToday / data.dailyGoal) * 100)
       : 0;
+
+  const goalReached = progressPercent >= 100;
 
   const deckTree = buildDeckTree(data?.deckStats ?? []);
 
@@ -381,10 +384,26 @@ function DashboardComponent() {
                 </Text>
               </div>
 
-              <Progress value={progressPercent} className="h-2 w-full" />
+              <Progress
+                value={progressPercent}
+                className={cn(
+                  "h-2 w-full",
+                  goalReached &&
+                    "bg-success-soft [&_[data-slot=progress-indicator]]:bg-success",
+                )}
+              />
 
-              <Text as="span" className="text-xs text-muted">
-                {progressPercent >= 100
+              <Text
+                as="span"
+                className={cn(
+                  "text-xs",
+                  goalReached ? "font-medium text-success" : "text-muted",
+                )}
+              >
+                {goalReached && (
+                  <Check className="mr-1 inline-block size-3.5 align-text-bottom" />
+                )}
+                {goalReached
                   ? t("dashboardGoalReached")
                   : t("dashboardGoalRemaining", {
                       count: (data?.dailyGoal ?? 0) - (data?.studiedToday ?? 0),

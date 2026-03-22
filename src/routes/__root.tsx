@@ -1,9 +1,9 @@
 import { Component, useEffect } from "react";
-import type { ErrorInfo, ReactNode } from "react";
+import type { CSSProperties, ErrorInfo, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@stellar-ui-kit/shared";
 import { Button, Text, Toaster } from "@stellar-ui-kit/web";
-import { useAuthStore, useCreateIntentStore } from "@/store";
+import { useAuthStore, useCreateIntentStore, useSidebarStore } from "@/store";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db";
 import { Header, BottomTab, Sidebar, DeckModal } from "@/components";
@@ -15,7 +15,8 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 
-const SIDEBAR_WIDTH = 250;
+const SIDEBAR_WIDTH_EXPANDED = 250;
+const SIDEBAR_WIDTH_COLLAPSED = 72;
 
 function ErrorFallback() {
   const { t } = useTranslation();
@@ -85,6 +86,9 @@ function RootComponent() {
   const { setUser, setSession, setIsLoading } = useAuthStore.getState();
   const user = useAuthStore((s) => s.user);
 
+  const collapsed = useSidebarStore((s) => s.collapsed);
+  const sidebarWidth = collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED;
+
   const isLoggedIn = user !== null;
   const isAuthRoute = pathname.startsWith("/auth/");
   const showAppShell = isLoggedIn && !isAuthRoute;
@@ -153,10 +157,8 @@ function RootComponent() {
       <div className="flex h-screen">
         {showAppShell && (
           <aside
-            className={cn(
-              "fixed inset-y-0 left-0 z-20 hidden flex-col border-r border-border bg-background md:flex",
-            )}
-            style={{ width: SIDEBAR_WIDTH }}
+            className="fixed inset-y-0 left-0 z-20 hidden flex-col overflow-visible border-r border-border bg-background transition-[width] duration-200 md:flex"
+            style={{ width: sidebarWidth }}
           >
             <Sidebar />
           </aside>
@@ -164,9 +166,14 @@ function RootComponent() {
 
         <div
           className={cn(
-            "flex min-w-0 flex-1 flex-col",
-            showAppShell && "md:ml-[250px]",
+            "flex min-w-0 flex-1 flex-col md:transition-[margin-left] md:duration-200",
+            showAppShell && "md:ml-[var(--sidebar-w)]",
           )}
+          style={
+            showAppShell
+              ? ({ "--sidebar-w": `${sidebarWidth}px` } as CSSProperties)
+              : undefined
+          }
         >
           {!showAppShell && !isLoggedIn && <Header />}
 

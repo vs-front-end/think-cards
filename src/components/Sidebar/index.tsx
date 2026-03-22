@@ -1,4 +1,4 @@
-import { useAuthStore, useSyncStore } from "@/store";
+import { useAuthStore, useSidebarStore, useSyncStore } from "@/store";
 import { cn } from "@stellar-ui-kit/shared";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
@@ -9,19 +9,25 @@ import {
   AvatarImage,
   AvatarFallback,
   Button,
+  Separator,
   Skeleton,
   Text,
-  Separator,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@stellar-ui-kit/web";
 
 import {
-  LayoutDashboard,
-  Layers,
   BarChart3,
-  Settings,
-  LogOut,
+  ChevronLeft,
+  ChevronRight,
   Flame,
   HelpCircle,
+  Layers,
+  LayoutDashboard,
+  LogOut,
+  Settings,
 } from "lucide-react";
 
 const ROUTES = [
@@ -36,6 +42,9 @@ export function Sidebar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const pathname = useLocation({ select: (loc) => loc.pathname });
+
+  const collapsed = useSidebarStore((s) => s.collapsed);
+  const toggle = useSidebarStore((s) => s.toggle);
 
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: dashboard, isLoading: dashboardLoading } = useDashboardData();
@@ -71,146 +80,255 @@ export function Sidebar() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-background">
-      <div className="flex h-14 shrink-0 items-center border-b border-border px-4">
-        <Link
-          to="/dashboard"
-          className={cn(
-            "flex items-center",
-            !initialSyncDone && "pointer-events-none",
-          )}
-          tabIndex={!initialSyncDone ? -1 : undefined}
+    <TooltipProvider delayDuration={300}>
+      <div className="relative flex h-full flex-col bg-background">
+        <button
+          type="button"
+          onClick={toggle}
+          className="absolute top-4 -right-3 z-30 flex items-center justify-center size-6 rounded-full border border-border bg-background text-muted shadow-sm transition-colors hover:bg-surface hover:text-foreground"
+          aria-label={
+            collapsed
+              ? (t("sidebarExpand") ?? "Expand sidebar")
+              : (t("sidebarCollapse") ?? "Collapse sidebar")
+          }
         >
-          <Text as="span" className="text-xl font-bold text-foreground">
-            Think
-            <Text as="span" className="text-primary">
-              Cards
-            </Text>
-          </Text>
-        </Link>
-      </div>
+          {collapsed ? (
+            <ChevronRight className="size-3" />
+          ) : (
+            <ChevronLeft className="size-3" />
+          )}
+        </button>
 
-      <nav className="flex flex-1 flex-col overflow-hidden px-2 py-4">
-        <ul className="space-y-2">
-          {ROUTES.map(({ to, labelKey, Icon }) => {
-            const isActive = pathname === to;
-            const disabled = !initialSyncDone;
+        <div
+          className={cn(
+            "flex h-14 shrink-0 items-center border-b border-border",
+            collapsed ? "justify-center px-2" : "px-4",
+          )}
+        >
+          <Link
+            to="/dashboard"
+            className={cn(
+              "flex items-center",
+              !initialSyncDone && "pointer-events-none",
+            )}
+            tabIndex={!initialSyncDone ? -1 : undefined}
+          >
+            {collapsed ? (
+              <Text as="span" className="text-lg font-bold text-foreground">
+                T
+                <Text as="span" className="text-primary">
+                  C
+                </Text>
+              </Text>
+            ) : (
+              <Text as="span" className="text-xl font-bold text-foreground">
+                Think
+                <Text as="span" className="text-primary">
+                  Cards
+                </Text>
+              </Text>
+            )}
+          </Link>
+        </div>
 
-            return (
-              <li key={to}>
-                {disabled ? (
-                  <span
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted opacity-50 cursor-not-allowed"
-                    aria-disabled="true"
-                  >
-                    <Icon className="size-4 shrink-0" />
-                    {t(labelKey)}
-                  </span>
-                ) : (
-                  <Link
-                    to={to}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                      isActive
-                        ? "bg-surface font-medium text-foreground shadow-xs"
-                        : "text-muted hover:bg-surface hover:text-foreground opacity-90",
+        <nav
+          className={cn(
+            "flex flex-1 flex-col overflow-hidden py-4",
+            collapsed ? "items-center px-2" : "px-2",
+          )}
+        >
+          <ul className="w-full space-y-2">
+            {ROUTES.map(({ to, labelKey, Icon }) => {
+              const isActive = pathname === to;
+              const disabled = !initialSyncDone;
+              const label = t(labelKey);
+
+              const linkContent = (
+                <>
+                  <Icon className="size-4 shrink-0" />
+                  {!collapsed && label}
+                </>
+              );
+
+              const linkClasses = cn(
+                "flex items-center rounded-lg text-sm transition-colors",
+                collapsed
+                  ? "justify-center size-10 mx-auto"
+                  : "gap-3 px-3 py-2",
+                disabled && "opacity-50 cursor-not-allowed",
+                !disabled && isActive &&
+                  "bg-surface font-medium text-foreground shadow-xs",
+                !disabled && !isActive &&
+                  "text-muted hover:bg-surface hover:text-foreground opacity-90",
+              );
+
+              const item = disabled ? (
+                <span className={linkClasses} aria-disabled="true">
+                  {linkContent}
+                </span>
+              ) : (
+                <Link to={to} className={linkClasses}>
+                  {linkContent}
+                </Link>
+              );
+
+              if (collapsed) {
+                return (
+                  <li key={to}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>{item}</TooltipTrigger>
+                      <TooltipContent side="right">{label}</TooltipContent>
+                    </Tooltip>
+                  </li>
+                );
+              }
+
+              return <li key={to}>{item}</li>;
+            })}
+          </ul>
+
+        </nav>
+
+        <div className={cn("shrink-0", collapsed ? "p-2" : "p-3")}>
+          {collapsed ? (
+            <div className="flex flex-col items-center gap-3">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="cursor-default">
+                    {footerLoading ? (
+                      <Skeleton className="size-9 rounded-full" />
+                    ) : (
+                      <Avatar className="size-9">
+                        {profile?.avatar_url && (
+                          <AvatarImage
+                            src={profile.avatar_url}
+                            alt={displayName}
+                          />
+                        )}
+                        <AvatarFallback className="bg-primary-soft text-xs font-semibold text-primary-text">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
                     )}
-                  >
-                    <Icon className="size-4 shrink-0" />
-                    {t(labelKey)}
-                  </Link>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p className="font-semibold">{displayName}</p>
+                  {email && (
+                    <p className="text-xs opacity-80">{email}</p>
+                  )}
+                </TooltipContent>
+              </Tooltip>
 
-      <div className="shrink-0 p-3">
-        <div className="rounded-xl bg-surface p-3 border border-border">
-          {footerLoading ? (
-            <>
-              <div className="flex items-center gap-3">
-                <Skeleton className="size-9 shrink-0 rounded-full" />
-                <div className="min-w-0 flex-1 space-y-1.5">
-                  <Skeleton className="h-3 w-24" />
-                  <Skeleton className="h-3 w-32" />
-                </div>
-              </div>
-              <Separator className="my-3" variant="dashed" />
-              <Skeleton className="mb-2 h-3 w-20" />
-              <Skeleton className="h-1 w-full rounded-full" />
-            </>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    disabled={!initialSyncDone}
+                    className="flex items-center justify-center size-10 rounded-lg text-muted transition-colors hover:bg-surface hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label={t("headerLogout")}
+                  >
+                    <LogOut className="size-4" />
+                  </button>
+                </TooltipTrigger>
+                
+                <TooltipContent side="right">
+                  {t("headerLogout")}
+                </TooltipContent>
+              </Tooltip>
+            </div>
           ) : (
             <>
-              <div className="flex items-center gap-3">
-                <Avatar className="size-9 shrink-0">
-                  {profile?.avatar_url && (
-                    <AvatarImage src={profile.avatar_url} alt={displayName} />
-                  )}
+              <div className="rounded-xl bg-surface p-3 border border-border">
+                {footerLoading ? (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="size-9 shrink-0 rounded-full" />
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        <Skeleton className="h-3 w-24" />
+                        <Skeleton className="h-3 w-32" />
+                      </div>
+                    </div>
+                    <Separator className="my-3" variant="dashed" />
+                    <Skeleton className="mb-2 h-3 w-20" />
+                    <Skeleton className="h-1 w-full rounded-full" />
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="size-9 shrink-0">
+                        {profile?.avatar_url && (
+                          <AvatarImage
+                            src={profile.avatar_url}
+                            alt={displayName}
+                          />
+                        )}
+                        <AvatarFallback className="bg-primary-soft text-xs font-semibold text-primary-text">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
 
-                  <AvatarFallback className="bg-primary-soft text-xs font-semibold text-primary-text">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <Text
+                          as="p"
+                          className="truncate text-xs font-semibold text-foreground"
+                        >
+                          {displayName}
+                        </Text>
 
-                <div className="min-w-0 flex-1">
-                  <Text
-                    as="p"
-                    className="truncate text-xs font-semibold text-foreground"
-                  >
-                    {displayName}
-                  </Text>
+                        {email && (
+                          <Text as="p" className="truncate text-xs text-muted">
+                            {email}
+                          </Text>
+                        )}
+                      </div>
+                    </div>
 
-                  {email && (
-                    <Text as="p" className="truncate text-xs text-muted">
-                      {email}
-                    </Text>
-                  )}
-                </div>
+                    <Separator className="my-3" variant="dashed" />
+
+                    <div className="mb-2 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Flame className="size-3.5 text-warning" />
+
+                        <Text
+                          as="span"
+                          className="text-xs font-semibold text-foreground"
+                        >
+                          {t("dashboardStreakDays", { count: streak })}
+                        </Text>
+                      </div>
+
+                      <Text as="span" className="text-xs text-muted">
+                        {studiedToday}/{dailyGoal}
+                      </Text>
+                    </div>
+
+                    <div className="h-1 w-full overflow-hidden rounded-full bg-border">
+                      <div
+                        className="h-full rounded-full bg-primary transition-all duration-300"
+                        style={{ width: `${progressPct}%` }}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
 
-              <Separator className="my-3" variant="dashed" />
-
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <Flame className="size-3.5 text-warning" />
-
-                  <Text
-                    as="span"
-                    className="text-xs font-semibold text-foreground"
-                  >
-                    {t("dashboardStreakDays", { count: streak })}
-                  </Text>
-                </div>
-
-                <Text as="span" className="text-xs text-muted">
-                  {studiedToday}/{dailyGoal}
-                </Text>
-              </div>
-
-              <div className="h-1 w-full overflow-hidden rounded-full bg-border">
-                <div
-                  className="h-full rounded-full bg-primary transition-all duration-300"
-                  style={{ width: `${progressPct}%` }}
-                />
-              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full mt-3 text-muted"
+                onClick={handleLogout}
+                disabled={!initialSyncDone}
+                aria-label={t("headerLogout")}
+              >
+                {t("headerLogout")}
+                <LogOut className="size-3.5" />
+              </Button>
             </>
           )}
         </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full mt-3 text-muted"
-          onClick={handleLogout}
-          disabled={!initialSyncDone}
-          aria-label={t("headerLogout")}
-        >
-          {t("headerLogout")}
-          <LogOut className="size-3.5" />
-        </Button>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

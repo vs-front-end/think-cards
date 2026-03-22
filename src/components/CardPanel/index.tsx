@@ -14,6 +14,7 @@ import { useNavigateToStudy } from "@/hooks";
 import { BookOpen, Layers, Play, Plus } from "lucide-react";
 import type { CardStatus, CardWithState } from "@/hooks/useCardsWithState";
 import { CARDS_PAGE_SIZE } from "@/hooks/useCardsWithState";
+import { db } from "@/lib/db";
 import { CardRow, EmptyCards } from "@/components";
 
 import {
@@ -169,9 +170,19 @@ export function CardPanel({
     });
   }, []);
 
-  const toggleAll = () => {
+  const toggleAll = async () => {
     if (allSelected) {
       setSelected(new Set());
+      return;
+    }
+
+    if (!hasActiveFilters && hasMore && deckId) {
+      const allIds = await db.cards
+        .where("deck_id")
+        .equals(deckId)
+        .filter((c) => c.deleted_at === null)
+        .primaryKeys();
+      setSelected(new Set(allIds as string[]));
     } else {
       setSelected(new Set(filtered.map((c) => c.id)));
     }
@@ -221,8 +232,9 @@ export function CardPanel({
     typeFilter !== "all" || statusFilter !== "all" || deferredSearch !== "";
   const displayCount = hasActiveFilters ? filtered.length : total;
 
-  const allSelected =
-    filtered.length > 0 && filtered.every((c) => selected.has(c.id));
+  const allSelected = hasActiveFilters
+    ? filtered.length > 0 && filtered.every((c) => selected.has(c.id))
+    : total > 0 && selected.size >= total;
 
   const scrollRootRef = useRef<HTMLDivElement>(null);
   const showCardChrome = !isLoading && filtered.length > 0;
@@ -285,7 +297,7 @@ export function CardPanel({
         ref={scrollRootRef}
         className="themed-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
       >
-        <div className="sticky top-0 z-10 bg-background px-4 pb-3 pt-3">
+        <div className="sticky top-0 z-10 bg-background px-4 pb-3 pt-3 md:pt-8">
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border pb-3">
             <div className="flex min-w-0 items-center gap-2">
               <Text as="h2" className="truncate font-semibold text-lg">

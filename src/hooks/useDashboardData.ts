@@ -108,7 +108,7 @@ export function useDashboardData() {
       const cardDeckMap = new Map(cards.map((c) => [c.id, c.deck_id]));
 
       const pendingToday = allCardStates.filter(
-        (s) => s.due <= todayEndIso,
+        (s) => s.state === State.New,
       ).length;
 
       const streak = computeStreak(allRevlogs.map((r) => r.reviewed_at));
