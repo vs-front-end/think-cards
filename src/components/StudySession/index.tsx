@@ -205,10 +205,14 @@ export function StudySession({ deckId }: StudySessionProps) {
 
   const totalCards = answeredCount + remainingCount;
 
-  const cardLabel = isCloze ? "Cloze" : isTyping ? "Typing" : undefined;
+  const cardTypeLabel = isCloze
+    ? t("studyClozeLabel")
+    : isTyping
+      ? t("studyTypingLabel")
+      : undefined;
 
-  const frontLabel = cardLabel ?? t("studyFrontLabel");
-  const backLabel = cardLabel ?? t("studyBackLabel");
+  const frontLabel = cardTypeLabel ?? t("studyFrontLabel");
+  const backLabel = cardTypeLabel ?? t("studyBackLabel");
 
   const ratingButtons = (
     <div className="flex w-full max-w-md flex-col items-center gap-2">

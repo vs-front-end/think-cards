@@ -344,6 +344,8 @@
   "studyExpected": "Esperada",
   "studyYours": "Sua",
   "studyAnswerLabel": "Resultado",
+  "studyTypingLabel": "Digitação",
+  "studyClozeLabel": "Lacuna",
   "studyRevealSpace": "[Espaço]",
   "studyRevealHint": "Pressione {{key}} para revelar a resposta",
   "studyRatingHint": "Pressione 1, 2, 3 ou 4 para responder",

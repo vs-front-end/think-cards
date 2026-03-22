@@ -344,6 +344,8 @@
   "studyExpected": "Esperada",
   "studyYours": "Tuya",
   "studyAnswerLabel": "Resultado",
+  "studyTypingLabel": "Escritura",
+  "studyClozeLabel": "Espacio",
   "studyRevealSpace": "[Espacio]",
   "studyRevealHint": "Presiona {{key}} para revelar la respuesta",
   "studyRatingHint": "Presiona 1, 2, 3 o 4 para responder",

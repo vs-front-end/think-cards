@@ -344,6 +344,8 @@
   "studyExpected": "Expected",
   "studyYours": "Yours",
   "studyAnswerLabel": "Result",
+  "studyTypingLabel": "Typing",
+  "studyClozeLabel": "Cloze",
   "studyRevealSpace": "[Space]",
   "studyRevealHint": "Press {{key}} to reveal the answer",
   "studyRatingHint": "Press 1, 2, 3 or 4 to answer",
