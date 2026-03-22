@@ -492,5 +492,19 @@
   "privacySection8Title": "8. Alterações nesta política",
   "privacySection8Body": "Podemos atualizar esta política ocasionalmente. Quando isso acontecer, atualizaremos a data no topo desta página. O uso contínuo do serviço após mudanças constitui aceitação da nova política.",
   "privacySection9Title": "9. Contato",
-  "privacySection9Body": "Para qualquer solicitação ou dúvida relacionada à privacidade, entre em contato conosco em"
+  "privacySection9Body": "Para qualquer solicitação ou dúvida relacionada à privacidade, entre em contato conosco em",
+  "feedbackTitle": "Enviar Feedback",
+  "feedbackSubtitle": "Reporte um bug ou compartilhe uma sugestão. Lemos tudo.",
+  "feedbackCategoryLabel": "Categoria",
+  "feedbackCategoryBug": "Reportar Bug",
+  "feedbackCategorySuggestion": "Sugestão",
+  "feedbackCategoryOther": "Outro",
+  "feedbackMessageLabel": "Mensagem",
+  "feedbackMessagePlaceholder": "Descreva o problema ou compartilhe sua ideia...",
+  "feedbackSubmit": "Enviar",
+  "feedbackSuccess": "Obrigado pelo seu feedback! Vamos analisá-lo em breve.",
+  "feedbackError": "Falha ao enviar feedback. Tente novamente.",
+  "feedbackClose": "Fechar",
+  "navFeedback": "Feedback",
+  "feedbackDesc": "Reporte um bug ou compartilhe uma sugestão."
 }

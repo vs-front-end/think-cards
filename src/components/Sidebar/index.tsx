@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useAuthStore, useSidebarStore, useSyncStore } from "@/store";
 import { cn } from "@stellar-ui-kit/shared";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useDashboardData, useProfile, useSignOut } from "@/hooks";
+import { FeedbackModal } from "@/components/FeedbackModal";
 
 import {
   Avatar,
@@ -27,6 +29,7 @@ import {
   Layers,
   LayoutDashboard,
   LogOut,
+  MessageSquarePlus,
   Settings,
 } from "lucide-react";
 
@@ -35,6 +38,9 @@ const ROUTES = [
   { to: "/decks", labelKey: "navDecks", Icon: Layers },
   { to: "/statistics", labelKey: "navStatistics", Icon: BarChart3 },
   { to: "/settings", labelKey: "navSettings", Icon: Settings },
+] as const;
+
+const BOTTOM_ROUTES = [
   { to: "/help", labelKey: "navHelp", Icon: HelpCircle },
 ] as const;
 
@@ -42,6 +48,7 @@ export function Sidebar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const pathname = useLocation({ select: (loc) => loc.pathname });
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const collapsed = useSidebarStore((s) => s.collapsed);
   const toggle = useSidebarStore((s) => s.toggle);
@@ -156,9 +163,11 @@ export function Sidebar() {
                   ? "justify-center size-10 mx-auto"
                   : "gap-3 px-3 py-2",
                 disabled && "opacity-50 cursor-not-allowed",
-                !disabled && isActive &&
+                !disabled &&
+                  isActive &&
                   "bg-surface font-medium text-foreground shadow-xs",
-                !disabled && !isActive &&
+                !disabled &&
+                  !isActive &&
                   "text-muted hover:bg-surface hover:text-foreground opacity-90",
               );
 
@@ -185,8 +194,69 @@ export function Sidebar() {
 
               return <li key={to}>{item}</li>;
             })}
+
+            {BOTTOM_ROUTES.map(({ to, labelKey, Icon }) => {
+              const isActive = pathname === to;
+              const label = t(labelKey);
+
+              const item = (
+                <Link
+                  to={to}
+                  className={cn(
+                    "flex items-center rounded-lg text-sm transition-colors",
+                    collapsed ? "justify-center size-10 mx-auto" : "gap-3 px-3 py-2",
+                    isActive
+                      ? "bg-surface font-medium text-foreground shadow-xs"
+                      : "text-muted hover:bg-surface hover:text-foreground opacity-90",
+                  )}
+                >
+                  <Icon className="size-4 shrink-0" />
+                  {!collapsed && label}
+                </Link>
+              );
+
+              if (collapsed) {
+                return (
+                  <li key={to}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>{item}</TooltipTrigger>
+                      <TooltipContent side="right">{label}</TooltipContent>
+                    </Tooltip>
+                  </li>
+                );
+              }
+
+              return <li key={to}>{item}</li>;
+            })}
+
+            <li key="feedback">
+              {collapsed ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={() => setFeedbackOpen(true)}
+                      className="flex items-center justify-center size-10 mx-auto rounded-lg text-muted transition-colors hover:bg-surface hover:text-foreground opacity-90"
+                    >
+                      <MessageSquarePlus className="size-4 shrink-0" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{t("navFeedback")}</TooltipContent>
+                </Tooltip>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setFeedbackOpen(true)}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted transition-colors hover:bg-surface hover:text-foreground opacity-90"
+                >
+                  <MessageSquarePlus className="size-4 shrink-0" />
+                  {t("navFeedback")}
+                </button>
+              )}
+            </li>
           </ul>
 
+          <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
         </nav>
 
         <div className={cn("shrink-0", collapsed ? "p-2" : "p-3")}>
@@ -214,9 +284,7 @@ export function Sidebar() {
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p className="font-semibold">{displayName}</p>
-                  {email && (
-                    <p className="text-xs opacity-80">{email}</p>
-                  )}
+                  {email && <p className="text-xs opacity-80">{email}</p>}
                 </TooltipContent>
               </Tooltip>
 
@@ -232,7 +300,7 @@ export function Sidebar() {
                     <LogOut className="size-4" />
                   </button>
                 </TooltipTrigger>
-                
+
                 <TooltipContent side="right">
                   {t("headerLogout")}
                 </TooltipContent>

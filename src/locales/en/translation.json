@@ -492,5 +492,19 @@
   "privacySection8Title": "8. Changes to this policy",
   "privacySection8Body": "We may update this policy occasionally. When we do, we will update the date at the top of this page. Continued use of the service after changes constitutes acceptance of the new policy.",
   "privacySection9Title": "9. Contact",
-  "privacySection9Body": "For any privacy-related requests or questions, please contact us at"
+  "privacySection9Body": "For any privacy-related requests or questions, please contact us at",
+  "feedbackTitle": "Send Feedback",
+  "feedbackSubtitle": "Report a bug or share a suggestion. We read everything.",
+  "feedbackCategoryLabel": "Category",
+  "feedbackCategoryBug": "Bug Report",
+  "feedbackCategorySuggestion": "Suggestion",
+  "feedbackCategoryOther": "Other",
+  "feedbackMessageLabel": "Message",
+  "feedbackMessagePlaceholder": "Describe the issue or share your idea...",
+  "feedbackSubmit": "Send",
+  "feedbackSuccess": "Thanks for your feedback! We'll review it soon.",
+  "feedbackError": "Failed to send feedback. Please try again.",
+  "feedbackClose": "Close",
+  "navFeedback": "Feedback",
+  "feedbackDesc": "Report a bug or share a suggestion."
 }

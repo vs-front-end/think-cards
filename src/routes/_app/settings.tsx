@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Separator, Text } from "@stellar-ui-kit/web";
 import { AuthGuard } from "@/components/AuthGuard";
+import { FeedbackSection } from "@/components/FeedbackSection";
 import { SettingsSection } from "../../components/SettingsSection";
 import { AccountSection } from "../../components/AccountSection";
 import { AppearanceSection } from "../../components/AppearanceSection";
@@ -45,6 +46,8 @@ function SettingsComponent() {
           <AppearanceSection />
           <Separator />
           <LanguageSection />
+          <Separator />
+          <FeedbackSection />
         </SettingsSection>
       </div>
     </div>

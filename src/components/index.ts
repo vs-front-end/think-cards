@@ -13,6 +13,8 @@ export * from "./DeckTree";
 export * from "./DeleteCardDialog";
 export * from "./DeleteDeckDialog";
 export * from "./EmptyCards";
+export * from "./FeedbackModal";
+export * from "./FeedbackSection";
 export * from "./EmptyDecks";
 export * from "./Header";
 export * from "./InstallPrompt";
