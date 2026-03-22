@@ -27,7 +27,7 @@ import {
   Flame,
   Layers,
   LayoutDashboard,
-  BadgeQuestionMark,
+  CircleHelp,
   LogOut,
   MessageSquarePlus,
   Settings,
@@ -37,7 +37,7 @@ const ROUTES = [
   { to: "/dashboard", labelKey: "navDashboard", Icon: LayoutDashboard },
   { to: "/decks", labelKey: "navDecks", Icon: Layers },
   { to: "/statistics", labelKey: "navStatistics", Icon: BarChart3 },
-  { to: "/how-it-works", labelKey: "navHowItWorks", Icon: BadgeQuestionMark },
+  { to: "/how-it-works", labelKey: "navHowItWorks", Icon: CircleHelp },
   { to: "/settings", labelKey: "navSettings", Icon: Settings },
 ] as const;
 

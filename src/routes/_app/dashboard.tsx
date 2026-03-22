@@ -48,7 +48,7 @@ import {
   ChevronDown,
   Clock,
   Flame,
-  BadgeQuestionMark,
+  CircleHelp,
   Layers,
   Plus,
   RefreshCw,
@@ -459,7 +459,7 @@ function DashboardComponent() {
                     className="size-7 text-muted hover:text-foreground"
                     onClick={() => navigate({ to: "/how-it-works" })}
                   >
-                    <BadgeQuestionMark className="size-4" />
+                    <CircleHelp className="size-4" />
                   </Button>
                 </TooltipTrigger>
 
