@@ -4,10 +4,11 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { Button, InputText, Text } from "@stellar-ui-kit/web";
 import { cn } from "@stellar-ui-kit/shared";
-import { BookOpen, CheckCircle, PartyPopper, XCircle } from "lucide-react";
-import { CompletionScreen, RatingButton, SessionBar } from "@/components";
+import { Pause, PartyPopper, Play } from "lucide-react";
+import { CompletionScreen, RatingButton } from "@/components";
 import { useStudySession } from "@/hooks";
 import { parseClozePreview, parseClozeRevealed } from "@/utils";
+import { formatTime } from "@/utils/format";
 
 type StudySessionProps = {
   deckId: string;
@@ -202,175 +203,236 @@ export function StudySession({ deckId }: StudySessionProps) {
     ALLOWED_TAGS: [],
   });
 
+  const totalCards = answeredCount + remainingCount;
+
+  const cardLabel = isCloze ? "Cloze" : isTyping ? "Typing" : undefined;
+
+  const frontLabel = cardLabel ?? t("studyFrontLabel");
+  const backLabel = cardLabel ?? t("studyBackLabel");
+
   const ratingButtons = (
-    <div className="flex w-full max-w-xl flex-wrap justify-center gap-2">
-      <RatingButton
-        label={t("studyRatingAgain")}
-        interval={previewIntervals?.[1] ?? ""}
-        shortcut="1"
-        bgColor="error"
-        onClick={() => handleAnswer(1).catch(console.error)}
-      />
+    <div className="flex w-full max-w-md flex-col items-center gap-2">
+      <div className="flex w-full justify-center gap-2.5">
+        <RatingButton
+          label={t("studyRatingAgain")}
+          interval={previewIntervals?.[1] ?? ""}
+          shortcut="1"
+          bgColor="error"
+          onClick={() => handleAnswer(1).catch(console.error)}
+        />
 
-      <RatingButton
-        label={t("studyRatingHard")}
-        interval={previewIntervals?.[2] ?? ""}
-        shortcut="2"
-        bgColor="warning"
-        onClick={() => handleAnswer(2).catch(console.error)}
-      />
+        <RatingButton
+          label={t("studyRatingHard")}
+          interval={previewIntervals?.[2] ?? ""}
+          shortcut="2"
+          bgColor="warning"
+          onClick={() => handleAnswer(2).catch(console.error)}
+        />
 
-      <RatingButton
-        label={t("studyRatingGood")}
-        interval={previewIntervals?.[3] ?? ""}
-        shortcut="3"
-        bgColor="primary"
-        onClick={() => handleAnswer(3).catch(console.error)}
-      />
+        <RatingButton
+          label={t("studyRatingGood")}
+          interval={previewIntervals?.[3] ?? ""}
+          shortcut="3"
+          bgColor="primary"
+          onClick={() => handleAnswer(3).catch(console.error)}
+        />
 
-      <RatingButton
-        label={t("studyRatingEasy")}
-        interval={previewIntervals?.[4] ?? ""}
-        shortcut="4"
-        bgColor="success"
-        onClick={() => handleAnswer(4).catch(console.error)}
-      />
+        <RatingButton
+          label={t("studyRatingEasy")}
+          interval={previewIntervals?.[4] ?? ""}
+          shortcut="4"
+          bgColor="success"
+          onClick={() => handleAnswer(4).catch(console.error)}
+        />
+      </div>
+
+      <span className="hidden text-[10px] font-medium text-muted mt-1 md:block">
+        {t("studyRatingHint")}
+      </span>
     </div>
   );
 
-  return (
-    <div className="flex flex-1 flex-col">
-      <SessionBar
-        answeredCount={answeredCount}
-        remainingCount={remainingCount}
-        dailyGoal={sessionStats.dailyGoal}
-        studiedToday={sessionStats.studiedToday}
-        elapsedMs={elapsedMs}
-        paused={paused}
-        onTogglePause={() => setPaused((p) => !p)}
-      />
+  const cardHeader = (label: string) => (
+    <div className="relative flex shrink-0 items-center justify-between px-5 py-3">
+      <Text
+        as="span"
+        className="text-[11px] font-semibold uppercase tracking-widest text-muted"
+      >
+        {label}
+      </Text>
 
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-8">
+      <Text
+        as="span"
+        className="text-[11px] font-medium tabular-nums text-muted"
+      >
+        {answeredCount + 1}/{totalCards}
+      </Text>
+    </div>
+  );
+
+  const cardContent = (html: string) => (
+    <>
+      <div className="mx-4 h-px bg-border" />
+
+      <div className="themed-scroll flex flex-1 overflow-auto">
         <div
-          className="w-full max-w-xl"
-          style={{ perspective: "1200px" }}
+          className="prose prose-lg m-auto max-w-none px-8 py-8 text-center text-foreground [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      </div>
+    </>
+  );
+
+  return (
+    <div className="relative flex flex-1 flex-col items-center justify-center gap-2.5 px-4 py-6">
+      <button
+        type="button"
+        onClick={() => setPaused((p) => !p)}
+        className={cn(
+          "absolute right-4 top-4 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs transition-colors",
+          paused
+            ? "bg-warning-soft text-warning-text"
+            : "bg-surface text-muted ring-1 ring-border hover:text-foreground",
+        )}
+      >
+        {paused ? <Play className="size-3" /> : <Pause className="size-3" />}
+        <span className="font-mono font-medium tabular-nums">
+          {formatTime(elapsedMs)}
+        </span>
+      </button>
+
+      <div className="w-full max-w-md" style={{ perspective: "1200px" }}>
+        <div
+          className={cn(
+            "grid transition-transform duration-600 [transform-style:preserve-3d]",
+            "[transition-timing-function:cubic-bezier(0.4,0,0.2,1)]",
+            !isTyping && flipped && "[transform:rotateY(180deg)]",
+          )}
         >
           <div
             className={cn(
-              "grid transition-transform duration-500 [transform-style:preserve-3d]",
-              !isTyping && flipped && "[transform:rotateY(180deg)]",
+              "relative flex h-[44svh] flex-col overflow-hidden rounded-md bg-surface ring-1 [backface-visibility:hidden] [grid-area:1/1]",
+              isTyping && typingChecked && typingCorrect && "ring-success",
+              isTyping && typingChecked && !typingCorrect && "ring-error",
+              !(isTyping && typingChecked) && "ring-border",
             )}
           >
-            <div
-              className="themed-scroll rounded-xl border border-border bg-surface text-foreground shadow-sm [backface-visibility:hidden] [grid-area:1/1]"
-              style={{ height: "42svh", overflow: "auto", display: "grid", alignContent: "safe center" }}
-            >
-              <div
-                className="prose prose-sm max-w-none w-full px-6 py-6 text-foreground"
-                dangerouslySetInnerHTML={{
-                  __html: addLinkTargets(sanitizedFront),
-                }}
-              />
-            </div>
+            {cardHeader(frontLabel)}
+            {cardContent(addLinkTargets(sanitizedFront))}
 
-            {!isTyping && (
-              <div
-                className="themed-scroll rounded-xl border border-border bg-surface text-foreground shadow-sm [backface-visibility:hidden] [grid-area:1/1] [transform:rotateY(180deg)]"
-                style={{ height: "42svh", overflow: "auto", display: "grid", alignContent: "safe center" }}
-              >
-                <div
-                  className="prose prose-sm max-w-none w-full px-6 py-6 text-foreground"
-                  dangerouslySetInnerHTML={{
-                    __html: addLinkTargets(sanitizedBack),
-                  }}
-                />
-              </div>
+            {isTyping && typingChecked && (
+              <>
+                <div className="mx-4 h-px bg-border" />
+                <div className="flex shrink-0 items-center justify-between px-5 py-2.5">
+                  <Text as="span" className="text-[10px] font-semibold uppercase tracking-widest text-muted">
+                    {t("studyAnswerLabel")}:
+                  </Text>
+
+                  <Text
+                    as="span"
+                    className={cn(
+                      "text-xs font-medium",
+                      typingCorrect ? "text-success" : "text-error",
+                    )}
+                  >
+                    {typingCorrect ? t("studyCorrect")! : t("studyIncorrect")}!
+                  </Text>
+                </div>
+              </>
             )}
           </div>
+
+          {!isTyping && (
+            <div className="relative flex h-[44svh] flex-col overflow-hidden rounded-md bg-surface ring-1 ring-border [backface-visibility:hidden] [grid-area:1/1] [transform:rotateY(180deg)]">
+              {cardHeader(backLabel)}
+              {cardContent(addLinkTargets(sanitizedBack))}
+            </div>
+          )}
         </div>
+      </div>
 
-        {isTyping ? (
-          <>
-            {!typingChecked && (
-              <div
-                className="flex w-full max-w-xl gap-2"
-                onKeyDown={(e) => {
-                  if (e.code === "Enter") {
-                    e.preventDefault();
-                    handleCheckTyping();
-                  }
-                }}
-              >
-                <InputText
-                  value={typingInput}
-                  onChange={(value) => setTypingInput(value)}
-                  placeholder={t("studyTypeAnswer")}
-                  className="flex-1"
-                />
+      {isTyping && !typingChecked && (
+        <div
+          className="flex w-full max-w-md gap-2"
+          onKeyDown={(e) => {
+            if (e.code === "Enter") {
+              e.preventDefault();
+              handleCheckTyping();
+            }
+          }}
+        >
+          <InputText
+            value={typingInput}
+            onChange={(value) => setTypingInput(value)}
+            placeholder={t("studyTypeAnswer")}
+            className="flex-1"
+          />
 
-                <Button
-                  type="button"
-                  onClick={handleCheckTyping}
-                  disabled={!typingInput.trim()}
-                >
-                  {t("studyCheck")}
-                </Button>
-              </div>
-            )}
+          <Button
+            type="button"
+            onClick={handleCheckTyping}
+            disabled={!typingInput.trim()}
+          >
+            {t("studyCheck")}
+          </Button>
+        </div>
+      )}
 
-            {typingChecked && (
-              <div className="flex w-full max-w-xl flex-col gap-4">
-                <div
-                  className={cn(
-                    "flex items-start gap-2 p-4 text-white",
-                    typingCorrect ? "bg-success" : "bg-error",
-                  )}
-                >
-                  {typingCorrect ? (
-                    <CheckCircle className="size-4 shrink-0 mt-0.5" />
-                  ) : (
-                    <XCircle className="size-4 shrink-0 mt-0.5" />
-                  )}
+      {isTyping && typingChecked && (
+        <div className="flex w-full max-w-md flex-col gap-2.5">
+          <div className="flex gap-2.5">
+            <div
+              className={cn(
+                "flex-1 rounded-md bg-surface px-3 py-2 ring-1",
+                typingCorrect ? "ring-success" : "ring-error",
+              )}
+            >
+              <Text as="p" className="text-[10px] font-medium uppercase tracking-wider text-muted">
+                {t("studyCorrectAnswer")}
+              </Text>
 
-                  <div className="flex flex-1 flex-col gap-0.5">
-                    <Text as="p" className="text-sm font-semibold text-white">
-                      {typingCorrect ? t("studyCorrect") : t("studyIncorrect")}
-                    </Text>
+              <Text as="p" className="text-xs font-normal text-foreground mt-0.5">
+                {sanitizedCorrectAnswer}
+              </Text>
+            </div>
 
-                    {!typingCorrect && (
-                      <Text as="p" className="text-xs text-white">
-                        {t("studyCorrectAnswer")}{" "}
-                        <span className="font-semibold">
-                          {sanitizedCorrectAnswer}
-                        </span>
-                      </Text>
-                    )}
+            <div
+              className={cn(
+                "flex-1 rounded-md bg-surface px-3 py-2 ring-1",
+                typingCorrect ? "ring-success" : "ring-error",
+              )}
+            >
+              <Text as="p" className="text-[10px] font-medium uppercase tracking-wider text-muted">
+                {t("studyYourAnswer")}
+              </Text>
 
-                    <Text as="p" className="text-xs text-white">
-                      {t("studyYourAnswer")} {typingInput.trim()}
-                    </Text>
-                  </div>
-                </div>
-                {ratingButtons}
-              </div>
-            )}
-          </>
-        ) : !revealed ? (
+              <Text as="p" className="text-xs font-normal text-foreground mt-0.5">
+                {typingInput.trim()}
+              </Text>
+            </div>
+          </div>
+
+          {ratingButtons}
+        </div>
+      )}
+
+      {!isTyping && !revealed && (
+        <div className="flex w-full max-w-md flex-col items-center gap-2">
           <Button
             type="button"
             onClick={handleReveal}
-            className="w-full max-w-xl"
+            className="flex w-full max-w-md rounded-md h-10 font-normal"
           >
-            <BookOpen className="size-4" />
             {t("studyRevealAnswer")}
-            <span className="ml-1 text-xs opacity-50">
-              {t("studyRevealSpace")}
-            </span>
           </Button>
-        ) : (
-          ratingButtons
-        )}
-      </div>
+
+          <span className="hidden text-[10px] font-medium text-muted mt-1 md:block">
+            {t("studyRevealHint", { key: t("studyRevealSpace") })}
+          </span>
+        </div>
+      )}
+
+      {!isTyping && revealed && ratingButtons}
     </div>
   );
 }

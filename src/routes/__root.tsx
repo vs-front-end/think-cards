@@ -7,6 +7,7 @@ import { useAuthStore, useCreateIntentStore, useSidebarStore } from "@/store";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db";
 import { Header, BottomTab, Sidebar, DeckModal } from "@/components";
+import { useSync } from "@/hooks";
 
 import {
   Outlet,
@@ -88,6 +89,8 @@ function RootComponent() {
 
   const collapsed = useSidebarStore((s) => s.collapsed);
   const sidebarWidth = collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED;
+
+  useSync();
 
   const isLoggedIn = user !== null;
   const isAuthRoute = pathname.startsWith("/auth/");

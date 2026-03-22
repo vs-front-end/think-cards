@@ -38,21 +38,20 @@ async function runSyncInternal(
 
 export function useSync() {
   const isSyncing = useSyncStore((s) => s.isSyncing);
+  const userId = useAuthStore((s) => s.user?.id);
   const qc = useQueryClient();
 
   const runSync = useCallback(
-    (userId: string, showToast = true) =>
-      runSyncInternal(userId, qc, showToast),
+    (uid: string, showToast = true) =>
+      runSyncInternal(uid, qc, showToast),
     [qc],
   );
 
   const triggerSync = useCallback(() => {
-    const userId = useAuthStore.getState().user?.id;
     if (userId) runSync(userId);
-  }, [runSync]);
+  }, [runSync, userId]);
 
   useEffect(() => {
-    const userId = useAuthStore.getState().user?.id;
     if (!userId) return;
 
     if (!syncScheduled) {
@@ -68,13 +67,11 @@ export function useSync() {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState !== "visible") return;
-      const uid = useAuthStore.getState().user?.id;
-      if (uid) runSync(uid);
+      if (userId) runSync(userId);
     };
 
     const handleOnline = () => {
-      const uid = useAuthStore.getState().user?.id;
-      if (uid) runSync(uid);
+      if (userId) runSync(userId);
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -84,7 +81,7 @@ export function useSync() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("online", handleOnline);
     };
-  }, [runSync]);
+  }, [userId, runSync]);
 
   return { isSyncing, triggerSync };
 }

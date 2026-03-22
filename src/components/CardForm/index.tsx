@@ -302,7 +302,7 @@ export function CardForm({ card, defaultDeckId }: ICardFormProps) {
             />
 
             {cloze && (
-              <div className="rounded-md border border-border bg-surface px-3 py-2">
+              <div className="rounded-md border border-border bg-surface px-3 py-2 mt-1">
                 <Text as="p" className="mb-1 text-xs font-medium text-muted">
                   {t("cardModalPreview")}
                 </Text>

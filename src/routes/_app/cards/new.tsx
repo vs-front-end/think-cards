@@ -1,6 +1,6 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { AuthGuard } from "@/components/AuthGuard";
-import { CardForm } from "@/components/CardForm";
+import { CardForm } from "@/components";
 
 export const Route = createFileRoute("/_app/cards/new")({
   validateSearch: (search: Record<string, unknown>) => ({
