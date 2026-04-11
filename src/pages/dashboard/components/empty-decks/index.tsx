@@ -1,12 +1,12 @@
 import { useTranslation } from "react-i18next";
-import { Button, Text } from "@stellar-ui-kit/web";
 import { Layers, Plus } from "lucide-react";
+import { Button, Text } from "@stellar-ui-kit/web";
 
 type EmptyDecksProps = {
   onCreateDeck: () => void;
 };
 
-export function EmptyDecks({ onCreateDeck }: EmptyDecksProps) {
+export const EmptyDecks = ({ onCreateDeck }: EmptyDecksProps) => {
   const { t } = useTranslation();
 
   return (
@@ -31,4 +31,4 @@ export function EmptyDecks({ onCreateDeck }: EmptyDecksProps) {
       </Button>
     </div>
   );
-}
+};

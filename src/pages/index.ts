@@ -1,3 +1,4 @@
+export * from "./dashboard";
 export * from "./how-it-works";
 export * from "./not-found";
 export * from "./legal";

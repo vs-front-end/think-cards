@@ -1,13 +1,13 @@
 import { useTranslation } from "react-i18next";
-import { Button, Card, Text } from "@stellar-ui-kit/web";
 import { DownloadIcon, X } from "lucide-react";
+import { Button, Card, Text } from "@stellar-ui-kit/web";
 import { usePwaInstall } from "@/hooks";
 
-type IInstallPromptProps = {
+type InstallPromptProps = {
   visible?: boolean;
 };
 
-export function InstallPrompt({ visible = true }: IInstallPromptProps) {
+export const InstallPrompt = ({ visible = true }: InstallPromptProps) => {
   const { t } = useTranslation();
   const { canInstall, install, dismiss } = usePwaInstall();
 
@@ -17,7 +17,7 @@ export function InstallPrompt({ visible = true }: IInstallPromptProps) {
     <Card className="border border-border bg-surface px-5 py-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 flex-1 items-center gap-4">
-          <div className="flex size-12 md:size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg">
+          <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg md:size-10">
             <img src="/icons/logo.svg" alt="ThinkCards" className="size-full" />
           </div>
 
@@ -45,4 +45,4 @@ export function InstallPrompt({ visible = true }: IInstallPromptProps) {
       </div>
     </Card>
   );
-}
+};

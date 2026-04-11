@@ -1,46 +1,50 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { BookOpen, Layers, Play, X } from "lucide-react";
 import { Button, Card, Text } from "@stellar-ui-kit/web";
-import { Layers, BookOpen, Play, X } from "lucide-react";
+import { cn } from "@stellar-ui-kit/shared";
 
 const STORAGE_KEY = "onboarding_done";
 
-type IOnboardingTourProps = {
+const STEP_KEYS = [
+  {
+    icon: Layers,
+    titleKey: "onboardingCreateDeckTitle",
+    descKey: "onboardingCreateDeckDesc",
+  },
+  {
+    icon: BookOpen,
+    titleKey: "onboardingAddCardTitle",
+    descKey: "onboardingAddCardDesc",
+  },
+  {
+    icon: Play,
+    titleKey: "onboardingStartStudyTitle",
+    descKey: "onboardingStartStudyDesc",
+  },
+];
+
+type OnboardingTourProps = {
   onDone: () => void;
 };
 
-export function OnboardingTour({ onDone }: IOnboardingTourProps) {
+export const OnboardingTour = ({ onDone }: OnboardingTourProps) => {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
-
-  const STEPS = [
-    {
-      icon: Layers,
-      title: t("onboardingCreateDeckTitle"),
-      description: t("onboardingCreateDeckDesc"),
-    },
-    {
-      icon: BookOpen,
-      title: t("onboardingAddCardTitle"),
-      description: t("onboardingAddCardDesc"),
-    },
-    {
-      icon: Play,
-      title: t("onboardingStartStudyTitle"),
-      description: t("onboardingStartStudyDesc"),
-    },
-  ];
 
   const finish = () => {
     try {
       localStorage.setItem(STORAGE_KEY, "true");
-    } catch {}
+    } catch (error) {
+      console.error(error);
+    }
+
     onDone();
   };
 
-  const current = STEPS[step];
+  const current = STEP_KEYS[step];
   const Icon = current.icon;
-  const isLast = step === STEPS.length - 1;
+  const isLast = step === STEP_KEYS.length - 1;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/60 p-4 backdrop-blur-sm sm:items-center">
@@ -61,25 +65,29 @@ export function OnboardingTour({ onDone }: IOnboardingTourProps) {
 
           <div className="space-y-1">
             <Text as="p" className="text-xs font-medium text-muted">
-              {t("onboardingStep", { current: step + 1, total: STEPS.length })}
+              {t("onboardingStep", {
+                current: step + 1,
+                total: STEP_KEYS.length,
+              })}
             </Text>
 
             <Text as="h3" className="text-lg font-semibold">
-              {current.title}
+              {t(current.titleKey)}
             </Text>
 
             <Text as="p" className="text-sm text-muted">
-              {current.description}
+              {t(current.descKey)}
             </Text>
           </div>
 
           <div className="flex items-center gap-1.5">
-            {STEPS.map((_, i) => (
+            {STEP_KEYS.map((_, i) => (
               <span
                 key={i}
-                className={`h-1.5 rounded-full transition-all ${
-                  i === step ? "w-4 bg-primary" : "w-1.5 bg-border"
-                }`}
+                className={cn(
+                  "h-1.5 rounded-full transition-all",
+                  i === step ? "w-4 bg-primary" : "w-1.5 bg-border",
+                )}
               />
             ))}
           </div>
@@ -98,13 +106,7 @@ export function OnboardingTour({ onDone }: IOnboardingTourProps) {
             <Button
               type="button"
               size="sm"
-              onClick={() => {
-                if (isLast) {
-                  finish();
-                } else {
-                  setStep((s) => s + 1);
-                }
-              }}
+              onClick={() => (isLast ? finish() : setStep((s) => s + 1))}
               className="flex-1"
             >
               {isLast ? t("onboardingGotIt") : t("onboardingNext")}
@@ -114,12 +116,12 @@ export function OnboardingTour({ onDone }: IOnboardingTourProps) {
       </Card>
     </div>
   );
-}
+};
 
-export function isOnboardingDone(): boolean {
+export const isOnboardingDone = (): boolean => {
   try {
     return localStorage.getItem(STORAGE_KEY) === "true";
   } catch {
     return false;
   }
-}
+};

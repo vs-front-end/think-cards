@@ -16,10 +16,12 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 
+type ErrorBoundaryState = { hasError: boolean };
+
 const SIDEBAR_WIDTH_EXPANDED = 250;
 const SIDEBAR_WIDTH_COLLAPSED = 72;
 
-function ErrorFallback() {
+const ErrorFallback = () => {
   const { t } = useTranslation();
 
   return (
@@ -37,9 +39,7 @@ function ErrorFallback() {
       </Button>
     </div>
   );
-}
-
-type ErrorBoundaryState = { hasError: boolean };
+};
 
 class ErrorBoundary extends Component<
   { children: ReactNode },
@@ -67,20 +67,7 @@ class ErrorBoundary extends Component<
   }
 }
 
-const APP_ROUTES = [
-  "/dashboard",
-  "/decks",
-  "/study",
-  "/statistics",
-  "/settings",
-];
-
-export const Route = createRootRoute({
-  component: RootComponent,
-});
-
-
-function RootComponent() {
+const RootComponent = () => {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -88,16 +75,21 @@ function RootComponent() {
   const user = useAuthStore((s) => s.user);
 
   const collapsed = useSidebarStore((s) => s.collapsed);
-  const sidebarWidth = collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED;
 
   useSync();
 
   const isLoggedIn = user !== null;
   const isAuthRoute = pathname.startsWith("/auth/");
   const showAppShell = isLoggedIn && !isAuthRoute;
-  const isAppRoute = APP_ROUTES.some((r) => pathname.startsWith(r));
   const createIntent = useCreateIntentStore((s) => s.createIntent);
   const clearCreateIntent = useCreateIntentStore((s) => s.clearCreateIntent);
+
+  const isResetOrCallback =
+    pathname === "/auth/reset-password" || pathname === "/auth/callback";
+
+  const sidebarWidth = collapsed
+    ? SIDEBAR_WIDTH_COLLAPSED
+    : SIDEBAR_WIDTH_EXPANDED;
 
   useEffect(() => {
     const {
@@ -131,29 +123,22 @@ function RootComponent() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const isResetOrCallback =
-    pathname === "/auth/reset-password" || pathname === "/auth/callback";
-
   useEffect(() => {
     const isLoading = useAuthStore.getState().isLoading;
 
     if (isLoading) return;
 
-    if (isAppRoute && !isLoggedIn) {
-      navigate({ to: "/" });
-    }
-
     if (isLoggedIn && isAuthRoute && !isResetOrCallback) {
       navigate({ to: "/dashboard" });
     }
-  }, [isAppRoute, isAuthRoute, isLoggedIn, isResetOrCallback, pathname, navigate]);
+  }, [isAuthRoute, isLoggedIn, isResetOrCallback, pathname]);
 
   useEffect(() => {
     if (createIntent === "card") {
       clearCreateIntent();
       navigate({ to: "/cards/new", search: { deckId: undefined } });
     }
-  }, [createIntent, clearCreateIntent, navigate]);
+  }, [createIntent]);
 
   return (
     <ErrorBoundary>
@@ -205,4 +190,8 @@ function RootComponent() {
       </div>
     </ErrorBoundary>
   );
-}
+};
+
+export const Route = createRootRoute({
+  component: RootComponent,
+});

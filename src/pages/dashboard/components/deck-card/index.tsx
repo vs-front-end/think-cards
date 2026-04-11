@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
-import { ChevronDown, MoreVertical, Pencil, Play, Trash2 } from "lucide-react";
-import { cn } from "@stellar-ui-kit/shared";
 import { useTranslation } from "react-i18next";
+import { cn } from "@stellar-ui-kit/shared";
 import { useNavigateToStudy } from "@/hooks";
+import { ChevronDown, MoreVertical, Pencil, Play, Trash2 } from "lucide-react";
 
 import {
   Badge,
@@ -26,7 +26,7 @@ export type DeckCardSubdeck = {
   review: number;
 };
 
-export type IDeckCard = {
+export type DeckCard = {
   id: string;
   name: string;
   new: number;
@@ -35,13 +35,13 @@ export type IDeckCard = {
   children?: DeckCardSubdeck[];
 };
 
-type IDeckCardProps = {
-  deck: IDeckCard;
+type DeckCardProps = {
+  deck: DeckCard;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
 };
 
-function useLocalExpanded(deckId: string) {
+const useLocalExpanded = (deckId: string) => {
   const key = `deck_expanded_${deckId}`;
 
   const [open, setOpen] = useState(() => {
@@ -63,9 +63,9 @@ function useLocalExpanded(deckId: string) {
   );
 
   return [open, toggle] as const;
-}
+};
 
-function CardCounts({
+const CardCounts = ({
   newCount,
   learning,
   review,
@@ -73,7 +73,7 @@ function CardCounts({
   newCount: number;
   learning: number;
   review: number;
-}) {
+}) => {
   const { t } = useTranslation();
   const total = newCount + learning + review;
 
@@ -100,9 +100,9 @@ function CardCounts({
       </Badge>
     </div>
   );
-}
+};
 
-function PlayButton({ deckId }: { deckId: string }) {
+const PlayButton = ({ deckId }: { deckId: string }) => {
   const { t } = useTranslation();
   const navigateToStudy = useNavigateToStudy();
 
@@ -117,9 +117,9 @@ function PlayButton({ deckId }: { deckId: string }) {
       <Play className="size-3.5" />
     </Button>
   );
-}
+};
 
-function DeckMenu({
+const DeckMenu = ({
   deckId,
   onEdit,
   onDelete,
@@ -127,7 +127,7 @@ function DeckMenu({
   deckId: string;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
-}) {
+}) => {
   const { t } = useTranslation();
 
   return (
@@ -164,9 +164,9 @@ function DeckMenu({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};
 
-export function DeckCard({ deck, onEdit, onDelete }: IDeckCardProps) {
+export const DeckCard = ({ deck, onEdit, onDelete }: DeckCardProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useLocalExpanded(deck.id);
   const hasChildren = !!deck.children?.length;
@@ -201,7 +201,7 @@ export function DeckCard({ deck, onEdit, onDelete }: IDeckCardProps) {
             <Button
               type="button"
               variant="outline"
-              className="w-full justify-between gap-2 bg-muted/20 h-12 text-left border-dashed transition-colors hover:bg-muted/40 active:scale-100"
+              className="h-12 w-full justify-between gap-2 border-dashed bg-muted/20 text-left transition-colors hover:bg-muted/40 active:scale-100"
             >
               <span>
                 {t("deckSubdecks")}
@@ -228,9 +228,9 @@ export function DeckCard({ deck, onEdit, onDelete }: IDeckCardProps) {
               {deck.children!.map((sub) => (
                 <li
                   key={sub.id}
-                  className="flex items-start gap-3 rounded-md border border-border border-dashed px-3 py-3"
+                  className="flex items-start gap-3 rounded-md border border-dashed border-border px-3 py-3"
                 >
-                  <div className="flex flex-col flex-1 space-y-2">
+                  <div className="flex flex-1 flex-col space-y-2">
                     <Text
                       as="span"
                       className="min-w-0 flex-1 truncate text-sm font-medium"
@@ -261,4 +261,4 @@ export function DeckCard({ deck, onEdit, onDelete }: IDeckCardProps) {
       )}
     </Card>
   );
-}
+};
