@@ -2,21 +2,6 @@ import { db } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
 import { useSyncStore } from "@/store";
 
-type SyncableTable =
-  | "decks"
-  | "cards"
-  | "card_state"
-  | "revlog"
-  | "session_log";
-
-export const SYNCABLE_TABLES: SyncableTable[] = [
-  "decks",
-  "cards",
-  "card_state",
-  "revlog",
-  "session_log",
-];
-
 const PAGE_SIZE = 500;
 
 const getSyncMeta = async (
@@ -410,8 +395,7 @@ export const syncAll = async (userId: string): Promise<boolean> => {
 
   if (!session) return false;
 
-  const { isSyncing, setIsSyncing, setLastSyncedAt, setPendingCount } =
-    useSyncStore.getState();
+  const { isSyncing, setIsSyncing } = useSyncStore.getState();
 
   if (isSyncing) return false;
 
@@ -437,9 +421,6 @@ export const syncAll = async (userId: string): Promise<boolean> => {
       last_synced_at: now,
       initial_pull_done: true,
     });
-
-    setLastSyncedAt(new Date(now));
-    setPendingCount(0);
 
     return true;
   } finally {

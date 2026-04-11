@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { db } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store";
 import { computeStreaks } from "@/utils";
 import { State } from "ts-fsrs";
@@ -54,18 +55,19 @@ export const useStatisticsData = () => {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
-      const [allRevlogs, allCardStates, decks, sessionLogs] = await Promise.all(
-        [
+      const [allRevlogs, allCardStates, sessionLogs, profileRes] =
+        await Promise.all([
           db.revlog.where("user_id").equals(userId).toArray(),
           db.card_state.toArray(),
-          db.decks
-            .where("user_id")
-            .equals(userId)
-            .filter((d) => d.deleted_at === null)
-            .toArray(),
           db.session_log.where("user_id").equals(userId).toArray(),
-        ],
-      );
+          userId
+            ? supabase
+                .from("profiles")
+                .select("daily_goal_default")
+                .eq("id", userId)
+                .single()
+            : Promise.resolve({ data: null }),
+        ]);
 
       const todayStartIso = todayStart.toISOString();
       const { streak, maxStreak } = computeStreaks(
@@ -79,11 +81,8 @@ export const useStatisticsData = () => {
       ).size;
 
       const dailyGoal =
-        decks.length > 0
-          ? Math.round(
-              decks.reduce((s, d) => s + d.daily_goal, 0) / decks.length,
-            )
-          : 20;
+        (profileRes.data as { daily_goal_default?: number } | null)
+          ?.daily_goal_default ?? 20;
 
       const totalStudyMs = sessionLogs.reduce(
         (sum, s) => sum + (s.time_elapsed_ms ?? 0),

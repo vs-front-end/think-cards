@@ -110,7 +110,7 @@ export const BottomTab = () => {
                 {t("dashboardNewDeck")}
 
                 <span className="text-muted text-xs">
-                  Click to create a new deck
+                  {t("navAddDeckHint")}
                 </span>
               </div>
             </Button>
@@ -132,7 +132,7 @@ export const BottomTab = () => {
                 {t("dashboardNewCard")}
 
                 <span className="text-muted text-xs">
-                  Click to create a new card
+                  {t("navAddCardHint")}
                 </span>
               </div>
             </Button>

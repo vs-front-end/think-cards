@@ -287,7 +287,7 @@ export const StatisticsPage = () => {
           </div>
 
           <div className="rounded-xl border border-border bg-surface p-4">
-            <SectionTitle>{t("statsDueNext14")}</SectionTitle>
+            <SectionTitle>{t("statsDueNext7")}</SectionTitle>
             <ForecastBar forecast={data.forecast} />
           </div>
         </div>

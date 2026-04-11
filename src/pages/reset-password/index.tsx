@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
 import { ArrowLeftIcon, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useSetPassword } from "@/hooks";
 
 import {
   Button,
@@ -38,16 +38,7 @@ export const ResetPasswordPage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [formError, setFormError] = useState("");
 
-  const updateMutation = useMutation({
-    mutationFn: async (newPassword: string) => {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => setState("success"),
-    onError: () => setFormError(t("resetPasswordErrorGeneric")),
-  });
+  const setPasswordMutation = useSetPassword();
 
   const handleSubmit = () => {
     setFormError("");
@@ -62,7 +53,13 @@ export const ResetPasswordPage = () => {
       return;
     }
 
-    updateMutation.mutate(password);
+    setPasswordMutation.mutate(
+      { newPassword: password },
+      {
+        onSuccess: () => setState("success"),
+        onError: () => setFormError(t("resetPasswordErrorGeneric")),
+      },
+    );
   };
 
   useEffect(() => {
@@ -201,10 +198,10 @@ export const ResetPasswordPage = () => {
           <Button
             type="button"
             onClick={handleSubmit}
-            disabled={updateMutation.isPending}
+            disabled={setPasswordMutation.isPending}
             className="w-full"
           >
-            {updateMutation.isPending && (
+            {setPasswordMutation.isPending && (
               <Spinner className="size-4 text-white" />
             )}
             {t("resetPasswordSubmitButton")}
