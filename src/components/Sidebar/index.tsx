@@ -4,7 +4,7 @@ import { cn } from "@stellar-ui-kit/shared";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useDashboardData, useProfile, useSignOut } from "@/hooks";
-import { FeedbackModal } from "@/components/FeedbackModal";
+import { FeedbackModal } from "@/components/feedback-modal";
 
 import {
   Avatar,

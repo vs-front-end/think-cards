@@ -13,9 +13,20 @@ import {
   TooltipTrigger,
 } from "@stellar-ui-kit/web";
 
-function stripHtml(html: string): string {
-  return DOMPurify.sanitize(html, { ALLOWED_TAGS: [] });
-}
+const stripHtml = (html: string): string =>
+  DOMPurify.sanitize(html, { ALLOWED_TAGS: [] });
+
+const STATUS_KEY_MAP: Record<CardStatus, string> = {
+  new: "cardRowStatusNew",
+  learning: "cardRowStatusLearning",
+  review: "cardRowStatusReview",
+};
+
+const TYPE_KEY_MAP: Record<CardWithState["type"], string> = {
+  basic: "cardRowTypeBasic",
+  cloze: "cardRowTypeCloze",
+  typing: "cardRowTypeTyping",
+};
 
 type CardRowProps = {
   card: CardWithState;
@@ -25,35 +36,9 @@ type CardRowProps = {
   onDelete: (id: string) => void;
 };
 
-export function CardRow({
-  card,
-  selected,
-  onToggle,
-  onEdit,
-  onDelete,
-}: CardRowProps) {
+export const CardRow = ({ card, selected, onToggle, onEdit, onDelete }: CardRowProps) => {
   const { t } = useTranslation();
   const front = stripHtml(card.front);
-
-  const statusLabel = (status: CardStatus): string => {
-    const map: Record<CardStatus, string> = {
-      new: t("cardRowStatusNew"),
-      learning: t("cardRowStatusLearning"),
-      review: t("cardRowStatusReview"),
-    };
-
-    return map[status];
-  };
-
-  const typeLabel = (type: CardWithState["type"]): string => {
-    const map: Record<CardWithState["type"], string> = {
-      basic: t("cardRowTypeBasic"),
-      cloze: t("cardRowTypeCloze"),
-      typing: t("cardRowTypeTyping"),
-    };
-
-    return map[type];
-  };
 
   const formatDue = (due: string | null): string => {
     if (!due) return "—";
@@ -84,12 +69,12 @@ export function CardRow({
         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
           <span>
             {t("cardRowLabelStatus")}:{" "}
-            <span className="text-foreground">{statusLabel(card.status)}</span>
+            <span className="text-foreground">{t(STATUS_KEY_MAP[card.status])}</span>
           </span>
 
           <span>
             {t("cardRowLabelType")}:{" "}
-            <span className="text-foreground">{typeLabel(card.type)}</span>
+            <span className="text-foreground">{t(TYPE_KEY_MAP[card.type])}</span>
           </span>
 
           <span>
@@ -114,7 +99,7 @@ export function CardRow({
             </TooltipTrigger>
 
             <TooltipContent className="bg-foreground">
-              <Text as="span" className="text-xs text-background font-medium">
+              <Text as="span" className="text-xs font-medium text-background">
                 {t("cardModalEditTitle")}
               </Text>
             </TooltipContent>
@@ -133,7 +118,7 @@ export function CardRow({
             </TooltipTrigger>
 
             <TooltipContent className="bg-foreground">
-              <Text as="span" className="text-xs text-background font-medium">
+              <Text as="span" className="text-xs font-medium text-background">
                 {t("deleteCardTitle")}
               </Text>
             </TooltipContent>
@@ -142,4 +127,4 @@ export function CardRow({
       </TooltipProvider>
     </div>
   );
-}
+};

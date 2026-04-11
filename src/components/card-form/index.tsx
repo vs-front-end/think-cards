@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store";
 import type { ICard, CardType } from "@/lib/db";
 import { nextClozeIndex, parseClozePreview, compressImage } from "@/utils";
+import type { TextEditorRef } from "@stellar-ui-kit/web";
 
 import {
   Button,
@@ -21,14 +22,13 @@ import {
   TextArea,
   TextEditor,
 } from "@stellar-ui-kit/web";
-import type { TextEditorRef } from "@stellar-ui-kit/web";
 
 type ICardFormProps = {
   card?: ICard;
   defaultDeckId?: string;
 };
 
-export function CardForm({ card, defaultDeckId }: ICardFormProps) {
+export const CardForm = ({ card, defaultDeckId }: ICardFormProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { data: decks = [] } = useDecksList();
@@ -49,9 +49,7 @@ export function CardForm({ card, defaultDeckId }: ICardFormProps) {
   const backEditorRef = useRef<TextEditorRef>(null);
   const clozeRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleCancel = () => {
-    navigate({ to: "/decks" });
-  };
+  const handleCancel = () => navigate({ to: "/decks" });
 
   const handleCreateCloze = () => {
     const textarea = clozeRef.current;
@@ -70,32 +68,35 @@ export function CardForm({ card, defaultDeckId }: ICardFormProps) {
     setCloze(next);
   };
 
-  const uploadImage = useCallback(async (file: File): Promise<string> => {
-    const userId = useAuthStore.getState().user?.id;
-    if (!userId) throw new Error("Not authenticated");
+  const uploadImage = useCallback(
+    async (file: File): Promise<string> => {
+      const userId = useAuthStore.getState().user?.id;
+      if (!userId) throw new Error("Not authenticated");
 
-    const MAX_CARD_IMAGE_SIZE = 5 * 1024 * 1024;
-    if (file.size > MAX_CARD_IMAGE_SIZE) {
-      toast.error(t("cardImageTooLarge"));
-      throw new Error("File too large");
-    }
+      const MAX_CARD_IMAGE_SIZE = 5 * 1024 * 1024;
+      if (file.size > MAX_CARD_IMAGE_SIZE) {
+        toast.error(t("cardImageTooLarge"));
+        throw new Error("File too large");
+      }
 
-    const compressed = await compressImage(file);
-    const ext = compressed.name.split(".").pop() ?? "webp";
-    const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+      const compressed = await compressImage(file);
+      const ext = compressed.name.split(".").pop() ?? "webp";
+      const path = `${userId}/${crypto.randomUUID()}.${ext}`;
 
-    const { error } = await supabase.storage
-      .from("card-images")
-      .upload(path, compressed);
+      const { error } = await supabase.storage
+        .from("card-images")
+        .upload(path, compressed);
 
-    if (error) {
-      toast.error(t("cardImageUploadError"));
-      throw error;
-    }
+      if (error) {
+        toast.error(t("cardImageUploadError"));
+        throw error;
+      }
 
-    const { data } = supabase.storage.from("card-images").getPublicUrl(path);
-    return data.publicUrl;
-  }, [t]);
+      const { data } = supabase.storage.from("card-images").getPublicUrl(path);
+      return data.publicUrl;
+    },
+    [t],
+  );
 
   const validate = (): boolean => {
     const next = { deck: "", content: "" };
@@ -107,9 +108,7 @@ export function CardForm({ card, defaultDeckId }: ICardFormProps) {
         frontEditorRef.current?.getText().trim() ?? front.trim();
       const backText = backEditorRef.current?.getText().trim() ?? back.trim();
 
-      if (!frontText || !backText) {
-        next.content = t("cardModalErrorFrontBack");
-      }
+      if (!frontText || !backText) next.content = t("cardModalErrorFrontBack");
     } else {
       if (!cloze.trim()) next.content = t("cardModalErrorClozeEmpty");
       else if (!/\{\{c\d+::[^}]+\}\}/.test(cloze)) {
@@ -130,7 +129,6 @@ export function CardForm({ card, defaultDeckId }: ICardFormProps) {
       type !== "cloze"
         ? (frontEditorRef.current?.getHTML() ?? front).trim()
         : "";
-
     const backValue =
       type !== "cloze" ? (backEditorRef.current?.getHTML() ?? back).trim() : "";
 
@@ -167,7 +165,7 @@ export function CardForm({ card, defaultDeckId }: ICardFormProps) {
   const isPending = createCard.isPending || updateCard.isPending;
 
   return (
-    <div className="flex flex-1 flex-col gap-6 px-4 pt-6 pb-20 md:px-6 md:py-8">
+    <div className="flex flex-1 flex-col gap-6 px-4 pb-20 pt-6 md:px-6 md:py-8">
       <div>
         <Text as="h1" className="text-2xl font-semibold tracking-tight">
           {isEdit ? t("cardModalEditTitle") : t("cardModalCreateTitle")}
@@ -222,11 +220,9 @@ export function CardForm({ card, defaultDeckId }: ICardFormProps) {
                   <SelectItem value="basic">
                     {t("cardModalTypeBasic")}
                   </SelectItem>
-
                   <SelectItem value="cloze">
                     {t("cardModalTypeCloze")}
                   </SelectItem>
-
                   <SelectItem value="typing">
                     {t("cardModalTypeTyping")}
                   </SelectItem>
@@ -302,7 +298,7 @@ export function CardForm({ card, defaultDeckId }: ICardFormProps) {
             />
 
             {cloze && (
-              <div className="rounded-md border border-border bg-surface px-3 py-2 mt-1">
+              <div className="mt-1 rounded-md border border-border bg-surface px-3 py-2">
                 <Text as="p" className="mb-1 text-xs font-medium text-muted">
                   {t("cardModalPreview")}
                 </Text>
@@ -331,4 +327,4 @@ export function CardForm({ card, defaultDeckId }: ICardFormProps) {
       </div>
     </div>
   );
-}
+};
