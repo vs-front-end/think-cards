@@ -1,4 +1,5 @@
 export * from "./auth-guard";
+export * from "./error-boundary";
 export * from "./bottom-tab";
 export * from "./card-form";
 export * from "./deck-modal";

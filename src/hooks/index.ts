@@ -12,3 +12,5 @@ export * from './useStudySession';
 export * from './useSync';
 export * from './usePwaInstall';
 export * from './useDocumentHead';
+export * from './useAuthListener';
+export * from './useAuthRedirect';
