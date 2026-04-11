@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Spinner } from "@stellar-ui-kit/web";
+import { Loader } from "@/components";
 import { useAuthStore } from "@/store";
 import { useDocumentHead } from "@/hooks";
 
@@ -34,11 +34,7 @@ export function WelcomePage() {
   }, [isLoading, user, navigate]);
 
   if (isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <Spinner className="size-12" />
-      </div>
-    );
+    return <Loader />;
   }
 
   if (user) return null;

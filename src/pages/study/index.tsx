@@ -5,6 +5,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Button, InputText, Text } from "@stellar-ui-kit/web";
 import { cn } from "@stellar-ui-kit/shared";
 import { Pause, Play } from "lucide-react";
+import { Loader } from "@/components";
 import { useStudySession } from "@/hooks";
 import { formatTime, parseClozePreview, parseClozeRevealed } from "@/utils";
 
@@ -141,6 +142,10 @@ const StudySession = ({ deckId }: StudySessionProps) => {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [revealed, typingChecked, currentCard?.type]);
+
+  if (!isLoaded) {
+    return <Loader />;
+  }
 
   if (isDone) {
     return (

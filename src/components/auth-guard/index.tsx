@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Spinner } from "@stellar-ui-kit/web";
+import { Loader } from "@/components/loader";
 import { useAuthStore } from "@/store";
 
 type Props = {
@@ -19,11 +19,7 @@ export const AuthGuard = ({ children }: Props) => {
   }, [user, isLoading]);
 
   if (isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <Spinner className="size-12" />
-      </div>
-    );
+    return <Loader />;
   }
 
   if (!user) return null;

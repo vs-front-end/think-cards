@@ -27,6 +27,7 @@ const RootComponent = () => {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const user = useAuthStore((s) => s.user);
+  const authInitializing = useAuthStore((s) => s.isLoading);
   const collapsed = useSidebarStore((s) => s.collapsed);
   const createIntent = useCreateIntentStore((s) => s.createIntent);
   const clearCreateIntent = useCreateIntentStore((s) => s.clearCreateIntent);
@@ -73,7 +74,7 @@ const RootComponent = () => {
               : undefined
           }
         >
-          {!showAppShell && !isLoggedIn && <Header />}
+          {!showAppShell && !isLoggedIn && !authInitializing && <Header />}
 
           <main className="flex flex-1 min-h-0 flex-col">
             <div
