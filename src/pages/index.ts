@@ -3,3 +3,7 @@ export * from "./settings";
 export * from "./statistics";
 export * from "./study";
 export * from "./welcome";
+export * from "./forgot-password";
+export * from "./login";
+export * from "./reset-password";
+export * from "./sign-up";

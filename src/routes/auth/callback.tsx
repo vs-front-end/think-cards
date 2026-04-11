@@ -4,11 +4,7 @@ import { Spinner } from "@stellar-ui-kit/web";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store";
 
-export const Route = createFileRoute("/auth/callback")({
-  component: CallbackComponent,
-});
-
-function CallbackComponent() {
+const CallbackComponent = () => {
   const navigate = useNavigate();
   const { setUser, setSession, setIsLoading } = useAuthStore.getState();
 
@@ -31,4 +27,8 @@ function CallbackComponent() {
       <Spinner />
     </div>
   );
-}
+};
+
+export const Route = createFileRoute("/auth/callback")({
+  component: CallbackComponent,
+});
