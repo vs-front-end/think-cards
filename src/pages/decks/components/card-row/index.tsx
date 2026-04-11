@@ -36,7 +36,13 @@ type CardRowProps = {
   onDelete: (id: string) => void;
 };
 
-export const CardRow = ({ card, selected, onToggle, onEdit, onDelete }: CardRowProps) => {
+export const CardRow = ({
+  card,
+  selected,
+  onToggle,
+  onEdit,
+  onDelete,
+}: CardRowProps) => {
   const { t } = useTranslation();
   const front = stripHtml(card.front);
 
@@ -44,9 +50,12 @@ export const CardRow = ({ card, selected, onToggle, onEdit, onDelete }: CardRowP
     if (!due) return "—";
     const d = new Date(due);
     const today = new Date();
+
     today.setHours(0, 0, 0, 0);
     d.setHours(0, 0, 0, 0);
+
     const diff = Math.round((d.getTime() - today.getTime()) / 86400000);
+
     if (diff < 0) return t("cardRowOverdue");
     if (diff === 0) return t("cardRowToday");
     if (diff === 1) return t("cardRowTomorrow");
@@ -69,12 +78,16 @@ export const CardRow = ({ card, selected, onToggle, onEdit, onDelete }: CardRowP
         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
           <span>
             {t("cardRowLabelStatus")}:{" "}
-            <span className="text-foreground">{t(STATUS_KEY_MAP[card.status])}</span>
+            <span className="text-foreground">
+              {t(STATUS_KEY_MAP[card.status])}
+            </span>
           </span>
 
           <span>
             {t("cardRowLabelType")}:{" "}
-            <span className="text-foreground">{t(TYPE_KEY_MAP[card.type])}</span>
+            <span className="text-foreground">
+              {t(TYPE_KEY_MAP[card.type])}
+            </span>
           </span>
 
           <span>

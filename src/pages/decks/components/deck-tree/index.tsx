@@ -24,7 +24,7 @@ import {
   Text,
 } from "@stellar-ui-kit/web";
 
-function DeckTreeItem({
+const DeckTreeItem = ({
   node,
   depth,
   firstChild,
@@ -42,7 +42,7 @@ function DeckTreeItem({
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   appearance: "drawer" | "rail";
-}) {
+}) => {
   const navigateToStudy = useNavigateToStudy();
 
   const [expanded, setExpanded] = useState(true);
@@ -147,7 +147,7 @@ function DeckTreeItem({
       )}
     </li>
   );
-}
+};
 
 type DeckTreeProps = {
   appearance?: "drawer" | "rail";
@@ -158,14 +158,14 @@ type DeckTreeProps = {
   onCreateDeck: () => void;
 };
 
-export function DeckTree({
+export const DeckTree = ({
   appearance = "drawer",
   selectedId,
   onSelect,
   onEdit,
   onDelete,
   onCreateDeck,
-}: DeckTreeProps) {
+}: DeckTreeProps) => {
   const { t } = useTranslation();
   const { data: decks = [], isLoading } = useDecks();
 
@@ -232,4 +232,4 @@ export function DeckTree({
       </div>
     </div>
   );
-}
+};

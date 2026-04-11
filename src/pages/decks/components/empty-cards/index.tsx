@@ -35,7 +35,12 @@ export const EmptyCards = ({ onCreateCard, hasSearch }: EmptyCardsProps) => {
         </Text>
       </div>
 
-      <Button type="button" size="sm" onClick={onCreateCard} className="gap-1.5 font-normal">
+      <Button
+        type="button"
+        size="sm"
+        onClick={onCreateCard}
+        className="gap-1.5 font-normal"
+      >
         <Plus className="size-3.5" />
         {t("emptyCardsButton")}
       </Button>

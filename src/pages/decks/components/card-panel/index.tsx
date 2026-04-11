@@ -1,4 +1,10 @@
 import type { RefObject } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigateToStudy } from "@/hooks";
+import { BookOpen, Layers, Play, Plus } from "lucide-react";
+import type { CardStatus, CardWithState } from "@/hooks/useCardsWithState";
+import { CARDS_PAGE_SIZE } from "@/hooks/useCardsWithState";
+import { db } from "@/lib/db";
 
 import {
   useCallback,
@@ -8,14 +14,6 @@ import {
   useRef,
   useState,
 } from "react";
-
-import { useTranslation } from "react-i18next";
-import { useNavigateToStudy } from "@/hooks";
-import { BookOpen, Layers, Play, Plus } from "lucide-react";
-import type { CardStatus, CardWithState } from "@/hooks/useCardsWithState";
-import { CARDS_PAGE_SIZE } from "@/hooks/useCardsWithState";
-import { db } from "@/lib/db";
-import { CardRow, EmptyCards } from "@/components";
 
 import {
   Button,
@@ -43,6 +41,9 @@ import {
   useMoveCards,
 } from "@/hooks";
 
+import { CardRow } from "../card-row";
+import { EmptyCards } from "../empty-cards";
+
 type CardTypeFilter = "all" | "basic" | "cloze" | "typing";
 type StatusFilter = "all" | CardStatus;
 
@@ -57,7 +58,16 @@ type VirtualizedCardListProps = {
   scrollRootRef: RefObject<HTMLDivElement | null>;
 };
 
-function VirtualizedCardList({
+type CardPanelProps = {
+  deckId: string | null;
+  deckName: string;
+  onCreateDeck: () => void;
+  onCreateCard: () => void;
+  onEditCard: (id: string) => void;
+  onDeleteCard: (id: string) => void;
+};
+
+const VirtualizedCardList = ({
   cards,
   selected,
   onToggle,
@@ -66,12 +76,13 @@ function VirtualizedCardList({
   onLoadMore,
   hasMore,
   scrollRootRef,
-}: VirtualizedCardListProps) {
+}: VirtualizedCardListProps) => {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
     const root = scrollRootRef.current;
+
     if (!sentinel || !hasMore || !root) return;
 
     const observer = new IntersectionObserver(
@@ -83,7 +94,7 @@ function VirtualizedCardList({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, onLoadMore, scrollRootRef]);
+  }, [hasMore, scrollRootRef]);
 
   return (
     <div className="flex min-w-0 flex-col gap-2">
@@ -108,25 +119,16 @@ function VirtualizedCardList({
       )}
     </div>
   );
-}
-
-type CardPanelProps = {
-  deckId: string | null;
-  deckName: string;
-  onCreateDeck: () => void;
-  onCreateCard: () => void;
-  onEditCard: (id: string) => void;
-  onDeleteCard: (id: string) => void;
 };
 
-export function CardPanel({
+export const CardPanel = ({
   deckId,
   deckName,
   onCreateDeck,
   onCreateCard,
   onEditCard,
   onDeleteCard,
-}: CardPanelProps) {
+}: CardPanelProps) => {
   const { t } = useTranslation();
   const navigateToStudy = useNavigateToStudy();
 
@@ -149,11 +151,6 @@ export function CardPanel({
   const [movingTo, setMovingTo] = useState("");
   const [confirmBulkDeleteOpen, setConfirmBulkDeleteOpen] = useState(false);
   const [confirmBulkMoveOpen, setConfirmBulkMoveOpen] = useState(false);
-
-  useEffect(() => {
-    setLimit(CARDS_PAGE_SIZE);
-    setSelected(new Set());
-  }, [deckId]);
 
   const deferredSearch = useDeferredValue(search);
 
@@ -239,16 +236,23 @@ export function CardPanel({
   const scrollRootRef = useRef<HTMLDivElement>(null);
   const showCardChrome = !isLoading && filtered.length > 0;
 
+  useEffect(() => {
+    setLimit(CARDS_PAGE_SIZE);
+    setSelected(new Set());
+  }, [deckId]);
+
   if (!deckId) {
     if (decksLoading) {
       return (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6">
           <Skeleton className="size-12 shrink-0 rounded-lg" />
+
           <div className="flex w-full max-w-sm flex-col items-center gap-2">
             <Skeleton className="h-5 w-48" />
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-5/6" />
           </div>
+
           <Skeleton className="h-9 w-40" />
         </div>
       );
@@ -355,9 +359,11 @@ export function CardPanel({
                   <SelectItem value="basic">
                     {t("cardPanelTypeBasic")}
                   </SelectItem>
+
                   <SelectItem value="cloze">
                     {t("cardPanelTypeCloze")}
                   </SelectItem>
+
                   <SelectItem value="typing">
                     {t("cardPanelTypeTyping")}
                   </SelectItem>
@@ -378,10 +384,12 @@ export function CardPanel({
                   <SelectItem value="all">
                     {t("cardPanelAllStatuses")}
                   </SelectItem>
+
                   <SelectItem value="new">{t("cardPanelStatusNew")}</SelectItem>
                   <SelectItem value="learning">
                     {t("cardPanelStatusLearning")}
                   </SelectItem>
+
                   <SelectItem value="review">
                     {t("cardPanelStatusReview")}
                   </SelectItem>
@@ -464,6 +472,7 @@ export function CardPanel({
                   onCheckedChange={toggleAll}
                   className="shrink-0"
                 />
+
                 <Text as="span" className="text-xs text-muted pt-0.5">
                   {t("cardPanelSelectAll")}
                 </Text>
@@ -596,4 +605,4 @@ export function CardPanel({
       </Dialog>
     </div>
   );
-}
+};

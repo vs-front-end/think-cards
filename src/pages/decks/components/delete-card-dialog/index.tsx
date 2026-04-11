@@ -13,17 +13,17 @@ import {
   Text,
 } from "@stellar-ui-kit/web";
 
-type IDeleteCardDialogProps = {
+type DeleteCardDialogProps = {
   card: ICard;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-export function DeleteCardDialog({
+export const DeleteCardDialog = ({
   card,
   open,
   onOpenChange,
-}: IDeleteCardDialogProps) {
+}: DeleteCardDialogProps) => {
   const { t } = useTranslation();
   const deleteCard = useDeleteCard();
 
@@ -79,4 +79,4 @@ export function DeleteCardDialog({
       </DialogContent>
     </Dialog>
   );
-}
+};
