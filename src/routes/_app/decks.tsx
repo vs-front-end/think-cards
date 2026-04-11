@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, LayoutList } from "lucide-react";
-import { DeckModal } from "@/components/DeckModal";
-import { DeleteDeckDialog } from "@/components/DeleteDeckDialog";
-import { DeleteCardDialog } from "@/components/DeleteCardDialog";
+import { DeckModal } from "@/components/deck-modal";
+import { DeleteDeckDialog } from "@/components/delete-deck-dialog";
+import { DeleteCardDialog } from "@/components/delete-card-dialog";
 import { DeckTree } from "../../components/DeckTree";
 import { CardPanel } from "../../components/CardPanel";
 import { useDecksList } from "@/hooks/useDecks";
@@ -20,7 +20,7 @@ import {
   Button,
 } from "@stellar-ui-kit/web";
 
-import { AuthGuard } from "@/components/AuthGuard";
+import { AuthGuard } from "@/components/auth-guard";
 
 export const Route = createFileRoute("/_app/decks")({
   component: () => (

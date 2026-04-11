@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AuthGuard } from "@/components/AuthGuard";
+import { AuthGuard } from "@/components/auth-guard";
 import { StatisticsPage } from "@/pages";
 
 export const Route = createFileRoute("/_app/statistics")({
