@@ -45,7 +45,7 @@ export type StatisticsData = {
 const localDate = (d: Date): string =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-export function useStatisticsData() {
+export const useStatisticsData = () => {
   const userId = useAuthStore((s) => s.user?.id ?? "");
 
   return useQuery<StatisticsData>({
@@ -171,7 +171,10 @@ export function useStatisticsData() {
           ? Math.round((matureCount / distribution.total) * 100)
           : 0;
 
-      const reviewsByMonthMap = new Map<string, { monthIndex: number; count: number }>();
+      const reviewsByMonthMap = new Map<
+        string,
+        { monthIndex: number; count: number }
+      >();
       const now = new Date();
 
       for (let i = 5; i >= 0; i--) {
@@ -210,4 +213,4 @@ export function useStatisticsData() {
     },
     staleTime: 60_000,
   });
-}
+};

@@ -6,7 +6,7 @@ import { db, clearLocalDb } from "@/lib/db";
 import { useAuthStore } from "@/store";
 import { resetSyncState } from "@/hooks/useSync";
 
-export function useDeleteAccount() {
+export const useDeleteAccount = () => {
   return useMutation({
     mutationFn: async () => {
       const { error } = await supabase.functions.invoke("delete-account");
@@ -19,9 +19,9 @@ export function useDeleteAccount() {
       useAuthStore.getState().logout();
     },
   });
-}
+};
 
-export function useResetStats() {
+export const useResetStats = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -89,9 +89,9 @@ export function useResetStats() {
       queryClient.invalidateQueries();
     },
   });
-}
+};
 
-export function useResetData() {
+export const useResetData = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -131,4 +131,4 @@ export function useResetData() {
       queryClient.invalidateQueries();
     },
   });
-}
+};

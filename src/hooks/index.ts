@@ -14,3 +14,4 @@ export * from './usePwaInstall';
 export * from './useDocumentHead';
 export * from './useAuthListener';
 export * from './useAuthRedirect';
+export * from './useSendFeedback';

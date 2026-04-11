@@ -5,11 +5,11 @@ import { useAuthStore } from "@/store";
 import { resetSyncState } from "@/hooks/useSync";
 import type { Provider } from "@supabase/supabase-js";
 
-export function useSession() {
+export const useSession = () => {
   return useAuthStore((s) => s.session);
-}
+};
 
-export function useSignIn() {
+export const useSignIn = () => {
   return useMutation({
     mutationFn: async ({
       email,
@@ -27,9 +27,9 @@ export function useSignIn() {
       return data;
     },
   });
-}
+};
 
-export function useSignUp() {
+export const useSignUp = () => {
   return useMutation({
     mutationFn: async ({
       email,
@@ -44,9 +44,9 @@ export function useSignUp() {
       return data;
     },
   });
-}
+};
 
-export function useSignOut() {
+export const useSignOut = () => {
   const logout = useAuthStore((s) => s.logout);
 
   return async () => {
@@ -55,9 +55,9 @@ export function useSignOut() {
     await clearLocalDb();
     logout();
   };
-}
+};
 
-export function useChangePassword() {
+export const useChangePassword = () => {
   return useMutation({
     mutationFn: async ({
       currentPassword,
@@ -75,22 +75,26 @@ export function useChangePassword() {
 
       if (signInError) throw new Error("wrongCurrentPassword");
 
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
       if (error) throw error;
     },
   });
-}
+};
 
-export function useSetPassword() {
+export const useSetPassword = () => {
   return useMutation({
     mutationFn: async ({ newPassword }: { newPassword: string }) => {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
       if (error) throw error;
     },
   });
-}
+};
 
-export function useOAuthSignIn() {
+export const useOAuthSignIn = () => {
   return async (provider: Provider) => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
@@ -101,4 +105,4 @@ export function useOAuthSignIn() {
 
     if (error) throw error;
   };
-}
+};

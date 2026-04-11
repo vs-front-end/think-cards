@@ -28,10 +28,10 @@ function toStatus(state: number): CardStatus {
   return "review";
 }
 
-export function useCardsWithState(
+export const useCardsWithState = (
   deckId: string | null,
   limit = CARDS_PAGE_SIZE,
-) {
+) => {
   const total = useLiveQuery(async () => {
     if (!deckId) return 0;
 
@@ -83,9 +83,9 @@ export function useCardsWithState(
     total: total ?? 0,
     hasMore: (result?.length ?? 0) < (total ?? 0),
   };
-}
+};
 
-export function useMoveCards() {
+export const useMoveCards = () => {
   const qc = useQueryClient();
 
   return useMutation({
@@ -98,14 +98,11 @@ export function useMoveCards() {
     }) => {
       const now = new Date().toISOString();
 
-      await db.cards
-        .where("id")
-        .anyOf(cardIds)
-        .modify({
-          deck_id: targetDeckId,
-          updated_at: now,
-          pending_sync: 1,
-        });
+      await db.cards.where("id").anyOf(cardIds).modify({
+        deck_id: targetDeckId,
+        updated_at: now,
+        pending_sync: 1,
+      });
 
       return cardIds;
     },
@@ -119,23 +116,20 @@ export function useMoveCards() {
       toast.error(i18next.t("cardsMovedError"));
     },
   });
-}
+};
 
-export function useBulkDeleteCards() {
+export const useBulkDeleteCards = () => {
   const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async (cardIds: string[]) => {
       const now = new Date().toISOString();
 
-      await db.cards
-        .where("id")
-        .anyOf(cardIds)
-        .modify({
-          deleted_at: now,
-          updated_at: now,
-          pending_sync: 1,
-        });
+      await db.cards.where("id").anyOf(cardIds).modify({
+        deleted_at: now,
+        updated_at: now,
+        pending_sync: 1,
+      });
 
       return cardIds;
     },
@@ -147,4 +141,4 @@ export function useBulkDeleteCards() {
       toast.error(i18next.t("cardsDeletedError"));
     },
   });
-}
+};

@@ -27,7 +27,7 @@ export type DashboardData = {
   avgSecondsPerCard: number;
 };
 
-export function useDashboardData() {
+export const useDashboardData = () => {
   const userId = useAuthStore((s) => s.user?.id ?? null);
 
   return useQuery<DashboardData>({
@@ -63,7 +63,10 @@ export function useDashboardData() {
           .equals(userId ?? "")
           .filter((r) => r.reviewed_at >= todayStartIso)
           .toArray(),
-        db.revlog.where("user_id").equals(userId ?? "").toArray(),
+        db.revlog
+          .where("user_id")
+          .equals(userId ?? "")
+          .toArray(),
         userId
           ? supabase
               .from("profiles")
@@ -150,4 +153,4 @@ export function useDashboardData() {
     },
     staleTime: 30_000,
   });
-}
+};

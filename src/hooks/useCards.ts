@@ -6,7 +6,7 @@ import { createEmptyCard } from "ts-fsrs";
 import { db } from "@/lib/db";
 import type { ICard, ICardState, CardType } from "@/lib/db";
 
-export function useCards(deckId: string) {
+export const useCards = (deckId: string) => {
   const cards = useLiveQuery(
     () =>
       deckId
@@ -23,14 +23,14 @@ export function useCards(deckId: string) {
     data: cards ?? [],
     isLoading: cards === undefined,
   };
-}
+};
 
-export function useCardById(cardId: string) {
+export const useCardById = (cardId: string) => {
   const card = useLiveQuery(() => db.cards.get(cardId), [cardId]);
   return { data: card ?? null, isLoading: card === undefined };
-}
+};
 
-export function useCreateCard() {
+export const useCreateCard = () => {
   const qc = useQueryClient();
 
   return useMutation({
@@ -91,9 +91,9 @@ export function useCreateCard() {
       toast.error(i18next.t("cardCreatedError"));
     },
   });
-}
+};
 
-export function useUpdateCard() {
+export const useUpdateCard = () => {
   const qc = useQueryClient();
 
   return useMutation({
@@ -127,9 +127,9 @@ export function useUpdateCard() {
       toast.error(i18next.t("cardUpdatedError"));
     },
   });
-}
+};
 
-export function useDeleteCard() {
+export const useDeleteCard = () => {
   const qc = useQueryClient();
 
   return useMutation({
@@ -152,4 +152,4 @@ export function useDeleteCard() {
       toast.error(i18next.t("cardDeletedError"));
     },
   });
-}
+};

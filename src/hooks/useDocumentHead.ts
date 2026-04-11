@@ -9,7 +9,10 @@ const BASE_TITLE = "ThinkCards";
 const DEFAULT_DESCRIPTION =
   "Free flashcard app powered by the FSRS spaced repetition algorithm. Create decks, study offline, and build long-term memory.";
 
-export function useDocumentHead({ title, description }: DocumentHeadOptions) {
+export const useDocumentHead = ({
+  title,
+  description,
+}: DocumentHeadOptions) => {
   useEffect(() => {
     const fullTitle = title ? `${title} | ${BASE_TITLE}` : BASE_TITLE;
     document.title = fullTitle;
@@ -33,4 +36,4 @@ export function useDocumentHead({ title, description }: DocumentHeadOptions) {
       document.title = BASE_TITLE;
     };
   }, [title, description]);
-}
+};

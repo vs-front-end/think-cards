@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { db } from "@/lib/db";
 import { getAllDescendantDeckIds } from "@/utils";
 
-export function useNavigateToStudy() {
+export const useNavigateToStudy = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -43,4 +43,4 @@ export function useNavigateToStudy() {
     },
     [navigate, t],
   );
-}
+};

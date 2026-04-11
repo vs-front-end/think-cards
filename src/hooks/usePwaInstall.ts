@@ -17,7 +17,7 @@ const isSnoozed = () => {
   }
 };
 
-export function usePwaInstall() {
+export const usePwaInstall = () => {
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
 
@@ -56,4 +56,4 @@ export function usePwaInstall() {
     install,
     dismiss,
   };
-}
+};

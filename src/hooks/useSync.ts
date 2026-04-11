@@ -8,17 +8,17 @@ import { syncAll } from "@/lib/sync";
 let syncScheduled = false;
 let currentSyncSession = 0;
 
-export function resetSyncState() {
+export const resetSyncState = () => {
   syncScheduled = false;
   currentSyncSession++;
   useSyncStore.getState().reset();
-}
+};
 
-async function runSyncInternal(
+const runSyncInternal = async (
   userId: string,
   qc: ReturnType<typeof useQueryClient>,
   showToast: boolean,
-): Promise<void> {
+): Promise<void> => {
   try {
     const synced = await syncAll(userId);
 
@@ -34,16 +34,15 @@ async function runSyncInternal(
       toast.error(i18next.t("syncError"), { duration: 4000 });
     }
   }
-}
+};
 
-export function useSync() {
+export const useSync = () => {
   const isSyncing = useSyncStore((s) => s.isSyncing);
   const userId = useAuthStore((s) => s.user?.id);
   const qc = useQueryClient();
 
   const runSync = useCallback(
-    (uid: string, showToast = true) =>
-      runSyncInternal(uid, qc, showToast),
+    (uid: string, showToast = true) => runSyncInternal(uid, qc, showToast),
     [qc],
   );
 
@@ -84,4 +83,4 @@ export function useSync() {
   }, [userId, runSync]);
 
   return { isSyncing, triggerSync };
-}
+};

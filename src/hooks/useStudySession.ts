@@ -70,7 +70,7 @@ function interleaveDecks(
   return result;
 }
 
-export function useStudySession(deckId: string) {
+export const useStudySession = (deckId: string) => {
   const startedAt = useRef(new Date());
   const cardShownAt = useRef(new Date());
   const sessionSaved = useRef(false);
@@ -295,4 +295,4 @@ export function useStudySession(deckId: string) {
     answerCard,
     saveSession,
   };
-}
+};

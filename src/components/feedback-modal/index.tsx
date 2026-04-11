@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { supabase } from "@/lib/supabase";
+import { useSendFeedback } from "@/hooks";
 
 import {
   Button,
@@ -30,41 +30,21 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
 
   const [category, setCategory] = useState<FeedbackCategory>("suggestion");
   const [message, setMessage] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
 
-  const reset = () => {
-    setCategory("suggestion");
-    setMessage("");
-    setSent(false);
-    setError("");
-  };
+  const { mutate, isPending, isSuccess, isError, reset } = useSendFeedback();
 
   const handleOpenChange = (next: boolean) => {
     onOpenChange(next);
-    if (!next) reset();
+    if (!next) {
+      setCategory("suggestion");
+      setMessage("");
+      reset();
+    }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!message.trim()) return;
-
-    setSending(true);
-    setError("");
-
-    const { error: fnError } = await supabase.functions.invoke(
-      "send-feedback-email",
-      { body: { category, message: message.trim() } },
-    );
-
-    setSending(false);
-
-    if (fnError) {
-      setError(t("feedbackError"));
-      return;
-    }
-
-    setSent(true);
+    mutate({ category, message });
   };
 
   return (
@@ -74,7 +54,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
           <DialogTitle>{t("feedbackTitle")}</DialogTitle>
         </DialogHeader>
 
-        {sent ? (
+        {isSuccess ? (
           <div className="space-y-4 py-2">
             <Text as="p" className="text-sm text-foreground">
               {t("feedbackSuccess")}
@@ -128,10 +108,10 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
               />
             </div>
 
-            {error && (
+            {isError && (
               <div className="rounded-md bg-error-soft px-4 py-3">
                 <Text as="p" className="text-sm text-error-text">
-                  {error}
+                  {t("feedbackError")}
                 </Text>
               </div>
             )}
@@ -140,9 +120,9 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
               type="button"
               className="w-full"
               onClick={handleSubmit}
-              disabled={sending || !message.trim()}
+              disabled={isPending || !message.trim()}
             >
-              {sending && <Spinner className="size-4 text-white" />}
+              {isPending && <Spinner className="size-4 text-white" />}
               {t("feedbackSubmit")}
             </Button>
           </div>

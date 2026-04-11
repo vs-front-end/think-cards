@@ -11,7 +11,7 @@ export type Profile = {
   daily_goal_default: number;
 };
 
-export function useProfile() {
+export const useProfile = () => {
   const userId = useAuthStore((s) => s.user?.id);
 
   return useQuery<Profile | null>({
@@ -28,9 +28,9 @@ export function useProfile() {
     },
     enabled: !!userId,
   });
-}
+};
 
-export function useUpdateProfile() {
+export const useUpdateProfile = () => {
   const qc = useQueryClient();
 
   return useMutation({
@@ -52,9 +52,9 @@ export function useUpdateProfile() {
       qc.invalidateQueries({ queryKey: ["profile", userId] });
     },
   });
-}
+};
 
-export function useUploadAvatar() {
+export const useUploadAvatar = () => {
   const updateProfile = useUpdateProfile();
 
   return useMutation({
@@ -80,4 +80,4 @@ export function useUploadAvatar() {
       return avatarUrl;
     },
   });
-}
+};

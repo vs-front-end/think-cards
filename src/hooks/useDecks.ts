@@ -9,7 +9,7 @@ import type { IDeck } from "@/lib/db";
 
 export type DeckNode = IDeck & { children: DeckNode[] };
 
-function buildTree(decks: IDeck[]): DeckNode[] {
+const buildTree = (decks: IDeck[]): DeckNode[] => {
   const map = new Map<string, DeckNode>();
   for (const d of decks) map.set(d.id, { ...d, children: [] });
 
@@ -24,9 +24,9 @@ function buildTree(decks: IDeck[]): DeckNode[] {
   }
 
   return roots;
-}
+};
 
-export function useDecks() {
+export const useDecks = () => {
   const userId = useAuthStore((s) => s.user?.id);
   const decks = useLiveQuery(
     () =>
@@ -42,9 +42,9 @@ export function useDecks() {
     data: decks ? buildTree(decks) : undefined,
     isLoading: decks === undefined,
   };
-}
+};
 
-export function useDecksList() {
+export const useDecksList = () => {
   const userId = useAuthStore((s) => s.user?.id);
   const decks = useLiveQuery(
     () =>
@@ -60,9 +60,9 @@ export function useDecksList() {
     data: decks ?? [],
     isLoading: decks === undefined,
   };
-}
+};
 
-export function useCreateDeck() {
+export const useCreateDeck = () => {
   const qc = useQueryClient();
 
   return useMutation({
@@ -101,9 +101,9 @@ export function useCreateDeck() {
       toast.error(i18next.t("deckCreatedError"));
     },
   });
-}
+};
 
-export function useUpdateDeck() {
+export const useUpdateDeck = () => {
   const qc = useQueryClient();
 
   return useMutation({
@@ -135,9 +135,9 @@ export function useUpdateDeck() {
       toast.error(i18next.t("deckUpdatedError"));
     },
   });
-}
+};
 
-export function useDeleteDeck() {
+export const useDeleteDeck = () => {
   const qc = useQueryClient();
 
   return useMutation({
@@ -173,4 +173,4 @@ export function useDeleteDeck() {
       toast.error(i18next.t("deckDeletedError"));
     },
   });
-}
+};
