@@ -4,17 +4,26 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { Button, InputText, Text } from "@stellar-ui-kit/web";
 import { cn } from "@stellar-ui-kit/shared";
-import { Pause, PartyPopper, Play } from "lucide-react";
-import { CompletionScreen, RatingButton } from "@/components";
+import { Pause, Play } from "lucide-react";
 import { useStudySession } from "@/hooks";
-import { parseClozePreview, parseClozeRevealed } from "@/utils";
-import { formatTime } from "@/utils/format";
+import { formatTime, parseClozePreview, parseClozeRevealed } from "@/utils";
+
+import {
+  CardFace,
+  CompletionScreen,
+  EmptyDeck,
+  RatingButtons,
+} from "./components";
+
+type StudyPageProps = {
+  deckId: string | undefined;
+};
 
 type StudySessionProps = {
   deckId: string;
 };
 
-export function StudySession({ deckId }: StudySessionProps) {
+const StudySession = ({ deckId }: StudySessionProps) => {
   const pausedTotal = useRef(0);
   const pausedAt = useRef<number | null>(null);
 
@@ -41,6 +50,32 @@ export function StudySession({ deckId }: StudySessionProps) {
   const [typingChecked, setTypingChecked] = useState(false);
   const [typingCorrect, setTypingCorrect] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
+
+  const handleReveal = useCallback(() => {
+    setRevealed(true);
+    setFlipped(true);
+  }, []);
+
+  const handleCheckTyping = useCallback(() => {
+    if (!currentCard) return;
+
+    const expected = DOMPurify.sanitize(currentCard.back, { ALLOWED_TAGS: [] })
+      .trim()
+      .toLowerCase();
+
+    const correct = typingInput.trim().toLowerCase() === expected;
+
+    setTypingCorrect(correct);
+    setTypingChecked(true);
+    setRevealed(true);
+  }, [typingInput, currentCard]);
+
+  const handleAnswer = useCallback(
+    async (rating: 1 | 2 | 3 | 4) => {
+      await answerCard(rating);
+    },
+    [answerCard],
+  );
 
   useEffect(() => {
     if (isDone) return;
@@ -69,32 +104,6 @@ export function StudySession({ deckId }: StudySessionProps) {
     setTypingChecked(false);
     setTypingCorrect(false);
   }, [currentCard?.id]);
-
-  const handleReveal = useCallback(() => {
-    setRevealed(true);
-    setFlipped(true);
-  }, []);
-
-  const handleCheckTyping = useCallback(() => {
-    if (!currentCard) return;
-
-    const expected = DOMPurify.sanitize(currentCard.back, { ALLOWED_TAGS: [] })
-      .trim()
-      .toLowerCase();
-
-    const correct = typingInput.trim().toLowerCase() === expected;
-
-    setTypingCorrect(correct);
-    setTypingChecked(true);
-    setRevealed(true);
-  }, [typingInput, currentCard]);
-
-  const handleAnswer = useCallback(
-    async (rating: 1 | 2 | 3 | 4) => {
-      await answerCard(rating);
-    },
-    [answerCard],
-  );
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -131,14 +140,7 @@ export function StudySession({ deckId }: StudySessionProps) {
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [
-    revealed,
-    typingChecked,
-    currentCard?.type,
-    handleReveal,
-    handleAnswer,
-    handleCheckTyping,
-  ]);
+  }, [revealed, typingChecked, currentCard?.type]);
 
   if (isDone) {
     return (
@@ -156,28 +158,7 @@ export function StudySession({ deckId }: StudySessionProps) {
 
   if (!currentCard) {
     if (!isLoaded) return null;
-
-    return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-12 text-center">
-        <div className="flex size-14 items-center justify-center rounded-full bg-success-soft text-success">
-          <PartyPopper className="size-7" />
-        </div>
-
-        <div className="space-y-1">
-          <Text as="h2" className="text-xl font-semibold">
-            {t("studyNoCardsTitle")}
-          </Text>
-
-          <Text as="p" className="text-sm text-muted">
-            {t("studyNoCardsDesc")}
-          </Text>
-        </div>
-
-        <Button type="button" onClick={() => navigate({ to: "/dashboard" })}>
-          {t("studyBackToDashboard")}
-        </Button>
-      </div>
-    );
+    return <EmptyDeck />;
   }
 
   const isCloze = currentCard.type === "cloze";
@@ -186,24 +167,26 @@ export function StudySession({ deckId }: StudySessionProps) {
   const frontContent = isCloze
     ? parseClozePreview(currentCard.front)
     : currentCard.front;
+
   const backContent = isCloze
     ? parseClozeRevealed(currentCard.front)
     : currentCard.back;
 
-  const sanitizedFront = DOMPurify.sanitize(frontContent, {
-    ADD_ATTR: ["target"],
-  });
-  const sanitizedBack = DOMPurify.sanitize(backContent, {
-    ADD_ATTR: ["target"],
-  });
-
   const addLinkTargets = (html: string) =>
     html.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
+
+  const sanitizedFront = addLinkTargets(
+    DOMPurify.sanitize(frontContent, { ADD_ATTR: ["target"] }),
+  );
+  const sanitizedBack = addLinkTargets(
+    DOMPurify.sanitize(backContent, { ADD_ATTR: ["target"] }),
+  );
   const sanitizedCorrectAnswer = DOMPurify.sanitize(currentCard.back, {
     ALLOWED_TAGS: [],
   });
 
   const totalCards = answeredCount + remainingCount;
+  const progress = `${answeredCount + 1}/${totalCards}`;
 
   const cardTypeLabel = isCloze
     ? t("studyClozeLabel")
@@ -213,79 +196,6 @@ export function StudySession({ deckId }: StudySessionProps) {
 
   const frontLabel = cardTypeLabel ?? t("studyFrontLabel");
   const backLabel = cardTypeLabel ?? t("studyBackLabel");
-
-  const ratingButtons = (
-    <div className="flex w-full max-w-md flex-col items-center gap-2">
-      <div className="flex w-full justify-center gap-2.5">
-        <RatingButton
-          label={t("studyRatingAgain")}
-          interval={previewIntervals?.[1] ?? ""}
-          shortcut="1"
-          bgColor="error"
-          onClick={() => handleAnswer(1).catch(console.error)}
-        />
-
-        <RatingButton
-          label={t("studyRatingHard")}
-          interval={previewIntervals?.[2] ?? ""}
-          shortcut="2"
-          bgColor="warning"
-          onClick={() => handleAnswer(2).catch(console.error)}
-        />
-
-        <RatingButton
-          label={t("studyRatingGood")}
-          interval={previewIntervals?.[3] ?? ""}
-          shortcut="3"
-          bgColor="primary"
-          onClick={() => handleAnswer(3).catch(console.error)}
-        />
-
-        <RatingButton
-          label={t("studyRatingEasy")}
-          interval={previewIntervals?.[4] ?? ""}
-          shortcut="4"
-          bgColor="success"
-          onClick={() => handleAnswer(4).catch(console.error)}
-        />
-      </div>
-
-      <span className="hidden text-[10px] font-medium text-muted mt-1 md:block">
-        {t("studyRatingHint")}
-      </span>
-    </div>
-  );
-
-  const cardHeader = (label: string) => (
-    <div className="relative flex shrink-0 items-center justify-between px-5 py-3">
-      <Text
-        as="span"
-        className="text-[11px] font-semibold uppercase tracking-widest text-muted"
-      >
-        {label}
-      </Text>
-
-      <Text
-        as="span"
-        className="text-[11px] font-medium tabular-nums text-muted"
-      >
-        {answeredCount + 1}/{totalCards}
-      </Text>
-    </div>
-  );
-
-  const cardContent = (html: string) => (
-    <>
-      <div className="mx-4 h-px bg-border" />
-
-      <div className="themed-scroll flex flex-1 overflow-auto">
-        <div
-          className="prose prose-lg m-auto max-w-none px-8 py-8 text-center text-foreground [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-      </div>
-    </>
-  );
 
   return (
     <div className="relative flex flex-1 flex-col items-center justify-center gap-2.5 px-4 py-6">
@@ -300,6 +210,7 @@ export function StudySession({ deckId }: StudySessionProps) {
         )}
       >
         {paused ? <Play className="size-3" /> : <Pause className="size-3" />}
+
         <span className="font-mono font-medium tabular-nums">
           {formatTime(elapsedMs)}
         </span>
@@ -321,14 +232,20 @@ export function StudySession({ deckId }: StudySessionProps) {
               !(isTyping && typingChecked) && "ring-border",
             )}
           >
-            {cardHeader(frontLabel)}
-            {cardContent(addLinkTargets(sanitizedFront))}
+            <CardFace
+              label={frontLabel}
+              progress={progress}
+              html={sanitizedFront}
+            />
 
             {isTyping && typingChecked && (
               <>
                 <div className="mx-4 h-px bg-border" />
                 <div className="flex shrink-0 items-center justify-between px-5 py-2.5">
-                  <Text as="span" className="text-[10px] font-semibold uppercase tracking-widest text-muted">
+                  <Text
+                    as="span"
+                    className="text-[10px] font-semibold uppercase tracking-widest text-muted"
+                  >
                     {t("studyAnswerLabel")}:
                   </Text>
 
@@ -339,7 +256,7 @@ export function StudySession({ deckId }: StudySessionProps) {
                       typingCorrect ? "text-success" : "text-error",
                     )}
                   >
-                    {typingCorrect ? t("studyCorrect")! : t("studyIncorrect")}!
+                    {typingCorrect ? t("studyCorrect") : t("studyIncorrect")}!
                   </Text>
                 </div>
               </>
@@ -348,8 +265,11 @@ export function StudySession({ deckId }: StudySessionProps) {
 
           {!isTyping && (
             <div className="relative flex h-[44svh] flex-col overflow-hidden rounded-md bg-surface ring-1 ring-border [backface-visibility:hidden] [grid-area:1/1] [transform:rotateY(180deg)]">
-              {cardHeader(backLabel)}
-              {cardContent(addLinkTargets(sanitizedBack))}
+              <CardFace
+                label={backLabel}
+                progress={progress}
+                html={sanitizedBack}
+              />
             </div>
           )}
         </div>
@@ -391,11 +311,17 @@ export function StudySession({ deckId }: StudySessionProps) {
                 typingCorrect ? "ring-success" : "ring-error",
               )}
             >
-              <Text as="p" className="text-[10px] font-medium uppercase tracking-wider text-muted">
+              <Text
+                as="p"
+                className="text-[10px] font-medium uppercase tracking-wider text-muted"
+              >
                 {t("studyCorrectAnswer")}
               </Text>
 
-              <Text as="p" className="text-xs font-normal text-foreground mt-0.5">
+              <Text
+                as="p"
+                className="mt-0.5 text-xs font-normal text-foreground"
+              >
                 {sanitizedCorrectAnswer}
               </Text>
             </div>
@@ -406,17 +332,26 @@ export function StudySession({ deckId }: StudySessionProps) {
                 typingCorrect ? "ring-success" : "ring-error",
               )}
             >
-              <Text as="p" className="text-[10px] font-medium uppercase tracking-wider text-muted">
+              <Text
+                as="p"
+                className="text-[10px] font-medium uppercase tracking-wider text-muted"
+              >
                 {t("studyYourAnswer")}
               </Text>
 
-              <Text as="p" className="text-xs font-normal text-foreground mt-0.5">
+              <Text
+                as="p"
+                className="mt-0.5 text-xs font-normal text-foreground"
+              >
                 {typingInput.trim()}
               </Text>
             </div>
           </div>
 
-          {ratingButtons}
+          <RatingButtons
+            previewIntervals={previewIntervals}
+            onAnswer={handleAnswer}
+          />
         </div>
       )}
 
@@ -425,18 +360,35 @@ export function StudySession({ deckId }: StudySessionProps) {
           <Button
             type="button"
             onClick={handleReveal}
-            className="flex w-full max-w-md rounded-md h-10 font-normal"
+            className="flex h-10 w-full max-w-md rounded-md font-normal"
           >
             {t("studyRevealAnswer")}
           </Button>
 
-          <span className="hidden text-[10px] font-medium text-muted mt-1 md:block">
+          <span className="mt-1 hidden text-[10px] font-medium text-muted md:block">
             {t("studyRevealHint", { key: t("studyRevealSpace") })}
           </span>
         </div>
       )}
 
-      {!isTyping && revealed && ratingButtons}
+      {!isTyping && revealed && (
+        <RatingButtons
+          previewIntervals={previewIntervals}
+          onAnswer={handleAnswer}
+        />
+      )}
     </div>
   );
-}
+};
+
+export const StudyPage = ({ deckId }: StudyPageProps) => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!deckId) navigate({ to: "/decks" });
+  }, [deckId, navigate]);
+
+  if (!deckId) return null;
+
+  return <StudySession deckId={deckId} />;
+};

@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Button, Card, Text } from "@stellar-ui-kit/web";
 import { CheckCircle2 } from "lucide-react";
-import { formatTime } from "@/utils/format";
+import { formatTime } from "@/utils";
 
 type CompletionScreenProps = {
   answeredCount: number;
@@ -10,12 +10,12 @@ type CompletionScreenProps = {
   onBack: () => void;
 };
 
-export function CompletionScreen({
+export const CompletionScreen = ({
   answeredCount,
   elapsedMs,
   dailyGoal,
   onBack,
-}: CompletionScreenProps) {
+}: CompletionScreenProps) => {
   const { t } = useTranslation();
   const goalMet = answeredCount >= dailyGoal;
 
@@ -41,7 +41,7 @@ export function CompletionScreen({
             <Text as="span" className="text-2xl font-bold tabular-nums">
               {answeredCount}
             </Text>
-            
+
             <Text as="span" className="text-xs text-muted">
               {t("studyCardsReviewed")}
             </Text>
@@ -64,4 +64,4 @@ export function CompletionScreen({
       </Card>
     </div>
   );
-}
+};
