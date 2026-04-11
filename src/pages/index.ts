@@ -1,4 +1,5 @@
 export * from "./how-it-works";
+export * from "./legal";
 export * from "./settings";
 export * from "./statistics";
 export * from "./study";
