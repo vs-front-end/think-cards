@@ -94,6 +94,8 @@ export function useCreateCard() {
 }
 
 export function useUpdateCard() {
+  const qc = useQueryClient();
+
   return useMutation({
     mutationFn: async (input: {
       id: string;
@@ -116,7 +118,8 @@ export function useUpdateCard() {
       return input;
     },
 
-    onSuccess: () => {
+    onSuccess: (input) => {
+      if (input.deck_id) qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success(i18next.t("cardUpdated"));
     },
 

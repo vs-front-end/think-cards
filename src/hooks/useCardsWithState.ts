@@ -86,6 +86,8 @@ export function useCardsWithState(
 }
 
 export function useMoveCards() {
+  const qc = useQueryClient();
+
   return useMutation({
     mutationFn: async ({
       cardIds,
@@ -96,19 +98,20 @@ export function useMoveCards() {
     }) => {
       const now = new Date().toISOString();
 
-      await Promise.all(
-        cardIds.map((id) =>
-          db.cards.update(id, {
-            deck_id: targetDeckId,
-            updated_at: now,
-            pending_sync: 1,
-          }),
-        ),
-      );
+      await db.cards
+        .where("id")
+        .anyOf(cardIds)
+        .modify({
+          deck_id: targetDeckId,
+          updated_at: now,
+          pending_sync: 1,
+        });
+
       return cardIds;
     },
 
     onSuccess: (cardIds) => {
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success(i18next.t("cardsMoved", { count: cardIds.length }));
     },
 
@@ -124,15 +127,16 @@ export function useBulkDeleteCards() {
   return useMutation({
     mutationFn: async (cardIds: string[]) => {
       const now = new Date().toISOString();
-      await Promise.all(
-        cardIds.map((id) =>
-          db.cards.update(id, {
-            deleted_at: now,
-            updated_at: now,
-            pending_sync: 1,
-          }),
-        ),
-      );
+
+      await db.cards
+        .where("id")
+        .anyOf(cardIds)
+        .modify({
+          deleted_at: now,
+          updated_at: now,
+          pending_sync: 1,
+        });
+
       return cardIds;
     },
     onSuccess: (cardIds) => {

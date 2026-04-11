@@ -4,6 +4,7 @@ import i18next from "i18next";
 import { toast } from "sonner";
 import { db } from "@/lib/db";
 import { useAuthStore } from "@/store";
+import { getAllDescendantDeckIds } from "@/utils";
 import type { IDeck } from "@/lib/db";
 
 export type DeckNode = IDeck & { children: DeckNode[] };
@@ -142,27 +143,25 @@ export function useDeleteDeck() {
   return useMutation({
     mutationFn: async (deckId: string) => {
       const now = new Date().toISOString();
+      const deckIds = await getAllDescendantDeckIds(deckId);
 
-      await db.decks.update(deckId, {
-        deleted_at: now,
-        updated_at: now,
-        pending_sync: 1,
+      await db.transaction("rw", db.decks, db.cards, async () => {
+        const cards = await db.cards
+          .where("deck_id")
+          .anyOf(deckIds)
+          .filter((c) => c.deleted_at === null)
+          .toArray();
+
+        await db.decks
+          .where("id")
+          .anyOf(deckIds)
+          .modify({ deleted_at: now, updated_at: now, pending_sync: 1 });
+
+        await db.cards
+          .where("id")
+          .anyOf(cards.map((c) => c.id))
+          .modify({ deleted_at: now, updated_at: now, pending_sync: 1 });
       });
-
-      const childCards = await db.cards
-        .where("deck_id")
-        .equals(deckId)
-        .toArray();
-
-      await Promise.all(
-        childCards.map((c) =>
-          db.cards.update(c.id, {
-            deleted_at: now,
-            updated_at: now,
-            pending_sync: 1,
-          }),
-        ),
-      );
     },
 
     onSuccess: () => {
