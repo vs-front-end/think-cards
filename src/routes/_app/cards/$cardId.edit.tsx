@@ -1,38 +1,15 @@
-import { useEffect } from "react";
-import { createFileRoute, useParams, useNavigate } from "@tanstack/react-router";
-import { AuthGuard } from "@/components/AuthGuard";
-import { CardForm } from "@/components/CardForm";
-import { useCardById } from "@/hooks";
-import { Spinner } from "@stellar-ui-kit/web";
+import { createFileRoute, useParams } from "@tanstack/react-router";
+import { AuthGuard } from "@/components";
+import { EditCardPage } from "@/pages";
 
 export const Route = createFileRoute("/_app/cards/$cardId/edit")({
-  component: () => (
-    <AuthGuard>
-      <EditCardPage />
-    </AuthGuard>
-  ),
-});
+  component: () => {
+    const { cardId } = useParams({ from: "/_app/cards/$cardId/edit" });
 
-function EditCardPage() {
-  const { cardId } = useParams({ from: "/_app/cards/$cardId/edit" });
-  const navigate = useNavigate();
-  const { data: card, isLoading } = useCardById(cardId);
-
-  useEffect(() => {
-    if (!isLoading && !card) {
-      navigate({ to: "/decks" });
-    }
-  }, [isLoading, card, navigate]);
-
-  if (isLoading) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <Spinner />
-      </div>
+      <AuthGuard>
+        <EditCardPage cardId={cardId} />
+      </AuthGuard>
     );
-  }
-
-  if (!card) return null;
-
-  return <CardForm card={card} />;
-}
+  },
+});

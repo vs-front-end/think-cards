@@ -1,4 +1,5 @@
 export * from "./dashboard";
+export * from "./cards";
 export * from "./how-it-works";
 export * from "./not-found";
 export * from "./legal";
