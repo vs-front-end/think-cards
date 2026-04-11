@@ -2,10 +2,10 @@ import { db } from "@/lib/db";
 
 type TreeNode = { name: string; children: TreeNode[] };
 
-export function filterTree<T extends TreeNode>(
+export const filterTree = <T extends TreeNode>(
   nodes: T[],
   query: string,
-): T[] {
+): T[] => {
   return nodes.reduce<T[]>((acc, node) => {
     const filteredChildren = filterTree(node.children, query) as T[];
     if (
@@ -16,11 +16,11 @@ export function filterTree<T extends TreeNode>(
     }
     return acc;
   }, []);
-}
+};
 
-export async function getAllDescendantDeckIds(
+export const getAllDescendantDeckIds = async (
   rootDeckId: string,
-): Promise<string[]> {
+): Promise<string[]> => {
   const allDecks = await db.decks
     .filter((d) => d.deleted_at === null)
     .toArray();
@@ -48,4 +48,4 @@ export async function getAllDescendantDeckIds(
   }
 
   return result;
-}
+};

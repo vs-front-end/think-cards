@@ -44,5 +44,6 @@ export const computeStreaks = (
   return { streak, maxStreak: Math.max(streak, maxStreak) };
 };
 
-export const computeStreak = (reviewedDates: string[]): number =>
-  computeStreaks(reviewedDates).streak;
+export const computeStreak = (reviewedDates: string[]): number => {
+  return computeStreaks(reviewedDates).streak;
+};

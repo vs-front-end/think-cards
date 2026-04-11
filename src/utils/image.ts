@@ -4,16 +4,16 @@ const MAX_DIMENSION = 1920;
 const QUALITY = 0.8;
 const MAX_SIZE_BYTES = 500 * 1024;
 
-function loadImage(file: File): Promise<HTMLImageElement> {
+const loadImage = (file: File): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = reject;
     img.src = URL.createObjectURL(file);
   });
-}
+};
 
-export async function compressImage(file: File): Promise<File> {
+export const compressImage = async (file: File): Promise<File> => {
   if (!file.type.startsWith("image/")) return file;
   if (file.type === "image/svg+xml") return file;
   if (file.size <= MAX_SIZE_BYTES) return file;
@@ -46,13 +46,16 @@ export async function compressImage(file: File): Promise<File> {
   return new File([blob], file.name.replace(/\.[^.]+$/, ".webp"), {
     type: "image/webp",
   });
-}
+};
 
-export function createImageUrl(file: File): string {
+export const createImageUrl = (file: File): string => {
   return URL.createObjectURL(file);
-}
+};
 
-export async function cropImage(imageSrc: string, crop: Area): Promise<File> {
+export const cropImage = async (
+  imageSrc: string,
+  crop: Area,
+): Promise<File> => {
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
     image.onload = () => resolve(image);
@@ -86,4 +89,4 @@ export async function cropImage(imageSrc: string, crop: Area): Promise<File> {
   if (!blob) throw new Error("Failed to create image blob");
 
   return new File([blob], "avatar.webp", { type: "image/webp" });
-}
+};
