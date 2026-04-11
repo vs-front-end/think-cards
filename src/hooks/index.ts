@@ -5,6 +5,7 @@ export * from './useDashboardData';
 export * from './useIsMobile';
 export * from './useDecks';
 export * from './useProfile';
+export * from './useAccount';
 export * from './useStatisticsData';
 export * from './useNavigateToStudy';
 export * from './useStudySession';
