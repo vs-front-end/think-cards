@@ -9,7 +9,7 @@ type SyncableTable =
   | "revlog"
   | "session_log";
 
-const SYNCABLE_TABLES: SyncableTable[] = [
+export const SYNCABLE_TABLES: SyncableTable[] = [
   "decks",
   "cards",
   "card_state",
@@ -19,17 +19,18 @@ const SYNCABLE_TABLES: SyncableTable[] = [
 
 const PAGE_SIZE = 500;
 
-async function getSyncMeta(
+const getSyncMeta = async (
   userId: string,
-): Promise<{ lastSyncedAt: string | null; initialPullDone: boolean }> {
+): Promise<{ lastSyncedAt: string | null; initialPullDone: boolean }> => {
   const meta = await db.sync_meta.get(userId);
+
   return {
     lastSyncedAt: meta?.last_synced_at ?? null,
     initialPullDone: meta?.initial_pull_done ?? false,
   };
-}
+};
 
-async function countPending(): Promise<number> {
+const countPending = async (): Promise<number> => {
   const [decks, cards, cardState, revlog, sessionLog] = await Promise.all([
     db.decks.where("pending_sync").equals(1).count(),
     db.cards.where("pending_sync").equals(1).count(),
@@ -37,10 +38,11 @@ async function countPending(): Promise<number> {
     db.revlog.where("pending_sync").equals(1).count(),
     db.session_log.where("pending_sync").equals(1).count(),
   ]);
-  return decks + cards + cardState + revlog + sessionLog;
-}
 
-async function hasRemoteChanges(lastSyncedAt: string): Promise<boolean> {
+  return decks + cards + cardState + revlog + sessionLog;
+};
+
+const hasRemoteChanges = async (lastSyncedAt: string): Promise<boolean> => {
   const [decksRes, cardsRes, cardStateRes, revlogRes, sessionLogRes] =
     await Promise.all([
       supabase
@@ -48,21 +50,25 @@ async function hasRemoteChanges(lastSyncedAt: string): Promise<boolean> {
         .select("id")
         .gt("updated_at", lastSyncedAt)
         .limit(1),
+
       supabase
         .from("cards")
         .select("id")
         .gt("updated_at", lastSyncedAt)
         .limit(1),
+
       supabase
         .from("card_state")
         .select("id")
         .gt("updated_at", lastSyncedAt)
         .limit(1),
+
       supabase
         .from("revlog")
         .select("id")
         .gt("reviewed_at", lastSyncedAt)
         .limit(1),
+
       supabase
         .from("session_log")
         .select("id")
@@ -77,27 +83,30 @@ async function hasRemoteChanges(lastSyncedAt: string): Promise<boolean> {
     (revlogRes.data?.length ?? 0) > 0 ||
     (sessionLogRes.data?.length ?? 0) > 0
   );
-}
+};
 
-async function pushTable<T extends Record<string, unknown>>(
+const pushTable = async <T extends Record<string, unknown>>(
   tableName: string,
   rows: T[],
-): Promise<void> {
+): Promise<void> => {
   if (!rows.length) return;
 
   for (let i = 0; i < rows.length; i += PAGE_SIZE) {
     const batch = rows.slice(i, i + PAGE_SIZE);
+
     const { error } = await supabase.from(tableName).upsert(batch, {
       onConflict: "id",
     });
+
     if (error) throw error;
   }
-}
+};
 
-async function pushDecks(full: boolean): Promise<void> {
+const pushDecks = async (full: boolean): Promise<void> => {
   const rows = full
     ? await db.decks.toArray()
     : await db.decks.where("pending_sync").equals(1).toArray();
+
   if (!rows.length) return;
 
   await pushTable(
@@ -106,17 +115,19 @@ async function pushDecks(full: boolean): Promise<void> {
   );
 
   const toMark = rows.filter((d) => d.pending_sync).map(({ id }) => id);
+
   if (toMark.length) {
     await db.decks.bulkUpdate(
       toMark.map((id) => ({ key: id, changes: { pending_sync: 0 } })),
     );
   }
-}
+};
 
-async function pushCards(full: boolean): Promise<void> {
+const pushCards = async (full: boolean): Promise<void> => {
   const rows = full
     ? await db.cards.toArray()
     : await db.cards.where("pending_sync").equals(1).toArray();
+
   if (!rows.length) return;
 
   await pushTable(
@@ -125,17 +136,19 @@ async function pushCards(full: boolean): Promise<void> {
   );
 
   const toMark = rows.filter((c) => c.pending_sync).map(({ id }) => id);
+
   if (toMark.length) {
     await db.cards.bulkUpdate(
       toMark.map((id) => ({ key: id, changes: { pending_sync: 0 } })),
     );
   }
-}
+};
 
-async function pushCardState(full: boolean): Promise<void> {
+const pushCardState = async (full: boolean): Promise<void> => {
   const rows = full
     ? await db.card_state.toArray()
     : await db.card_state.where("pending_sync").equals(1).toArray();
+
   if (!rows.length) return;
 
   await pushTable(
@@ -144,14 +157,15 @@ async function pushCardState(full: boolean): Promise<void> {
   );
 
   const toMark = rows.filter((s) => s.pending_sync).map(({ id }) => id);
+
   if (toMark.length) {
     await db.card_state.bulkUpdate(
       toMark.map((id) => ({ key: id, changes: { pending_sync: 0 } })),
     );
   }
-}
+};
 
-async function pushRevlog(): Promise<void> {
+const pushRevlog = async (): Promise<void> => {
   const rows = await db.revlog.where("pending_sync").equals(1).toArray();
   if (!rows.length) return;
 
@@ -163,13 +177,10 @@ async function pushRevlog(): Promise<void> {
   await db.revlog.bulkUpdate(
     rows.map(({ id }) => ({ key: id, changes: { pending_sync: 0 } })),
   );
-}
+};
 
-async function pushSessionLog(): Promise<void> {
-  const rows = await db.session_log
-    .where("pending_sync")
-    .equals(1)
-    .toArray();
+const pushSessionLog = async (): Promise<void> => {
+  const rows = await db.session_log.where("pending_sync").equals(1).toArray();
   if (!rows.length) return;
 
   await pushTable(
@@ -180,20 +191,20 @@ async function pushSessionLog(): Promise<void> {
   await db.session_log.bulkUpdate(
     rows.map(({ id }) => ({ key: id, changes: { pending_sync: 0 } })),
   );
-}
+};
 
-async function push(full: boolean): Promise<void> {
+const push = async (full: boolean): Promise<void> => {
   await pushDecks(full);
   await Promise.all([pushCards(full), pushSessionLog()]);
   await Promise.all([pushCardState(full), pushRevlog()]);
-}
+};
 
-async function fetchAllPages<T>(
+const fetchAllPages = async <T>(
   table: string,
   column: string,
   since: string | null,
   orderColumn?: string,
-): Promise<T[]> {
+): Promise<T[]> => {
   const all: T[] = [];
   let from = 0;
 
@@ -210,6 +221,7 @@ async function fetchAllPages<T>(
     }
 
     const { data, error } = await query;
+
     if (error) throw error;
     if (!data?.length) break;
 
@@ -219,21 +231,20 @@ async function fetchAllPages<T>(
   }
 
   return all;
-}
+};
 
-async function pullDecks(lastSyncedAt: string | null): Promise<void> {
+const pullDecks = async (lastSyncedAt: string | null): Promise<void> => {
   const data = await fetchAllPages<Record<string, unknown>>(
     "decks",
     "updated_at",
     lastSyncedAt,
   );
+
   if (!data.length) return;
 
   const ids = data.map((r) => r.id as string);
   const locals = await db.decks.bulkGet(ids);
-  const localMap = new Map(
-    locals.filter(Boolean).map((l) => [l!.id, l!]),
-  );
+  const localMap = new Map(locals.filter(Boolean).map((l) => [l!.id, l!]));
 
   for (const remote of data) {
     const id = remote.id as string;
@@ -244,10 +255,12 @@ async function pullDecks(lastSyncedAt: string | null): Promise<void> {
         updated_at: remote.updated_at as string,
         pending_sync: 0,
       });
+
       continue;
     }
 
     const local = localMap.get(id);
+
     if (!local || (remote.updated_at as string) > local.updated_at) {
       await db.decks.put({
         ...(remote as Record<string, unknown>),
@@ -255,21 +268,20 @@ async function pullDecks(lastSyncedAt: string | null): Promise<void> {
       } as Parameters<typeof db.decks.put>[0]);
     }
   }
-}
+};
 
-async function pullCards(lastSyncedAt: string | null): Promise<void> {
+const pullCards = async (lastSyncedAt: string | null): Promise<void> => {
   const data = await fetchAllPages<Record<string, unknown>>(
     "cards",
     "updated_at",
     lastSyncedAt,
   );
+
   if (!data.length) return;
 
   const ids = data.map((r) => r.id as string);
   const locals = await db.cards.bulkGet(ids);
-  const localMap = new Map(
-    locals.filter(Boolean).map((l) => [l!.id, l!]),
-  );
+  const localMap = new Map(locals.filter(Boolean).map((l) => [l!.id, l!]));
 
   for (const remote of data) {
     const id = remote.id as string;
@@ -280,10 +292,12 @@ async function pullCards(lastSyncedAt: string | null): Promise<void> {
         updated_at: remote.updated_at as string,
         pending_sync: 0,
       });
+
       continue;
     }
 
     const local = localMap.get(id);
+
     if (!local || (remote.updated_at as string) > local.updated_at) {
       await db.cards.put({
         ...(remote as Record<string, unknown>),
@@ -291,24 +305,24 @@ async function pullCards(lastSyncedAt: string | null): Promise<void> {
       } as Parameters<typeof db.cards.put>[0]);
     }
   }
-}
+};
 
-async function pullCardState(lastSyncedAt: string | null): Promise<void> {
+const pullCardState = async (lastSyncedAt: string | null): Promise<void> => {
   const data = await fetchAllPages<Record<string, unknown>>(
     "card_state",
     "updated_at",
     lastSyncedAt,
   );
+
   if (!data.length) return;
 
   const ids = data.map((r) => r.id as string);
   const locals = await db.card_state.bulkGet(ids);
-  const localMap = new Map(
-    locals.filter(Boolean).map((l) => [l!.id, l!]),
-  );
+  const localMap = new Map(locals.filter(Boolean).map((l) => [l!.id, l!]));
 
   for (const remote of data) {
     const local = localMap.get(remote.id as string);
+
     if (!local || (remote.updated_at as string) > local.updated_at) {
       await db.card_state.put({
         ...(remote as Record<string, unknown>),
@@ -316,14 +330,15 @@ async function pullCardState(lastSyncedAt: string | null): Promise<void> {
       } as Parameters<typeof db.card_state.put>[0]);
     }
   }
-}
+};
 
-async function pullRevlog(lastSyncedAt: string | null): Promise<void> {
+const pullRevlog = async (lastSyncedAt: string | null): Promise<void> => {
   const data = await fetchAllPages<Record<string, unknown>>(
     "revlog",
     "reviewed_at",
     lastSyncedAt,
   );
+
   if (!data.length) return;
 
   const existingIds = new Set(
@@ -334,19 +349,22 @@ async function pullRevlog(lastSyncedAt: string | null): Promise<void> {
 
   const newEntries = data
     .filter((r) => !existingIds.has(r.id as string))
-    .map((r) => ({ ...r, pending_sync: 0 }) as Parameters<typeof db.revlog.add>[0]);
+    .map(
+      (r) => ({ ...r, pending_sync: 0 }) as Parameters<typeof db.revlog.add>[0],
+    );
 
   if (newEntries.length) {
     await db.revlog.bulkAdd(newEntries);
   }
-}
+};
 
-async function pullSessionLog(lastSyncedAt: string | null): Promise<void> {
+const pullSessionLog = async (lastSyncedAt: string | null): Promise<void> => {
   const data = await fetchAllPages<Record<string, unknown>>(
     "session_log",
     "started_at",
     lastSyncedAt,
   );
+
   if (!data.length) return;
 
   const existingIds = new Set(
@@ -357,14 +375,17 @@ async function pullSessionLog(lastSyncedAt: string | null): Promise<void> {
 
   const newEntries = data
     .filter((s) => !existingIds.has(s.id as string))
-    .map((s) => ({ ...s, pending_sync: 0 }) as Parameters<typeof db.session_log.add>[0]);
+    .map(
+      (s) =>
+        ({ ...s, pending_sync: 0 }) as Parameters<typeof db.session_log.add>[0],
+    );
 
   if (newEntries.length) {
     await db.session_log.bulkAdd(newEntries);
   }
-}
+};
 
-async function pull(lastSyncedAt: string | null): Promise<void> {
+const pull = async (lastSyncedAt: string | null): Promise<void> => {
   await Promise.all([
     pullDecks(lastSyncedAt),
     pullCards(lastSyncedAt),
@@ -372,20 +393,21 @@ async function pull(lastSyncedAt: string | null): Promise<void> {
     pullRevlog(lastSyncedAt),
     pullSessionLog(lastSyncedAt),
   ]);
-}
+};
 
-async function getServerTimestamp(): Promise<string> {
+const getServerTimestamp = async (): Promise<string> => {
   const { data, error } = await supabase.rpc("get_server_time");
   if (error || !data) return new Date().toISOString();
   return data as string;
-}
+};
 
-export async function syncAll(userId: string): Promise<boolean> {
+export const syncAll = async (userId: string): Promise<boolean> => {
   if (!navigator.onLine) return false;
 
   const {
     data: { session },
   } = await supabase.auth.getSession();
+
   if (!session) return false;
 
   const { isSyncing, setIsSyncing, setLastSyncedAt, setPendingCount } =
@@ -396,8 +418,6 @@ export async function syncAll(userId: string): Promise<boolean> {
   const { lastSyncedAt, initialPullDone } = await getSyncMeta(userId);
   const pendingCount = await countPending();
 
-  // If the initial pull never completed, we must re-pull everything regardless
-  // of lastSyncedAt — otherwise records created before lastSyncedAt are invisible.
   const pullSince = initialPullDone ? lastSyncedAt : null;
 
   const needsPull = pullSince ? await hasRemoteChanges(pullSince) : true;
@@ -425,6 +445,4 @@ export async function syncAll(userId: string): Promise<boolean> {
   } finally {
     setIsSyncing(false);
   }
-}
-
-export { SYNCABLE_TABLES };
+};
