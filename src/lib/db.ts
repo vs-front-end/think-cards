@@ -123,3 +123,13 @@ class ThinkCardsDB extends Dexie {
 }
 
 export const db = new ThinkCardsDB();
+
+export const clearLocalDb = () =>
+  Promise.all([
+    db.decks.clear(),
+    db.cards.clear(),
+    db.card_state.clear(),
+    db.revlog.clear(),
+    db.session_log.clear(),
+    db.sync_meta.clear(),
+  ]);

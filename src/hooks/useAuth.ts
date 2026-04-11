@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { db } from "@/lib/db";
+import { clearLocalDb } from "@/lib/db";
 import { useAuthStore } from "@/store";
 import { resetSyncState } from "@/hooks/useSync";
 import type { Provider } from "@supabase/supabase-js";
@@ -52,14 +52,7 @@ export function useSignOut() {
   return async () => {
     resetSyncState();
     await supabase.auth.signOut({ scope: "global" });
-    await Promise.all([
-      db.decks.clear(),
-      db.cards.clear(),
-      db.card_state.clear(),
-      db.revlog.clear(),
-      db.session_log.clear(),
-      db.sync_meta.clear(),
-    ]);
+    await clearLocalDb();
     logout();
   };
 }

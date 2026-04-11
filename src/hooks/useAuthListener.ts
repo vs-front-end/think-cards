@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { db } from "@/lib/db";
+import { clearLocalDb } from "@/lib/db";
 import { useAuthStore } from "@/store";
 
 export const useAuthListener = () => {
@@ -11,14 +11,7 @@ export const useAuthListener = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT" || !session) {
-        void Promise.all([
-          db.decks.clear(),
-          db.cards.clear(),
-          db.card_state.clear(),
-          db.revlog.clear(),
-          db.session_log.clear(),
-          db.sync_meta.clear(),
-        ]);
+        clearLocalDb();
         setSession(null);
         setUser(null);
         setIsLoading(false);

@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createEmptyCard } from "ts-fsrs";
 
 import { supabase } from "@/lib/supabase";
-import { db } from "@/lib/db";
+import { db, clearLocalDb } from "@/lib/db";
 import { useAuthStore } from "@/store";
 import { resetSyncState } from "@/hooks/useSync";
 
@@ -12,14 +12,7 @@ export function useDeleteAccount() {
       const { error } = await supabase.functions.invoke("delete-account");
       if (error) throw error;
 
-      await Promise.all([
-        db.decks.clear(),
-        db.cards.clear(),
-        db.card_state.clear(),
-        db.revlog.clear(),
-        db.session_log.clear(),
-        db.sync_meta.clear(),
-      ]);
+      await clearLocalDb();
 
       resetSyncState();
       await supabase.auth.signOut();
@@ -132,14 +125,7 @@ export function useResetData() {
 
       await supabase.from("decks").delete().eq("user_id", user.id);
 
-      await Promise.all([
-        db.decks.clear(),
-        db.cards.clear(),
-        db.card_state.clear(),
-        db.revlog.clear(),
-        db.session_log.clear(),
-        db.sync_meta.clear(),
-      ]);
+      await clearLocalDb();
     },
     onSuccess: () => {
       queryClient.invalidateQueries();

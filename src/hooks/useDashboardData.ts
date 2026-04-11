@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { db } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store";
+import { computeStreak } from "@/utils";
 import { State } from "ts-fsrs";
 
 type DeckStats = {
@@ -25,38 +26,6 @@ export type DashboardData = {
   studyTimeSeconds: number;
   avgSecondsPerCard: number;
 };
-
-function computeStreak(reviewedDates: string[]): number {
-  if (!reviewedDates.length) return 0;
-
-  const days = [...new Set(reviewedDates.map((d) => d.slice(0, 10)))].sort(
-    (a, b) => b.localeCompare(a),
-  );
-
-  const today = new Date().toISOString().slice(0, 10);
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-
-  if (days[0] !== today && days[0] !== yesterday) return 0;
-
-  let streak = 1;
-
-  for (let i = 1; i < days.length; i++) {
-    const prev = new Date(days[i - 1]);
-    const curr = new Date(days[i]);
-
-    const diff = Math.round(
-      (prev.getTime() - curr.getTime()) / (1000 * 60 * 60 * 24),
-    );
-
-    if (diff === 1) {
-      streak++;
-    } else {
-      break;
-    }
-  }
-
-  return streak;
-}
 
 export function useDashboardData() {
   const userId = useAuthStore((s) => s.user?.id ?? null);
