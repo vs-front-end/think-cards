@@ -37,7 +37,7 @@ const StudySession = ({ deckId }: StudySessionProps) => {
     isDone,
     isLoaded,
     previewIntervals,
-    sessionStats,
+    dailyGoal,
     startedAt,
     answerCard,
     saveSession,
@@ -147,7 +147,7 @@ const StudySession = ({ deckId }: StudySessionProps) => {
       <CompletionScreen
         answeredCount={answeredCount}
         elapsedMs={elapsedMs}
-        dailyGoal={sessionStats.dailyGoal}
+        dailyGoal={dailyGoal}
         onBack={() => {
           saveSession().catch(console.error);
           navigate({ to: "/dashboard" });

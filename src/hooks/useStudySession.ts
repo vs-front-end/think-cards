@@ -12,13 +12,6 @@ type QueuedCard = {
   state: ICardState;
 };
 
-type SessionStats = {
-  answeredCount: number;
-  sessionTimeMs: number;
-  dailyGoal: number;
-  studiedToday: number;
-};
-
 type RatingPreview = {
   [key in 1 | 2 | 3 | 4]: string;
 };
@@ -83,6 +76,7 @@ export const useStudySession = (deckId: string) => {
   const [index, setIndex] = useState(0);
   const [answeredCount, setAnsweredCount] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [dailyGoal, setDailyGoal] = useState(0);
 
   useEffect(() => {
     if (!deckId) return;
@@ -147,6 +141,7 @@ export const useStudySession = (deckId: string) => {
       const queued = interleaveDecks(buckets, rootLimit);
 
       setQueue(queued);
+      setDailyGoal(deckLimitMap.get(deckId) ?? 0);
       setIsLoaded(true);
     }
 
@@ -275,13 +270,6 @@ export const useStudySession = (deckId: string) => {
 
   const isDone = isLoaded && index >= queue.length;
 
-  const stats: SessionStats = {
-    answeredCount,
-    sessionTimeMs: 0,
-    dailyGoal: 20,
-    studiedToday: answeredCount,
-  };
-
   return {
     currentCard: currentItem?.card ?? null,
     currentState: currentItem?.state ?? null,
@@ -290,7 +278,7 @@ export const useStudySession = (deckId: string) => {
     isDone,
     isLoaded,
     previewIntervals,
-    sessionStats: stats,
+    dailyGoal,
     startedAt: startedAt.current,
     answerCard,
     saveSession,
