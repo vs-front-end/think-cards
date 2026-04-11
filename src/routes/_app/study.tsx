@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { AuthGuard } from "@/components/auth-guard";
+import { AuthGuard } from "@/components";
 import { StudyPage } from "@/pages";
 
 const searchSchema = z.object({

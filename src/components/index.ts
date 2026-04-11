@@ -5,6 +5,5 @@ export * from "./deck-modal";
 export * from "./delete-deck-dialog";
 export * from "./feedback-modal";
 export * from "./header";
-export * from "./session-bar";
 export * from "./sidebar";
 export * from "./social-auth-buttons";
