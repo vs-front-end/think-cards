@@ -507,5 +507,6 @@
   "feedbackError": "Falha ao enviar feedback. Tente novamente.",
   "feedbackClose": "Fechar",
   "navFeedback": "Feedback",
-  "feedbackDesc": "Reporte um bug ou compartilhe uma sugestão."
+  "feedbackDesc": "Reporte um bug ou compartilhe uma sugestão.",
+  "statsTrueRetention": "Retenção"
 }

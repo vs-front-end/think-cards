@@ -507,5 +507,6 @@
   "feedbackError": "Failed to send feedback. Please try again.",
   "feedbackClose": "Close",
   "navFeedback": "Feedback",
-  "feedbackDesc": "Report a bug or share a suggestion."
+  "feedbackDesc": "Report a bug or share a suggestion.",
+  "statsTrueRetention": "Retention"
 }
