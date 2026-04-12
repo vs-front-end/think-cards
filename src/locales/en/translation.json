@@ -119,6 +119,7 @@
   "deckLearning": "learning",
   "deckDue": "due",
   "deckNoCardsDue": "No cards due",
+  "deckNoCards": "This deck has no cards",
   "deckSubdecks": "Subdecks",
   "deckEdit": "Edit",
   "deckOptionsAria": "Deck options",

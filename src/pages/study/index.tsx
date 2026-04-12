@@ -5,6 +5,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Button, InputText, Text } from "@stellar-ui-kit/web";
 import { cn } from "@stellar-ui-kit/shared";
 import { Pause, Play } from "lucide-react";
+import { toast } from "sonner";
 import { Loader } from "@/components";
 import { useStudySession } from "@/hooks";
 import { formatTime, parseClozePreview, parseClozeRevealed } from "@/utils";
@@ -36,6 +37,7 @@ const StudySession = ({ deckId }: StudySessionProps) => {
     remainingCount,
     answeredCount,
     isDone,
+    emptyReason,
     isLoaded,
     previewIntervals,
     dailyGoal,
@@ -143,7 +145,17 @@ const StudySession = ({ deckId }: StudySessionProps) => {
     return () => window.removeEventListener("keydown", handler);
   }, [revealed, typingChecked, currentCard?.type]);
 
-  if (!isLoaded) {
+  useEffect(() => {
+    if (!isLoaded || !emptyReason) return;
+
+    const message =
+      emptyReason === "no_cards" ? t("deckNoCards") : t("deckNoCardsDue");
+
+    toast.info(message);
+    navigate({ to: "/decks" });
+  }, [isLoaded, emptyReason]);
+
+  if (!isLoaded || emptyReason) {
     return <Loader />;
   }
 

@@ -7,6 +7,8 @@ import { useAuthStore } from "@/store";
 import { syncAll } from "@/lib/sync";
 import { getAllDescendantDeckIds } from "@/utils";
 
+export type EmptyReason = "no_cards" | "no_due" | null;
+
 type QueuedCard = {
   card: ICard;
   state: ICardState;
@@ -77,6 +79,7 @@ export const useStudySession = (deckId: string) => {
   const [answeredCount, setAnsweredCount] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [dailyGoal, setDailyGoal] = useState(0);
+  const [emptyReason, setEmptyReason] = useState<EmptyReason>(null);
 
   useEffect(() => {
     if (!deckId) return;
@@ -142,6 +145,8 @@ export const useStudySession = (deckId: string) => {
 
       setQueue(queued);
       setDailyGoal(deckLimitMap.get(deckId) ?? 0);
+      if (allCards.length === 0) setEmptyReason("no_cards");
+      else if (queued.length === 0) setEmptyReason("no_due");
       setIsLoaded(true);
     }
 
@@ -276,6 +281,7 @@ export const useStudySession = (deckId: string) => {
     remainingCount: Math.max(0, queue.length - index),
     answeredCount,
     isDone,
+    emptyReason,
     isLoaded,
     previewIntervals,
     dailyGoal,

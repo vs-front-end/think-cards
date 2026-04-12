@@ -116,6 +116,7 @@
   "deckLearning": "aprendiendo",
   "deckDue": "pendientes",
   "deckNoCardsDue": "Sin tarjetas pendientes",
+  "deckNoCards": "Este mazo no tiene tarjetas",
   "deckSubdecks": "Submazos",
   "deckEdit": "Editar",
   "deckOptionsAria": "Opciones del mazo",

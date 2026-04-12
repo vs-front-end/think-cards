@@ -119,6 +119,7 @@
   "deckLearning": "aprendendo",
   "deckDue": "pendente",
   "deckNoCardsDue": "Nenhum cartão pendente",
+  "deckNoCards": "Esse baralho não tem cartões",
   "deckSubdecks": "Sub-baralhos",
   "deckEdit": "Editar",
   "deckOptionsAria": "Opções do baralho",
