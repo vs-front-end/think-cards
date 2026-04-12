@@ -41,7 +41,6 @@ const ROUTES = [
   { to: "/settings", labelKey: "navSettings", Icon: Settings },
 ] as const;
 
-
 export function Sidebar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -156,7 +155,7 @@ export function Sidebar() {
               );
 
               const linkClasses = cn(
-                "flex items-center rounded-lg text-sm transition-colors",
+                "flex items-center overflow-hidden whitespace-nowrap rounded-lg text-sm transition-colors",
                 collapsed
                   ? "justify-center size-10 mx-auto"
                   : "gap-3 px-3 py-2",
@@ -205,13 +204,15 @@ export function Sidebar() {
                       <MessageSquarePlus className="size-4 shrink-0" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="right">{t("navFeedback")}</TooltipContent>
+                  <TooltipContent side="right">
+                    {t("navFeedback")}
+                  </TooltipContent>
                 </Tooltip>
               ) : (
                 <button
                   type="button"
                   onClick={() => setFeedbackOpen(true)}
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted transition-colors hover:bg-surface hover:text-foreground opacity-90"
+                  className="flex w-full items-center overflow-hidden whitespace-nowrap gap-3 rounded-lg px-3 py-2 text-sm text-muted transition-colors hover:bg-surface hover:text-foreground opacity-90"
                 >
                   <MessageSquarePlus className="size-4 shrink-0" />
                   {t("navFeedback")}
@@ -223,7 +224,9 @@ export function Sidebar() {
           <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
         </nav>
 
-        <div className={cn("shrink-0", collapsed ? "p-2" : "p-3")}>
+        <div
+          className={cn("shrink-0 overflow-hidden", collapsed ? "p-2" : "p-3")}
+        >
           {collapsed ? (
             <div className="flex flex-col items-center gap-3">
               <Tooltip>
