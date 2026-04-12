@@ -78,7 +78,7 @@ export const DecksPage = () => {
       </aside>
 
       <div className="flex flex-1 flex-col overflow-hidden md:pl-1">
-        <div className="flex items-center gap-2 border-b border-border bg-surface px-4 pb-2 pt-6 md:hidden">
+        <div className="flex items-center gap-2 border-b border-border bg-surface px-4 pb-2 pt-3 md:hidden">
           <Drawer open={mobileDrawerOpen} onOpenChange={setMobileDrawerOpen}>
             <DrawerTrigger asChild>
               <Button

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { LayoutList, MoreVertical, Plus } from "lucide-react";
+import { LayoutList, Plus, TriangleAlert } from "lucide-react";
 import { Button, Text } from "@stellar-ui-kit/web";
 
 type EmptyCardsProps = {
@@ -13,7 +13,7 @@ export const EmptyCards = ({ onCreateCard, hasSearch }: EmptyCardsProps) => {
   if (hasSearch) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-        <MoreVertical className="size-8 text-muted" />
+        <TriangleAlert className="size-8 text-muted" />
         <Text as="p" className="text-sm text-muted">
           {t("emptyCardsSearch")}
         </Text>

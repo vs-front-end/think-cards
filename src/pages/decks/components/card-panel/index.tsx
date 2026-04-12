@@ -1,10 +1,11 @@
 import type { RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigateToStudy } from "@/hooks";
-import { BookOpen, Layers, Play, Plus } from "lucide-react";
+import { BookOpen, Layers, Plus } from "lucide-react";
 import type { CardStatus, CardWithState } from "@/hooks/useCardsWithState";
 import { CARDS_PAGE_SIZE } from "@/hooks/useCardsWithState";
 import { db } from "@/lib/db";
+import { Button, Skeleton, Spinner, Text } from "@stellar-ui-kit/web";
 
 import {
   useCallback,
@@ -16,25 +17,6 @@ import {
 } from "react";
 
 import {
-  Button,
-  Checkbox,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  InputSearch,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Skeleton,
-  Spinner,
-  Text,
-} from "@stellar-ui-kit/web";
-
-import {
   useBulkDeleteCards,
   useCardsWithState,
   useDecksList,
@@ -43,6 +25,9 @@ import {
 
 import { CardRow } from "../card-row";
 import { EmptyCards } from "../empty-cards";
+import { CardPanelToolbar } from "./card-panel-toolbar";
+import { ConfirmDialogs } from "./confirm-dialogs";
+import { FilterDrawer } from "./filter-drawer";
 
 type CardTypeFilter = "all" | "basic" | "cloze" | "typing";
 type StatusFilter = "all" | CardStatus;
@@ -151,6 +136,7 @@ export const CardPanel = ({
   const [movingTo, setMovingTo] = useState("");
   const [confirmBulkDeleteOpen, setConfirmBulkDeleteOpen] = useState(false);
   const [confirmBulkMoveOpen, setConfirmBulkMoveOpen] = useState(false);
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
   const deferredSearch = useDeferredValue(search);
 
@@ -227,6 +213,12 @@ export const CardPanel = ({
 
   const hasActiveFilters =
     typeFilter !== "all" || statusFilter !== "all" || deferredSearch !== "";
+
+  const activeFilterCount =
+    (typeFilter !== "all" ? 1 : 0) +
+    (statusFilter !== "all" ? 1 : 0) +
+    (deferredSearch !== "" ? 1 : 0);
+
   const displayCount = hasActiveFilters ? filtered.length : total;
 
   const allSelected = hasActiveFilters
@@ -301,192 +293,34 @@ export const CardPanel = ({
         ref={scrollRootRef}
         className="themed-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
       >
-        <div className="sticky top-0 z-10 bg-background px-4 pb-3 pt-3 md:pt-8">
-          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border pb-3">
-            <div className="flex min-w-0 items-center gap-2">
-              <Text as="h2" className="truncate font-semibold text-lg">
-                {deckName}
-              </Text>
-
-              <Text as="span" className="shrink-0 text-muted">
-                (
-                {t(
-                  displayCount === 1
-                    ? "cardPanelCardCount_one"
-                    : "cardPanelCardCount_other",
-                  { count: displayCount },
-                )}
-                )
-              </Text>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-2 flex-1 md:flex-none">
-              <Button
-                type="button"
-                size="sm"
-                className="gap-1.5 flex-1 font-normal"
-                onClick={onCreateCard}
-              >
-                <Plus className="size-3.5" />
-                {t("cardPanelNewCard")}
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="gap-1.5 flex-1 font-normal"
-                onClick={() => navigateToStudy(deckId!)}
-              >
-                <Play className="size-3.5" />
-                {t("cardPanelStudy")}
-              </Button>
-            </div>
-          </div>
-
-          <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
-            <div className="min-w-[7.5rem] flex-1">
-              <Select
-                value={typeFilter}
-                onValueChange={(v) => setTypeFilter(v as CardTypeFilter)}
-              >
-                <SelectTrigger className="h-8 w-full text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="all">{t("cardPanelAllTypes")}</SelectItem>
-                  <SelectItem value="basic">
-                    {t("cardPanelTypeBasic")}
-                  </SelectItem>
-
-                  <SelectItem value="cloze">
-                    {t("cardPanelTypeCloze")}
-                  </SelectItem>
-
-                  <SelectItem value="typing">
-                    {t("cardPanelTypeTyping")}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="min-w-[7.5rem] flex-1">
-              <Select
-                value={statusFilter}
-                onValueChange={(v) => setStatusFilter(v as StatusFilter)}
-              >
-                <SelectTrigger className="h-8 w-full text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="all">
-                    {t("cardPanelAllStatuses")}
-                  </SelectItem>
-
-                  <SelectItem value="new">{t("cardPanelStatusNew")}</SelectItem>
-                  <SelectItem value="learning">
-                    {t("cardPanelStatusLearning")}
-                  </SelectItem>
-
-                  <SelectItem value="review">
-                    {t("cardPanelStatusReview")}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="min-w-[7.5rem] flex-1">
-              <InputSearch
-                value={search}
-                onChange={setSearch}
-                placeholder={t("dashboardSearchDecks")}
-              />
-            </div>
-          </div>
-
-          {showCardChrome && selected.size > 0 && (
-            <div className="mt-3 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0 flex-1">
-                <Select value={movingTo} onValueChange={setMovingTo}>
-                  <SelectTrigger size="sm" className="h-8 w-full text-xs">
-                    <SelectValue placeholder={t("cardPanelMoveTo")} />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    {allDecks
-                      .filter((d) => d.id !== deckId)
-                      .map((d) => (
-                        <SelectItem key={d.id} value={d.id}>
-                          {d.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                {movingTo && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-8 font-normal flex-1"
-                    onClick={() => setConfirmBulkMoveOpen(true)}
-                    disabled={moveCards.isPending}
-                  >
-                    {t("cardPanelMove")}
-                  </Button>
-                )}
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-8 font-normal flex-1"
-                  onClick={() => setSelected(new Set())}
-                >
-                  {t("cardPanelClear")}
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  className="h-8 font-normal flex-1"
-                  onClick={() => setConfirmBulkDeleteOpen(true)}
-                  disabled={bulkDelete.isPending}
-                >
-                  {t("cardPanelDelete")}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {showCardChrome && (
-            <div className="mt-3 flex min-w-0 flex-wrap items-center justify-between gap-2">
-              <label className="flex cursor-pointer items-center gap-2 my-0.5">
-                <Checkbox
-                  checked={allSelected}
-                  onCheckedChange={toggleAll}
-                  className="shrink-0"
-                />
-
-                <Text as="span" className="text-xs text-muted pt-0.5">
-                  {t("cardPanelSelectAll")}
-                </Text>
-              </label>
-
-              {selected.size > 0 && (
-                <Text as="span" className="text-xs font-medium">
-                  {t("cardPanelSelected", { count: selected.size })}
-                </Text>
-              )}
-            </div>
-          )}
-
-          <div className="mt-3 h-px w-full bg-border" aria-hidden />
+        <div className="sticky top-0 z-10 bg-background px-4 pb-2 pt-2 md:pb-3 md:pt-8">
+          <CardPanelToolbar
+            deckId={deckId}
+            deckName={deckName}
+            displayCount={displayCount}
+            showCardChrome={showCardChrome}
+            allSelected={allSelected}
+            selectedCount={selected.size}
+            activeFilterCount={activeFilterCount}
+            typeFilter={typeFilter}
+            statusFilter={statusFilter}
+            search={search}
+            movingTo={movingTo}
+            allDecks={allDecks}
+            moveIsPending={moveCards.isPending}
+            bulkDeleteIsPending={bulkDelete.isPending}
+            onCreateCard={onCreateCard}
+            onStudy={() => navigateToStudy(deckId)}
+            onOpenFilterDrawer={() => setFilterDrawerOpen(true)}
+            onTypeFilterChange={setTypeFilter}
+            onStatusFilterChange={setStatusFilter}
+            onSearchChange={setSearch}
+            onMovingToChange={setMovingTo}
+            onToggleAll={toggleAll}
+            onClearSelection={() => setSelected(new Set())}
+            onConfirmBulkMove={() => setConfirmBulkMoveOpen(true)}
+            onConfirmBulkDelete={() => setConfirmBulkDeleteOpen(true)}
+          />
         </div>
 
         <div className="px-4 pb-20 pt-3 md:pb-4">
@@ -521,88 +355,40 @@ export const CardPanel = ({
         </div>
       </div>
 
-      <Dialog
-        open={confirmBulkDeleteOpen}
-        onOpenChange={(open) => {
-          if (!bulkDelete.isPending) {
-            setConfirmBulkDeleteOpen(open);
-          }
+      <ConfirmDialogs
+        bulkDeleteOpen={confirmBulkDeleteOpen}
+        bulkMoveOpen={confirmBulkMoveOpen}
+        selectedCount={selected.size}
+        bulkDeleteIsPending={bulkDelete.isPending}
+        moveIsPending={moveCards.isPending}
+        onBulkDeleteOpenChange={setConfirmBulkDeleteOpen}
+        onBulkMoveOpenChange={setConfirmBulkMoveOpen}
+        onConfirmDelete={() => {
+          setConfirmBulkDeleteOpen(false);
+          handleBulkDelete();
         }}
-      >
-        <DialogContent aria-describedby={undefined}>
-          <DialogHeader className="text-left">
-            <DialogTitle>{t("cardPanelDelete")}</DialogTitle>
-          </DialogHeader>
-
-          <Text as="p" className="text-sm text-muted">
-            {t("cardPanelConfirmBulkDelete", { count: selected.size })}
-          </Text>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setConfirmBulkDeleteOpen(false)}
-              disabled={bulkDelete.isPending}
-            >
-              {t("settingsCancel")}
-            </Button>
-
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => {
-                setConfirmBulkDeleteOpen(false);
-                handleBulkDelete();
-              }}
-              disabled={bulkDelete.isPending}
-            >
-              {t("cardPanelDelete")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={confirmBulkMoveOpen}
-        onOpenChange={(open) => {
-          if (!moveCards.isPending) {
-            setConfirmBulkMoveOpen(open);
-          }
+        onConfirmMove={() => {
+          setConfirmBulkMoveOpen(false);
+          handleBulkMove();
         }}
-      >
-        <DialogContent aria-describedby={undefined}>
-          <DialogHeader className="text-left">
-            <DialogTitle>{t("cardPanelMove")}</DialogTitle>
-          </DialogHeader>
+      />
 
-          <Text as="p" className="text-sm text-muted">
-            {t("cardPanelConfirmBulkMove", { count: selected.size })}
-          </Text>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setConfirmBulkMoveOpen(false)}
-              disabled={moveCards.isPending}
-            >
-              {t("settingsCancel")}
-            </Button>
-
-            <Button
-              type="button"
-              onClick={() => {
-                setConfirmBulkMoveOpen(false);
-                handleBulkMove();
-              }}
-              disabled={moveCards.isPending}
-            >
-              {t("cardPanelMove")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FilterDrawer
+        open={filterDrawerOpen}
+        onOpenChange={setFilterDrawerOpen}
+        typeFilter={typeFilter}
+        statusFilter={statusFilter}
+        search={search}
+        hasActiveFilters={hasActiveFilters}
+        onTypeFilterChange={setTypeFilter}
+        onStatusFilterChange={setStatusFilter}
+        onSearchChange={setSearch}
+        onClearFilters={() => {
+          setTypeFilter("all");
+          setStatusFilter("all");
+          setSearch("");
+        }}
+      />
     </div>
   );
 };
