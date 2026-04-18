@@ -274,11 +274,11 @@ export function Sidebar() {
               </Tooltip>
             </div>
           ) : (
-            <>
-              <div className="rounded-xl bg-surface p-3 border border-border">
+            <div className="min-w-0 w-full overflow-hidden">
+              <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-surface p-3">
                 {footerLoading ? (
                   <>
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-3 overflow-hidden">
                       <Skeleton className="size-9 shrink-0 rounded-full" />
                       <div className="min-w-0 flex-1 space-y-1.5">
                         <Skeleton className="h-3 w-24" />
@@ -291,7 +291,7 @@ export function Sidebar() {
                   </>
                 ) : (
                   <>
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-3 overflow-hidden">
                       <Avatar className="size-9 shrink-0">
                         {profile?.avatar_url && (
                           <AvatarImage
@@ -322,19 +322,22 @@ export function Sidebar() {
 
                     <Separator className="my-3" variant="dashed" />
 
-                    <div className="mb-2 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <Flame className="size-3.5 text-warning" />
+                    <div className="mb-2 flex min-w-0 items-center justify-between gap-2 overflow-hidden">
+                      <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+                        <Flame className="size-3.5 shrink-0 text-warning" />
 
                         <Text
                           as="span"
-                          className="text-xs font-semibold text-foreground"
+                          className="min-w-0 truncate text-xs font-semibold text-foreground"
                         >
                           {t("dashboardStreakDays", { count: streak })}
                         </Text>
                       </div>
 
-                      <Text as="span" className="text-xs text-muted">
+                      <Text
+                        as="span"
+                        className="shrink-0 text-xs text-muted whitespace-nowrap"
+                      >
                         {studiedToday}/{dailyGoal}
                       </Text>
                     </div>
@@ -352,15 +355,15 @@ export function Sidebar() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full mt-3 text-muted"
+                className="mt-3 w-full min-w-0 overflow-hidden whitespace-nowrap text-muted"
                 onClick={handleLogout}
                 disabled={!initialSyncDone}
                 aria-label={t("headerLogout")}
               >
                 {t("headerLogout")}
-                <LogOut className="size-3.5" />
+                <LogOut className="size-3.5 shrink-0" />
               </Button>
-            </>
+            </div>
           )}
         </div>
       </div>
