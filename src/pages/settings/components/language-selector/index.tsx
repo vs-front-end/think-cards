@@ -1,13 +1,11 @@
-import i18next from "i18next";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@stellar-ui-kit/shared";
 import { Languages } from "lucide-react";
 import { Button, Text } from "@stellar-ui-kit/web";
+import { useLanguageStore } from "@/store";
+import type { Language } from "@/lib/language-preference";
 
-type SupportedLanguages = "en" | "es" | "pt-BR";
-
-const LANGUAGES: { value: SupportedLanguages; label: string }[] = [
+const LANGUAGES: { value: Language; label: string }[] = [
   { value: "en", label: "languageEn" },
   { value: "es", label: "languageEs" },
   { value: "pt-BR", label: "languagePtBR" },
@@ -15,14 +13,11 @@ const LANGUAGES: { value: SupportedLanguages; label: string }[] = [
 
 export const LanguageSelector = () => {
   const { t } = useTranslation();
+  const selectedLanguage = useLanguageStore((s) => s.language);
+  const setLanguage = useLanguageStore((s) => s.setLanguage);
 
-  const [selectedLanguage, setSelectedLanguage] = useState<SupportedLanguages>(
-    i18next.language as SupportedLanguages,
-  );
-
-  const handleLanguageChange = (lang: SupportedLanguages) => {
-    setSelectedLanguage(lang);
-    i18next.changeLanguage(lang).catch(() => undefined);
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang);
   };
 
   return (
