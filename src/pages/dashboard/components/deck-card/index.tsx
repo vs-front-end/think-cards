@@ -57,7 +57,9 @@ const useLocalExpanded = (deckId: string) => {
       setOpen(next);
       try {
         localStorage.setItem(key, String(next));
-      } catch {}
+      } catch (error) {
+        console.error("Failed to persist deck collapse state", error);
+      }
     },
     [key],
   );
