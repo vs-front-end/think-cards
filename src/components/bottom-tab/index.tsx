@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Button } from "@stellar-ui-kit/web";
 import { cn } from "@stellar-ui-kit/shared";
 import { useCreateIntentStore } from "@/store";
@@ -8,6 +8,7 @@ import { useCreateIntentStore } from "@/store";
 import {
   BarChart3,
   BookOpen,
+  FileJson,
   Layers,
   LayoutDashboard,
   Plus,
@@ -28,6 +29,7 @@ export const BottomTab = () => {
   const { t } = useTranslation();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const openCreateDeck = useCreateIntentStore((s) => s.openCreateDeck);
   const openCreateCard = useCreateIntentStore((s) => s.openCreateCard);
@@ -42,6 +44,11 @@ export const BottomTab = () => {
     openCreateCard();
   };
 
+  const handleImportCards = () => {
+    setOpen(false);
+    navigate({ to: "/generate-cards" });
+  };
+
   return (
     <>
       <button
@@ -51,7 +58,9 @@ export const BottomTab = () => {
         onClick={() => setOpen(false)}
         className={cn(
           "fixed inset-0 z-20 bg-black/40 backdrop-blur-[1px] transition-all duration-200 md:hidden",
-          open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
+          open
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0",
         )}
       />
 
@@ -74,7 +83,7 @@ export const BottomTab = () => {
             >
               <Icon
                 className={cn(
-                "size-6 shrink-0 transition-colors duration-200 ease-out",
+                  "size-6 shrink-0 transition-colors duration-200 ease-out",
                   active ? "text-foreground" : "text-muted opacity-80",
                 )}
                 aria-hidden
@@ -136,6 +145,28 @@ export const BottomTab = () => {
                 </span>
               </div>
             </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              aria-label={t("navImportCards")}
+              onClick={handleImportCards}
+              className={cn(
+                "flex items-start justify-start transition-all duration-200 ease-out h-auto",
+                open
+                  ? "translate-y-0 scale-100 delay-[150ms]"
+                  : "translate-y-2 scale-0 delay-0",
+              )}
+            >
+              <FileJson className="size-4 shrink-0 mt-0.5" aria-hidden />
+              <div className="flex flex-col items-start justify-center gap-0.5">
+                {t("navImportCards")}
+
+                <span className="text-muted text-xs">
+                  {t("navImportCardsHint")}
+                </span>
+              </div>
+            </Button>
           </div>
 
           <Button
@@ -144,7 +175,7 @@ export const BottomTab = () => {
             aria-label={open ? t("navAddClose") : t("navAdd")}
             aria-expanded={open}
             onClick={() => setOpen((prev) => !prev)}
-          className="relative z-10 h-14 w-14 shrink-0 -translate-y-1/3 rounded-full border-0 !m-0 !min-w-0 !p-0 !opacity-100 transition-transform duration-200"
+            className="relative z-10 h-14 w-14 shrink-0 -translate-y-1/3 rounded-full border-0 !m-0 !min-w-0 !p-0 !opacity-100 transition-transform duration-200"
           >
             <Plus
               className={cn(

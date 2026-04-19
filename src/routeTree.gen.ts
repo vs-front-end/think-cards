@@ -21,6 +21,7 @@ import { Route as AppStudyRouteImport } from './routes/_app/study'
 import { Route as AppStatisticsRouteImport } from './routes/_app/statistics'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppHowItWorksRouteImport } from './routes/_app/how-it-works'
+import { Route as AppGenerateCardsRouteImport } from './routes/_app/generate-cards'
 import { Route as AppDecksRouteImport } from './routes/_app/decks'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppCardsNewRouteImport } from './routes/_app/cards/new'
@@ -86,6 +87,11 @@ const AppHowItWorksRoute = AppHowItWorksRouteImport.update({
   path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppGenerateCardsRoute = AppGenerateCardsRouteImport.update({
+  id: '/_app/generate-cards',
+  path: '/generate-cards',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppDecksRoute = AppDecksRouteImport.update({
   id: '/_app/decks',
   path: '/decks',
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/dashboard': typeof AppDashboardRoute
   '/decks': typeof AppDecksRoute
+  '/generate-cards': typeof AppGenerateCardsRoute
   '/how-it-works': typeof AppHowItWorksRoute
   '/settings': typeof AppSettingsRoute
   '/statistics': typeof AppStatisticsRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/dashboard': typeof AppDashboardRoute
   '/decks': typeof AppDecksRoute
+  '/generate-cards': typeof AppGenerateCardsRoute
   '/how-it-works': typeof AppHowItWorksRoute
   '/settings': typeof AppSettingsRoute
   '/statistics': typeof AppStatisticsRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/$': typeof SplatRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/decks': typeof AppDecksRoute
+  '/_app/generate-cards': typeof AppGenerateCardsRoute
   '/_app/how-it-works': typeof AppHowItWorksRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/statistics': typeof AppStatisticsRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/dashboard'
     | '/decks'
+    | '/generate-cards'
     | '/how-it-works'
     | '/settings'
     | '/statistics'
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/dashboard'
     | '/decks'
+    | '/generate-cards'
     | '/how-it-works'
     | '/settings'
     | '/statistics'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/_app/dashboard'
     | '/_app/decks'
+    | '/_app/generate-cards'
     | '/_app/how-it-works'
     | '/_app/settings'
     | '/_app/statistics'
@@ -224,6 +236,7 @@ export interface RootRouteChildren {
   SplatRoute: typeof SplatRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppDecksRoute: typeof AppDecksRoute
+  AppGenerateCardsRoute: typeof AppGenerateCardsRoute
   AppHowItWorksRoute: typeof AppHowItWorksRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStatisticsRoute: typeof AppStatisticsRoute
@@ -324,6 +337,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/generate-cards': {
+      id: '/_app/generate-cards'
+      path: '/generate-cards'
+      fullPath: '/generate-cards'
+      preLoaderRoute: typeof AppGenerateCardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/decks': {
       id: '/_app/decks'
       path: '/decks'
@@ -360,6 +380,7 @@ const rootRouteChildren: RootRouteChildren = {
   SplatRoute: SplatRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppDecksRoute: AppDecksRoute,
+  AppGenerateCardsRoute: AppGenerateCardsRoute,
   AppHowItWorksRoute: AppHowItWorksRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStatisticsRoute: AppStatisticsRoute,
