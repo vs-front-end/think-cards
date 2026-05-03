@@ -9,9 +9,18 @@ import type { IDeck } from "@/lib/db";
 
 export type DeckNode = IDeck & { children: DeckNode[] };
 
+const deckNameCollator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: "base",
+});
+
 const buildTree = (decks: IDeck[]): DeckNode[] => {
+  const sortedDecks = [...decks].sort((a, b) =>
+    deckNameCollator.compare(a.name, b.name),
+  );
+
   const map = new Map<string, DeckNode>();
-  for (const d of decks) map.set(d.id, { ...d, children: [] });
+  for (const d of sortedDecks) map.set(d.id, { ...d, children: [] });
 
   const roots: DeckNode[] = [];
 
