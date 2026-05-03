@@ -51,6 +51,11 @@ type DeckStatNode = {
   children: DeckStatNode[];
 };
 
+const deckNameCollator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: "base",
+});
+
 const aggregateCounts = (node: DeckStatNode): void => {
   for (const child of node.children) {
     aggregateCounts(child);
@@ -70,9 +75,13 @@ const buildDeckTree = (
     reviewCount: number;
   }>,
 ): DeckStatNode[] => {
+  const sortedStats = [...stats].sort((a, b) =>
+    deckNameCollator.compare(a.name, b.name),
+  );
+
   const map = new Map<string, DeckStatNode>();
 
-  for (const s of stats) {
+  for (const s of sortedStats) {
     map.set(s.id, {
       id: s.id,
       name: s.name,
