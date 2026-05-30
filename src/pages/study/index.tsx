@@ -10,6 +10,8 @@ import { Loader } from "@/components";
 import { useStudySession } from "@/hooks";
 import { formatTime, parseClozePreview, parseClozeRevealed } from "@/utils";
 
+import { requestOnboardingSurvey } from "@/pages/dashboard/components";
+
 import {
   CardFace,
   CompletionScreen,
@@ -79,6 +81,12 @@ const StudySession = ({ deckId }: StudySessionProps) => {
     },
     [answerCard],
   );
+
+  const handleFinish = useCallback(() => {
+    saveSession().catch(console.error);
+    if (answeredCount > 0) requestOnboardingSurvey();
+    navigate({ to: "/dashboard" });
+  }, [saveSession, answeredCount, navigate]);
 
   useEffect(() => {
     if (isDone) return;
@@ -165,10 +173,7 @@ const StudySession = ({ deckId }: StudySessionProps) => {
         answeredCount={answeredCount}
         elapsedMs={elapsedMs}
         dailyGoal={dailyGoal}
-        onBack={() => {
-          saveSession().catch(console.error);
-          navigate({ to: "/dashboard" });
-        }}
+        onBack={handleFinish}
       />
     );
   }

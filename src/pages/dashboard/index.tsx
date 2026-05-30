@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { useSyncStore } from "@/store";
@@ -19,9 +19,12 @@ import {
   DeckCard,
   EmptyDecks,
   InstallPrompt,
+  OnboardingSurvey,
   OnboardingTour,
   OverviewCard,
   isOnboardingDone,
+  isOnboardingSurveyPending,
+  markOnboardingSurveyDone,
 } from "./components";
 
 import {
@@ -127,6 +130,14 @@ export const DashboardPage = () => {
   const [onboardingDismissed, setOnboardingDismissed] = useState(() =>
     isOnboardingDone(),
   );
+  const [surveyOpen, setSurveyOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isOnboardingSurveyPending()) return;
+
+    const id = setTimeout(() => setSurveyOpen(true), 1000);
+    return () => clearTimeout(id);
+  }, []);
 
   const showOnboarding =
     initialSyncDone &&
@@ -312,6 +323,14 @@ export const DashboardPage = () => {
       {showOnboarding && (
         <OnboardingTour onDone={() => setOnboardingDismissed(true)} />
       )}
+
+      <OnboardingSurvey
+        open={surveyOpen}
+        onOpenChange={(open) => {
+          setSurveyOpen(open);
+          if (!open) markOnboardingSurveyDone();
+        }}
+      />
     </div>
   );
 };
