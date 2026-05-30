@@ -74,7 +74,7 @@ export const useDashboardData = () => {
       const cardDeckMap = new Map(cards.map((c) => [c.id, c.deck_id]));
 
       const pendingToday = allCardStates.filter(
-        (s) => s.state === State.New,
+        (s) => s.state === State.New && cardDeckMap.has(s.card_id),
       ).length;
 
       const streak = computeStreak(allRevlogs.map((r) => r.reviewed_at));

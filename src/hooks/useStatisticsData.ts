@@ -55,13 +55,19 @@ export const useStatisticsData = () => {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
-      const [allRevlogs, allCardStates, sessionLogs, profileRes] =
+      const [allRevlogs, rawCardStates, sessionLogs, activeCards, profileRes] =
         await Promise.all([
           db.revlog.where("user_id").equals(userId).toArray(),
           db.card_state.toArray(),
           db.session_log.where("user_id").equals(userId).toArray(),
+          db.cards.filter((c) => c.deleted_at === null).toArray(),
           fetchDailyGoalDefault(userId || null),
         ]);
+
+      const activeCardIds = new Set(activeCards.map((c) => c.id));
+      const allCardStates = rawCardStates.filter((s) =>
+        activeCardIds.has(s.card_id),
+      );
 
       const todayStartIso = todayStart.toISOString();
       const { streak, maxStreak } = computeStreaks(
