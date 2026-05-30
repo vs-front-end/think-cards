@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { fsrs, Rating, State } from "ts-fsrs";
 import type { Grade, IPreview } from "ts-fsrs";
 import { db } from "@/lib/db";
@@ -72,6 +73,7 @@ export const useStudySession = (deckId: string) => {
   const saveSessionRef = useRef<() => Promise<void>>(() => Promise.resolve());
 
   const f = useMemo(() => fsrs(), []);
+  const queryClient = useQueryClient();
   const userId = useAuthStore((s) => s.user?.id ?? null);
 
   const [queue, setQueue] = useState<QueuedCard[]>([]);
@@ -261,9 +263,12 @@ export const useStudySession = (deckId: string) => {
       pending_sync: 1,
     });
 
+    queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    queryClient.invalidateQueries({ queryKey: ["statistics"] });
+
     const uid = useAuthStore.getState().user?.id;
     if (uid) syncAll(uid).catch(console.error);
-  }, [deckId, answeredCount]);
+  }, [deckId, answeredCount, queryClient]);
 
   saveSessionRef.current = saveSession;
 

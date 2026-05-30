@@ -156,6 +156,7 @@
   "addPasswordButton": "Add",
   "addPasswordSuccess": "Password added successfully.",
   "settingsDangerZone": "Danger zone",
+  "settingsRequiresOnline": "You need to be online to use this action.",
   "settingsResetButton": "Reset data",
   "settingsDeleteButton": "Delete account",
   "settingsResetData": "Reset all data",

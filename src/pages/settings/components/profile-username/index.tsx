@@ -2,7 +2,7 @@ import { toast } from "sonner";
 import { Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useProfile, useUpdateProfile } from "@/hooks";
+import { useOnline, useProfile, useUpdateProfile } from "@/hooks";
 
 import {
   Button,
@@ -14,6 +14,7 @@ import {
 
 export const ProfileUsername = () => {
   const { t } = useTranslation();
+  const isOnline = useOnline();
   const updateProfile = useUpdateProfile();
   const { data: profile, isLoading } = useProfile();
 
@@ -58,7 +59,7 @@ export const ProfileUsername = () => {
 
         <Button
           type="button"
-          disabled={!username.trim() || updateProfile.isPending}
+          disabled={!username.trim() || updateProfile.isPending || !isOnline}
           onClick={handleSaveUsername}
         >
           {updateProfile.isPending ? (
@@ -70,6 +71,12 @@ export const ProfileUsername = () => {
           {t("settingsSave")}
         </Button>
       </div>
+
+      {!isOnline && (
+        <Text as="p" className="text-xs text-muted">
+          {t("settingsRequiresOnline")}
+        </Text>
+      )}
     </div>
   );
 };

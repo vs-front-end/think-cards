@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { db } from "@/lib/db";
-import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store";
 import { computeStreak } from "@/utils";
+import { fetchDailyGoalDefault } from "@/hooks/useProfile";
 import { State } from "ts-fsrs";
 
 type DeckStats = {
@@ -67,13 +67,7 @@ export const useDashboardData = () => {
           .where("user_id")
           .equals(userId ?? "")
           .toArray(),
-        userId
-          ? supabase
-              .from("profiles")
-              .select("daily_goal_default")
-              .eq("id", userId)
-              .single()
-          : Promise.resolve({ data: null }),
+        fetchDailyGoalDefault(userId),
       ]);
 
       const cardStateMap = new Map(allCardStates.map((s) => [s.card_id, s]));
@@ -93,9 +87,7 @@ export const useDashboardData = () => {
       const avgSecondsPerCard =
         studiedToday > 0 ? Math.round(studyTimeSeconds / studiedToday) : 0;
 
-      const globalGoal =
-        (profileRes.data as { daily_goal_default?: number } | null)
-          ?.daily_goal_default ?? 20;
+      const globalGoal = profileRes.data?.daily_goal_default ?? 20;
 
       const deckCounters = new Map<
         string,

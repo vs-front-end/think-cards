@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSendFeedback } from "@/hooks";
+import { useOnline, useSendFeedback } from "@/hooks";
 
 import {
   Button,
@@ -27,6 +27,7 @@ type FeedbackModalProps = {
 
 export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
   const { t } = useTranslation();
+  const isOnline = useOnline();
 
   const [category, setCategory] = useState<FeedbackCategory>("suggestion");
   const [message, setMessage] = useState("");
@@ -116,11 +117,17 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
               </div>
             )}
 
+            {!isOnline && (
+              <Text as="p" className="text-xs text-muted">
+                {t("settingsRequiresOnline")}
+              </Text>
+            )}
+
             <Button
               type="button"
               className="w-full"
               onClick={handleSubmit}
-              disabled={isPending || !message.trim()}
+              disabled={isPending || !message.trim() || !isOnline}
             >
               {isPending && <Spinner className="size-4 text-white" />}
               {t("feedbackSubmit")}

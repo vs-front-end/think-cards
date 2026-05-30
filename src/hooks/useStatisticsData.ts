@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { db } from "@/lib/db";
-import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store";
 import { computeStreaks } from "@/utils";
+import { fetchDailyGoalDefault } from "@/hooks/useProfile";
 import { State } from "ts-fsrs";
 
 type DailyActivity = {
@@ -60,13 +60,7 @@ export const useStatisticsData = () => {
           db.revlog.where("user_id").equals(userId).toArray(),
           db.card_state.toArray(),
           db.session_log.where("user_id").equals(userId).toArray(),
-          userId
-            ? supabase
-                .from("profiles")
-                .select("daily_goal_default")
-                .eq("id", userId)
-                .single()
-            : Promise.resolve({ data: null }),
+          fetchDailyGoalDefault(userId || null),
         ]);
 
       const todayStartIso = todayStart.toISOString();
@@ -80,9 +74,7 @@ export const useStatisticsData = () => {
           .map((r) => r.card_id),
       ).size;
 
-      const dailyGoal =
-        (profileRes.data as { daily_goal_default?: number } | null)
-          ?.daily_goal_default ?? 20;
+      const dailyGoal = profileRes.data?.daily_goal_default ?? 20;
 
       const totalStudyMs = sessionLogs.reduce(
         (sum, s) => sum + (s.time_elapsed_ms ?? 0),

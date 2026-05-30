@@ -73,6 +73,7 @@ const hasRemoteChanges = async (lastSyncedAt: string): Promise<boolean> => {
 const pushTable = async <T extends Record<string, unknown>>(
   tableName: string,
   rows: T[],
+  onConflict = "id",
 ): Promise<void> => {
   if (!rows.length) return;
 
@@ -80,7 +81,7 @@ const pushTable = async <T extends Record<string, unknown>>(
     const batch = rows.slice(i, i + PAGE_SIZE);
 
     const { error } = await supabase.from(tableName).upsert(batch, {
-      onConflict: "id",
+      onConflict,
     });
 
     if (error) throw error;
@@ -139,6 +140,7 @@ const pushCardState = async (full: boolean): Promise<void> => {
   await pushTable(
     "card_state",
     rows.map(({ pending_sync: _, ...rest }) => rest),
+    "card_id",
   );
 
   const toMark = rows.filter((s) => s.pending_sync).map(({ id }) => id);

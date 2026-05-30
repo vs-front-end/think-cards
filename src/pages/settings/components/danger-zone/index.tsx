@@ -2,8 +2,14 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { useDeleteAccount, useResetData, useResetStats } from "@/hooks";
 import { RefreshCw, Trash2 } from "lucide-react";
+
+import {
+  useDeleteAccount,
+  useOnline,
+  useResetData,
+  useResetStats,
+} from "@/hooks";
 
 import {
   Button,
@@ -98,6 +104,7 @@ const ConfirmDialog = ({
 export const DangerZone = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const isOnline = useOnline();
 
   const deleteAccount = useDeleteAccount();
   const resetStats = useResetStats();
@@ -160,11 +167,18 @@ export const DangerZone = () => {
             size="sm"
             variant="destructive"
             className="w-full gap-2"
+            disabled={!isOnline}
             onClick={() => setResetStatsOpen(true)}
           >
             <RefreshCw className="size-3.5" />
             {t("settingsResetStatsButton")}
           </Button>
+
+          {!isOnline && (
+            <Text as="p" className="text-xs text-muted">
+              {t("settingsRequiresOnline")}
+            </Text>
+          )}
         </div>
 
         <Separator className="bg-error" variant="dashed" />
@@ -184,11 +198,18 @@ export const DangerZone = () => {
             size="sm"
             variant="destructive"
             className="w-full gap-2"
+            disabled={!isOnline}
             onClick={() => setResetDataOpen(true)}
           >
             <RefreshCw className="size-3.5" />
             {t("settingsResetButton")}
           </Button>
+
+          {!isOnline && (
+            <Text as="p" className="text-xs text-muted">
+              {t("settingsRequiresOnline")}
+            </Text>
+          )}
         </div>
 
         <Separator className="bg-error" variant="dashed" />
@@ -208,11 +229,18 @@ export const DangerZone = () => {
             size="sm"
             variant="destructive"
             className="w-full gap-2"
+            disabled={!isOnline}
             onClick={() => setDeleteOpen(true)}
           >
             <Trash2 className="size-3.5" />
             {t("settingsDeleteButton")}
           </Button>
+
+          {!isOnline && (
+            <Text as="p" className="text-xs text-muted">
+              {t("settingsRequiresOnline")}
+            </Text>
+          )}
         </div>
       </div>
 

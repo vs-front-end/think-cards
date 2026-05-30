@@ -7,11 +7,24 @@ import { syncAll } from "@/lib/sync";
 
 let syncScheduled = false;
 let currentSyncSession = 0;
+let listenersOwner = false;
 
 export const resetSyncState = () => {
   syncScheduled = false;
   currentSyncSession++;
   useSyncStore.getState().reset();
+};
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const syncWithRetry = async (userId: string): Promise<boolean> => {
+  try {
+    return await syncAll(userId);
+  } catch (firstErr) {
+    if (!navigator.onLine) throw firstErr;
+    await wait(2000);
+    return syncAll(userId);
+  }
 };
 
 const runSyncInternal = async (
@@ -20,7 +33,7 @@ const runSyncInternal = async (
   showToast: boolean,
 ): Promise<void> => {
   try {
-    const synced = await syncAll(userId);
+    const synced = await syncWithRetry(userId);
 
     if (synced) {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
@@ -64,21 +77,31 @@ export const useSync = () => {
       });
     }
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState !== "visible") return;
-      if (userId) runSync(userId);
+    if (listenersOwner) return;
+    listenersOwner = true;
+
+    let syncTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const scheduleSync = () => {
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(() => {
+        if (userId && navigator.onLine) runSync(userId);
+      }, 1500);
     };
 
-    const handleOnline = () => {
-      if (userId) runSync(userId);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return;
+      scheduleSync();
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("online", handleOnline);
+    window.addEventListener("online", scheduleSync);
 
     return () => {
+      clearTimeout(syncTimer);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("online", scheduleSync);
+      listenersOwner = false;
     };
   }, [userId, runSync]);
 

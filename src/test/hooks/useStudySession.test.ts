@@ -2,7 +2,14 @@ import { db } from "@/lib/db";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useStudySession } from "@/hooks/useStudySession";
-import { clearDb, makeDeck, makeCard, makeCardState } from "@/test/helpers";
+
+import {
+  clearDb,
+  makeDeck,
+  makeCard,
+  makeCardState,
+  makeWrapper,
+} from "@/test/helpers";
 
 vi.mock("@/store", () => {
   const mockState = { user: { id: "test-user" }, session: null };
@@ -14,6 +21,7 @@ vi.mock("@/store", () => {
   useAuthStore.getState = () => mockState;
   return { useAuthStore };
 });
+
 vi.mock("@/lib/sync", () => ({ syncAll: vi.fn().mockResolvedValue(true) }));
 
 beforeEach(clearDb);
@@ -37,7 +45,9 @@ describe("useStudySession", () => {
     const deckId = crypto.randomUUID();
     await seedDeck(deckId, 3);
 
-    const { result } = renderHook(() => useStudySession(deckId));
+    const { result } = renderHook(() => useStudySession(deckId), {
+      wrapper: makeWrapper(),
+    });
 
     await waitFor(() => expect(result.current.isLoaded).toBe(true));
 
@@ -50,7 +60,9 @@ describe("useStudySession", () => {
     const deckId = crypto.randomUUID();
     await db.decks.add(makeDeck({ id: deckId }));
 
-    const { result } = renderHook(() => useStudySession(deckId));
+    const { result } = renderHook(() => useStudySession(deckId), {
+      wrapper: makeWrapper(),
+    });
 
     await waitFor(() => expect(result.current.isLoaded).toBe(true));
 
@@ -71,7 +83,9 @@ describe("useStudySession", () => {
       }),
     );
 
-    const { result } = renderHook(() => useStudySession(deckId));
+    const { result } = renderHook(() => useStudySession(deckId), {
+      wrapper: makeWrapper(),
+    });
     await waitFor(() => expect(result.current.isLoaded).toBe(true));
 
     expect(result.current.emptyReason).toBe("no_due");
@@ -81,7 +95,9 @@ describe("useStudySession", () => {
     const deckId = crypto.randomUUID();
     await seedDeck(deckId);
 
-    const { result } = renderHook(() => useStudySession(deckId));
+    const { result } = renderHook(() => useStudySession(deckId), {
+      wrapper: makeWrapper(),
+    });
     await waitFor(() => expect(result.current.isLoaded).toBe(true));
 
     const stateId = (await db.card_state.toArray())[0].id;

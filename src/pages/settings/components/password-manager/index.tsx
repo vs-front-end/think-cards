@@ -3,7 +3,7 @@ import { KeyRound } from "lucide-react";
 import { useAuthStore } from "@/store";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useChangePassword, useSetPassword } from "@/hooks";
+import { useChangePassword, useOnline, useSetPassword } from "@/hooks";
 
 import {
   Button,
@@ -224,6 +224,7 @@ const PasswordManagerDialog = ({
 export const PasswordManager = () => {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
+  const isOnline = useOnline();
   const emailId = user?.identities?.find((id) => id.provider === "email")?.id;
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -245,11 +246,18 @@ export const PasswordManager = () => {
           type="button"
           variant="outline"
           className="w-full text-muted"
+          disabled={!isOnline}
           onClick={togglePasswordModal}
         >
           <KeyRound className="size-4" />
           {t(emailId ? "changePasswordButton" : "addPasswordButton")}
         </Button>
+
+        {!isOnline && (
+          <Text as="p" className="text-xs text-muted">
+            {t("settingsRequiresOnline")}
+          </Text>
+        )}
       </div>
 
       <PasswordManagerDialog

@@ -72,6 +72,13 @@ export interface ISyncMeta {
   initial_pull_done: boolean;
 }
 
+export interface IProfileCache {
+  id: string;
+  username: string;
+  avatar_url: string | null;
+  daily_goal_default: number;
+}
+
 class ThinkCardsDB extends Dexie {
   decks!: EntityTable<IDeck, "id">;
   cards!: EntityTable<ICard, "id">;
@@ -79,6 +86,7 @@ class ThinkCardsDB extends Dexie {
   revlog!: EntityTable<IRevlog, "id">;
   session_log!: EntityTable<ISessionLog, "id">;
   sync_meta!: EntityTable<ISyncMeta, "user_id">;
+  profile_cache!: EntityTable<IProfileCache, "id">;
 
   constructor() {
     super("ThinkCardsDB");
@@ -119,6 +127,10 @@ class ThinkCardsDB extends Dexie {
         }
       });
     });
+
+    this.version(6).stores({
+      profile_cache: "id",
+    });
   }
 }
 
@@ -132,4 +144,5 @@ export const clearLocalDb = () =>
     db.revlog.clear(),
     db.session_log.clear(),
     db.sync_meta.clear(),
+    db.profile_cache.clear(),
   ]);

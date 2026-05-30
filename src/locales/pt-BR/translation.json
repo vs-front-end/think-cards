@@ -156,6 +156,7 @@
   "addPasswordButton": "Adicionar",
   "addPasswordSuccess": "Senha adicionada com sucesso.",
   "settingsDangerZone": "Zona de perigo",
+  "settingsRequiresOnline": "Você precisa estar online para usar esta ação.",
   "settingsResetButton": "Apagar dados",
   "settingsDeleteButton": "Excluir conta",
   "settingsResetData": "Apagar todos os dados",

@@ -10,6 +10,7 @@ export * from './useStatisticsData';
 export * from './useNavigateToStudy';
 export * from './useStudySession';
 export * from './useSync';
+export * from './useOnline';
 export * from './usePwaInstall';
 export * from './useDocumentHead';
 export * from './useAuthListener';
