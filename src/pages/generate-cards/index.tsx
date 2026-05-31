@@ -3,13 +3,13 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { cn } from "@stellar-ui-kit/shared";
 import { toast } from "sonner";
-import { createEmptyCard } from "ts-fsrs";
 import { Copy, Check, Plus } from "lucide-react";
 import { useDecksList } from "@/hooks";
 import { DeckModal } from "@/components";
-import { db } from "@/lib/db";
-import type { CardType, ICard, ICardState } from "@/lib/db";
+import type { CardType } from "@/lib/db";
 import { AI_LINKS, PROMPTS } from "./prompts";
+import { bulkAddCards } from "./bulk-add";
+import { ImportAnki } from "./components/import-anki";
 
 import {
   Button,
@@ -74,6 +74,7 @@ export const GenerateCardsPage = () => {
   const [importing, setImporting] = useState(false);
   const [deckModalOpen, setDeckModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [outerTab, setOuterTab] = useState("ai");
 
   const parsed = json.trim() ? parseCards(json, cardType) : null;
   const isInvalid = json.trim().length > 0 && parsed === null;
@@ -98,46 +99,14 @@ export const GenerateCardsPage = () => {
     setImporting(true);
 
     try {
-      const now = new Date().toISOString();
-
-      await db.transaction("rw", db.cards, db.card_state, async () => {
-        for (const card of parsed) {
-          const cardId = crypto.randomUUID();
-          const fsrsCard = createEmptyCard(new Date(now));
-
-          const newCard: ICard = {
-            id: cardId,
-            deck_id: deckId,
-            type: cardType,
-            front: card.front,
-            back: card.back ?? "",
-            created_at: now,
-            updated_at: now,
-            pending_sync: 1,
-            deleted_at: null,
-          };
-
-          const cardState: ICardState = {
-            id: crypto.randomUUID(),
-            card_id: cardId,
-            stability: fsrsCard.stability,
-            difficulty: fsrsCard.difficulty,
-            due: fsrsCard.due.toISOString(),
-            last_review: fsrsCard.last_review
-              ? new Date(fsrsCard.last_review).toISOString()
-              : null,
-            state: fsrsCard.state,
-            reps: fsrsCard.reps,
-            lapses: fsrsCard.lapses,
-            learning_steps: fsrsCard.learning_steps,
-            updated_at: now,
-            pending_sync: 1,
-          };
-
-          await db.cards.add(newCard);
-          await db.card_state.add(cardState);
-        }
-      });
+      await bulkAddCards(
+        deckId,
+        parsed.map((card) => ({
+          type: cardType,
+          front: card.front,
+          back: card.back ?? "",
+        })),
+      );
 
       toast.success(t("generateCardsSuccess", { count: parsed.length }));
       navigate({ to: "/decks", search: { deckId } });
@@ -162,7 +131,14 @@ export const GenerateCardsPage = () => {
         </Text>
       </div>
 
-      <div className="flex flex-col gap-10">
+      <Tabs value={outerTab} onValueChange={setOuterTab}>
+        <TabsList className="mb-6">
+          <TabsTrigger value="ai">{t("generateCardsTabAi")}</TabsTrigger>
+          <TabsTrigger value="anki">{t("generateCardsTabAnki")}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="ai">
+          <div className="flex flex-col gap-10">
         <section className="flex flex-col gap-4">
           <div>
             <Text as="h2" className="text-lg font-semibold text-foreground">
@@ -344,7 +320,13 @@ export const GenerateCardsPage = () => {
               : t("generateCardsImport", { count: parsed?.length ?? 0 })}
           </Button>
         </section>
-      </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="anki">
+          <ImportAnki />
+        </TabsContent>
+      </Tabs>
 
       <DeckModal open={deckModalOpen} onOpenChange={setDeckModalOpen} />
     </div>
