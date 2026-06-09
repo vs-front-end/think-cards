@@ -76,6 +76,7 @@
   "dashboardStudiedToday": "今日已学",
   "dashboardNewCard": "创建卡片",
   "dashboardNewDeck": "创建牌组",
+  "dashboardCreateAction": "创建牌组或卡片",
   "dashboardTotalDecks": "牌组总数",
   "dashboardTotalCards": "卡片总数",
   "dashboardPendingToday": "待完成",

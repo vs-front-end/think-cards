@@ -75,6 +75,7 @@
   "dashboardStudiedToday": "Estudiados Hoy",
   "dashboardNewCard": "Crear tarjeta",
   "dashboardNewDeck": "Crear mazo",
+  "dashboardCreateAction": "Crear mazo o tarjeta",
   "dashboardTotalDecks": "Mazos",
   "dashboardTotalCards": "Tarjetas",
   "dashboardPendingToday": "Pendientes",

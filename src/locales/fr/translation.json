@@ -76,6 +76,7 @@
   "dashboardStudiedToday": "Étudié aujourd'hui",
   "dashboardNewCard": "Créer une carte",
   "dashboardNewDeck": "Créer un paquet",
+  "dashboardCreateAction": "Créer paquet ou carte",
   "dashboardTotalDecks": "Paquets au total",
   "dashboardTotalCards": "Cartes au total",
   "dashboardPendingToday": "En attente",

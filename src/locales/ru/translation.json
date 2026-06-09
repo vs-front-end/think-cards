@@ -76,6 +76,7 @@
   "dashboardStudiedToday": "Изучено сегодня",
   "dashboardNewCard": "Создать карточку",
   "dashboardNewDeck": "Создать колоду",
+  "dashboardCreateAction": "Создать колоду или карточку",
   "dashboardTotalDecks": "Всего колод",
   "dashboardTotalCards": "Всего карточек",
   "dashboardPendingToday": "Осталось",

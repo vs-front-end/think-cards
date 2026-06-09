@@ -157,28 +157,28 @@ const DistributionBars = ({
             : 0;
 
         return (
-          <div key={item.key} className="flex items-center gap-3">
-            <Text as="span" className="w-16 shrink-0 text-xs text-muted">
-              {t(item.labelKey)}
-            </Text>
-
-            <div className="flex flex-1 items-center gap-2">
-              <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-border">
-                <div
-                  className={cn(
-                    "absolute inset-y-0 left-0 rounded-full",
-                    item.color,
-                  )}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
+          <div key={item.key} className="flex flex-col gap-1">
+            <div className="flex items-center justify-between gap-2">
+              <Text as="span" className="text-xs text-muted">
+                {t(item.labelKey)}
+              </Text>
 
               <Text
                 as="span"
-                className="w-8 shrink-0 text-right text-xs tabular-nums text-muted"
+                className="shrink-0 text-xs tabular-nums text-muted"
               >
                 {value}
               </Text>
+            </div>
+
+            <div className="relative h-2 overflow-hidden rounded-full bg-border">
+              <div
+                className={cn(
+                  "absolute inset-y-0 left-0 rounded-full",
+                  item.color,
+                )}
+                style={{ width: `${pct}%` }}
+              />
             </div>
           </div>
         );

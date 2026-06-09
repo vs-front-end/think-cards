@@ -76,6 +76,7 @@
   "dashboardStudiedToday": "今日の学習",
   "dashboardNewCard": "カードを作成",
   "dashboardNewDeck": "デッキを作成",
+  "dashboardCreateAction": "デッキ・カードを作成",
   "dashboardTotalDecks": "デッキ総数",
   "dashboardTotalCards": "カード総数",
   "dashboardPendingToday": "未復習",

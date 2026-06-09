@@ -6,7 +6,15 @@ import { filterTree } from "@/utils";
 import type { IDeck } from "@/lib/db";
 import { DeckModal, DeleteDeckDialog } from "@/components";
 import { cn } from "@stellar-ui-kit/shared";
-import { CircleHelp, Plus, RefreshCw } from "lucide-react";
+
+import {
+  BookOpen,
+  CircleHelp,
+  FileJson,
+  Layers,
+  Plus,
+  RefreshCw,
+} from "lucide-react";
 
 import {
   useDashboardData,
@@ -29,6 +37,10 @@ import {
 
 import {
   Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   InputSearch,
   Skeleton,
   Text,
@@ -175,7 +187,7 @@ export const DashboardPage = () => {
           </Text>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -183,7 +195,7 @@ export const DashboardPage = () => {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="size-8 text-muted hover:text-foreground"
+                  className="size-8 shrink-0 text-muted hover:text-foreground"
                   disabled={isSyncing}
                   onClick={triggerSync}
                 >
@@ -199,14 +211,71 @@ export const DashboardPage = () => {
             </Tooltip>
           </TooltipProvider>
 
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                size="sm"
+                className="flex-1 gap-1.5 md:hidden"
+                disabled={!initialSyncDone}
+              >
+                <Plus className="size-4 shrink-0" />
+                <span className="truncate">{t("dashboardCreateAction")}</span>
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuItem
+                onClick={() => setModal({ type: "createDeck" })}
+                className="items-start focus:bg-transparent"
+              >
+                <Layers className="size-4 shrink-0 translate-y-px" />
+                <div className="flex flex-col gap-0.5">
+                  {t("dashboardNewDeck")}
+                  <span className="text-xs text-muted">
+                    {t("navAddDeckHint")}
+                  </span>
+                </div>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate({ to: "/cards/new", search: { deckId: undefined } })
+                }
+                className="items-start focus:bg-transparent"
+              >
+                <BookOpen className="size-4 shrink-0 translate-y-px" />
+                <div className="flex flex-col gap-0.5">
+                  {t("dashboardNewCard")}
+                  <span className="text-xs text-muted">
+                    {t("navAddCardHint")}
+                  </span>
+                </div>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => navigate({ to: "/generate-cards" })}
+                className="items-start focus:bg-transparent"
+              >
+                <FileJson className="size-4 shrink-0 translate-y-px" />
+                <div className="flex flex-col gap-0.5">
+                  {t("navImportCards")}
+                  <span className="text-xs text-muted">
+                    {t("navImportCardsHint")}
+                  </span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Button
             type="button"
             size="sm"
             onClick={() => setModal({ type: "createDeck" })}
-            className="max-[425px]:flex-1 flex-none gap-1.5"
+            className="hidden gap-1.5 md:flex"
             disabled={!initialSyncDone}
           >
-            <Plus className="hidden size-4 min-[340px]:block" />
+            <Plus className="size-4" />
             {t("dashboardNewDeck")}
           </Button>
 
@@ -218,9 +287,9 @@ export const DashboardPage = () => {
             onClick={() =>
               navigate({ to: "/cards/new", search: { deckId: undefined } })
             }
-            className="max-[425px]:flex-1 flex-none gap-1.5"
+            className="hidden gap-1.5 md:flex"
           >
-            <Plus className="hidden size-4 min-[340px]:block" />
+            <Plus className="size-4" />
             {t("dashboardNewCard")}
           </Button>
         </div>
@@ -233,7 +302,7 @@ export const DashboardPage = () => {
       </section>
 
       <section className="mt-2 flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4 max-[425px]:flex-col max-[425px]:items-stretch max-[425px]:gap-3">
           <div className="flex items-center gap-2">
             <Text as="h2" className="text-lg font-semibold">
               {t("dashboardYourDecks")}
@@ -261,13 +330,13 @@ export const DashboardPage = () => {
           </div>
 
           {isLoading ? (
-            <Skeleton className="h-8 w-full max-w-xs flex-1 rounded-lg" />
+            <Skeleton className="h-8 w-full flex-1 rounded-lg min-[426px]:max-w-xs" />
           ) : !isLoading && deckTree.length > 0 ? (
             <InputSearch
               placeholder={t("dashboardSearchDecks")}
               value={deckSearch}
               onChange={setDeckSearch}
-              className="max-w-xs flex-1"
+              className="w-full flex-1 min-[426px]:max-w-xs"
             />
           ) : null}
         </div>

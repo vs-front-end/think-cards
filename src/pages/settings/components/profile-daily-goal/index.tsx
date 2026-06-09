@@ -54,6 +54,7 @@ export const ProfileDailyGoal = () => {
           value={dailyGoal}
           onChange={(v) => setDailyGoal(v)}
           min={1}
+          className="text-sm"
           containerClassName="w-full max-w-full"
         />
 

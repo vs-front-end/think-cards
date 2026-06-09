@@ -76,6 +76,7 @@
   "dashboardStudiedToday": "Studied Today",
   "dashboardNewCard": "Create card",
   "dashboardNewDeck": "Create deck",
+  "dashboardCreateAction": "Create deck or card",
   "dashboardTotalDecks": "Total decks",
   "dashboardTotalCards": "Total cards",
   "dashboardPendingToday": "Pending",

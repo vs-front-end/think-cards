@@ -76,6 +76,7 @@
   "dashboardStudiedToday": "오늘 학습",
   "dashboardNewCard": "카드 만들기",
   "dashboardNewDeck": "덱 만들기",
+  "dashboardCreateAction": "덱 또는 카드 만들기",
   "dashboardTotalDecks": "전체 덱",
   "dashboardTotalCards": "전체 카드",
   "dashboardPendingToday": "남은 카드",
