@@ -593,6 +593,7 @@
   "ankiImportErrorNewFormat": "이 덱은 Anki의 새 형식을 사용해요. \"이전 Anki 버전 지원\"을 체크해 다시 내보낸 뒤 시도하세요.",
   "ankiImportErrorInvalid": "이 파일은 올바른 Anki 덱이 아니에요.",
   "ankiImportErrorParse": "이 덱을 읽지 못했어요. 지원되지 않는 레이아웃일 수 있어요.",
+  "ankiImportErrorTooLarge": "파일이 너무 큽니다. 최대 크기는 {{max}}MB입니다.",
   "navImportCards": "카드 생성",
   "navImportCardsHint": "AI로 카드 만들기"
 }

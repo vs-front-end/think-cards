@@ -17,7 +17,11 @@ export type AnkiImportResult = {
   skipped: number;
 };
 
-export type AnkiImportErrorCode = "new-format" | "invalid" | "parse-error";
+export type AnkiImportErrorCode =
+  | "new-format"
+  | "invalid"
+  | "parse-error"
+  | "too-large";
 
 export class AnkiImportError extends Error {
   code: AnkiImportErrorCode;

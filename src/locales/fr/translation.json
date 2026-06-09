@@ -593,6 +593,7 @@
   "ankiImportErrorNewFormat": "Ce paquet utilise le nouveau format d'Anki. Réexporte-le en cochant \"Prendre en charge les anciennes versions d'Anki\" et réessaie.",
   "ankiImportErrorInvalid": "Ce fichier n'est pas un paquet Anki valide.",
   "ankiImportErrorParse": "Impossible de lire ce paquet. Il utilise peut-être une disposition non prise en charge.",
+  "ankiImportErrorTooLarge": "Ce fichier est trop volumineux. La taille maximale est de {{max}} Mo.",
   "navImportCards": "Générer des cartes",
   "navImportCardsHint": "Crée des cartes avec une IA"
 }

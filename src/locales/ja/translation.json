@@ -593,6 +593,7 @@
   "ankiImportErrorNewFormat": "このデッキはAnkiの新しい形式を使用しています。「古いバージョンのAnkiをサポート」にチェックを入れて再エクスポートし、もう一度お試しください。",
   "ankiImportErrorInvalid": "このファイルは有効なAnkiデッキではありません。",
   "ankiImportErrorParse": "このデッキを読み込めませんでした。サポートされていないレイアウトの可能性があります。",
+  "ankiImportErrorTooLarge": "このファイルは大きすぎます。最大サイズは {{max}} MB です。",
   "navImportCards": "カードを生成",
   "navImportCardsHint": "AIでカードを作成"
 }

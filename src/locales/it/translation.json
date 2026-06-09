@@ -593,6 +593,7 @@
   "ankiImportErrorNewFormat": "Questo mazzo usa il nuovo formato di Anki. Riesportalo con \"Support older Anki versions\" spuntato e riprova.",
   "ankiImportErrorInvalid": "Questo file non è un mazzo Anki valido.",
   "ankiImportErrorParse": "Impossibile leggere questo mazzo. Potrebbe usare un layout non supportato.",
+  "ankiImportErrorTooLarge": "Questo file è troppo grande. La dimensione massima è {{max}} MB.",
   "navImportCards": "Genera carte",
   "navImportCardsHint": "Crea carte con l'IA"
 }

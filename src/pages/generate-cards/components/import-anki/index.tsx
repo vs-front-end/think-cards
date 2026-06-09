@@ -25,10 +25,14 @@ import { DeckModal } from "@/components";
 import type { AnkiImportErrorCode, AnkiImportResult } from "../../anki-import";
 import { bulkAddCards } from "../../bulk-add";
 
+const MAX_APKG_MB = 5;
+const MAX_APKG_BYTES = MAX_APKG_MB * 1024 * 1024;
+
 const ERROR_KEY: Record<AnkiImportErrorCode, string> = {
   "new-format": "ankiImportErrorNewFormat",
   invalid: "ankiImportErrorInvalid",
   "parse-error": "ankiImportErrorParse",
+  "too-large": "ankiImportErrorTooLarge",
 };
 
 const toErrorCode = (error: unknown): AnkiImportErrorCode => {
@@ -56,7 +60,14 @@ export const ImportAnki = () => {
     setFileName(file.name);
     setResult(null);
     setErrorCode(null);
+
+    if (file.size > MAX_APKG_BYTES) {
+      setErrorCode("too-large");
+      return;
+    }
+
     setParsing(true);
+
     try {
       const { parseApkg } = await import("../../anki-import");
       setResult(await parseApkg(await file.arrayBuffer()));
@@ -151,7 +162,7 @@ export const ImportAnki = () => {
 
         {errorCode && (
           <Text as="p" className="text-sm text-error-text">
-            {t(ERROR_KEY[errorCode])}
+            {t(ERROR_KEY[errorCode], { max: MAX_APKG_MB })}
           </Text>
         )}
 

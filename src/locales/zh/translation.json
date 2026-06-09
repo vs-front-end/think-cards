@@ -593,6 +593,7 @@
   "ankiImportErrorNewFormat": "该牌组使用了 Anki 的新格式。请勾选「支持旧版 Anki」重新导出后再试。",
   "ankiImportErrorInvalid": "该文件不是有效的 Anki 牌组。",
   "ankiImportErrorParse": "无法读取该牌组，它可能使用了不受支持的布局。",
+  "ankiImportErrorTooLarge": "该文件过大。最大大小为 {{max}} MB。",
   "navImportCards": "生成卡片",
   "navImportCardsHint": "用 AI 创建卡片"
 }

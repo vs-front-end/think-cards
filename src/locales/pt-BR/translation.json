@@ -593,6 +593,7 @@
   "ankiImportErrorNewFormat": "Este deck usa o formato novo do Anki. Reexporte com \"Support older Anki versions\" marcada e tente de novo.",
   "ankiImportErrorInvalid": "Este arquivo não é um deck do Anki válido.",
   "ankiImportErrorParse": "Não foi possível ler este deck. Ele pode usar um layout não suportado.",
+  "ankiImportErrorTooLarge": "Este arquivo é muito grande. O tamanho máximo é {{max}} MB.",
   "navImportCards": "Gerar Cards",
   "navImportCardsHint": "Crie cards com IA"
 }

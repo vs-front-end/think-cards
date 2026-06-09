@@ -593,6 +593,7 @@
   "ankiImportErrorNewFormat": "Dieser Stapel nutzt Ankis neues Format. Exportiere ihn erneut mit aktiviertem \"Ältere Anki-Versionen unterstützen\" und versuche es noch einmal.",
   "ankiImportErrorInvalid": "Diese Datei ist kein gültiger Anki-Stapel.",
   "ankiImportErrorParse": "Dieser Stapel konnte nicht gelesen werden. Er nutzt möglicherweise ein nicht unterstütztes Layout.",
+  "ankiImportErrorTooLarge": "Diese Datei ist zu groß. Die maximale Größe beträgt {{max}} MB.",
   "navImportCards": "Karten generieren",
   "navImportCardsHint": "Karten mit KI erstellen"
 }
