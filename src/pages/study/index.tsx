@@ -57,6 +57,7 @@ const StudySession = ({ deckId }: StudySessionProps) => {
 
   const [revealed, setRevealed] = useState(false);
   const [flipped, setFlipped] = useState(false);
+  const [noAnim, setNoAnim] = useState(false);
   const [paused, setPaused] = useState(false);
   const [typingInput, setTypingInput] = useState("");
   const [typingChecked, setTypingChecked] = useState(false);
@@ -116,11 +117,15 @@ const StudySession = ({ deckId }: StudySessionProps) => {
   }, [isDone, paused, startedAt]);
 
   useEffect(() => {
+    setNoAnim(true);
     setRevealed(false);
     setFlipped(false);
     setTypingInput("");
     setTypingChecked(false);
     setTypingCorrect(false);
+
+    const id = requestAnimationFrame(() => setNoAnim(false));
+    return () => cancelAnimationFrame(id);
   }, [currentCard?.id]);
 
   useEffect(() => {
@@ -263,8 +268,10 @@ const StudySession = ({ deckId }: StudySessionProps) => {
       <div className="w-full max-w-md" style={{ perspective: "1200px" }}>
         <div
           className={cn(
-            "grid transition-transform duration-600 [transform-style:preserve-3d]",
-            "[transition-timing-function:cubic-bezier(0.4,0,0.2,1)]",
+            "grid [transform-style:preserve-3d]",
+            noAnim
+              ? "transition-none"
+              : "transition-transform duration-600 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]",
             !isTyping && flipped && "[transform:rotateY(180deg)]",
           )}
         >
