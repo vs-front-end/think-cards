@@ -7,11 +7,11 @@ export const Header = () => {
 
   return (
     <header className="w-full border-b border-border bg-background">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-6">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 max-[374px]:justify-center md:px-6">
         <Link to="/" className="flex items-center">
           <Text
             as="span"
-            className="text-lg md:text-xl font-bold tracking-tight text-foreground"
+            className="text-xl md:text-2xl font-bold tracking-tight text-foreground"
           >
             Think
             <Text as="span" className="text-primary">
@@ -20,7 +20,10 @@ export const Header = () => {
           </Text>
         </Link>
 
-        <nav aria-label="Main navigation" className="flex items-center gap-2">
+        <nav
+          aria-label="Main navigation"
+          className="flex items-center gap-2 max-[374px]:hidden"
+        >
           <Link to="/auth/login">
             <Button
               type="button"
