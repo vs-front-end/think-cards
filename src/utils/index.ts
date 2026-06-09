@@ -1,3 +1,4 @@
+export * from "./audio";
 export * from "./cloze";
 export * from "./deck";
 export * from "./format";

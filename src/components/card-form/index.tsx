@@ -7,8 +7,18 @@ import { useCreateCard, useDecksList, useUpdateCard } from "@/hooks";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store";
 import type { ICard, CardType } from "@/lib/db";
-import { nextClozeIndex, parseClozePreview, compressImage } from "@/utils";
+import { AudioAttacher } from "./audio-attacher";
 import type { TextEditorRef } from "@stellar-ui-kit/web";
+
+import {
+  nextClozeIndex,
+  parseClozePreview,
+  compressImage,
+  isValidAudio,
+  extractAudioSrc,
+  stripAudio,
+  appendAudio,
+} from "@/utils";
 
 import {
   Button,
@@ -40,8 +50,14 @@ export const CardForm = ({ card, defaultDeckId }: ICardFormProps) => {
 
   const [deckId, setDeckId] = useState(card?.deck_id ?? defaultDeckId ?? "");
   const [type, setType] = useState<CardType>(card?.type ?? "basic");
-  const [front, setFront] = useState(card?.front ?? "");
-  const [back, setBack] = useState(card?.back ?? "");
+  const [front, setFront] = useState(stripAudio(card?.front ?? ""));
+  const [back, setBack] = useState(stripAudio(card?.back ?? ""));
+  const [frontAudio, setFrontAudio] = useState<string | null>(
+    extractAudioSrc(card?.front ?? ""),
+  );
+  const [backAudio, setBackAudio] = useState<string | null>(
+    extractAudioSrc(card?.back ?? ""),
+  );
   const [cloze, setCloze] = useState(card?.type === "cloze" ? card.front : "");
   const [errors, setErrors] = useState({ deck: "", content: "" });
 
@@ -68,11 +84,25 @@ export const CardForm = ({ card, defaultDeckId }: ICardFormProps) => {
     setCloze(next);
   };
 
+  const uploadToBucket = async (
+    bucket: string,
+    file: File,
+    ext: string,
+  ): Promise<string> => {
+    const userId = useAuthStore.getState().user?.id;
+    if (!userId) throw new Error("Not authenticated");
+
+    const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+
+    const { error } = await supabase.storage.from(bucket).upload(path, file);
+    if (error) throw error;
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+    return data.publicUrl;
+  };
+
   const uploadImage = useCallback(
     async (file: File): Promise<string> => {
-      const userId = useAuthStore.getState().user?.id;
-      if (!userId) throw new Error("Not authenticated");
-
       const MAX_CARD_IMAGE_SIZE = 5 * 1024 * 1024;
       if (file.size > MAX_CARD_IMAGE_SIZE) {
         toast.error(t("cardImageTooLarge"));
@@ -81,19 +111,33 @@ export const CardForm = ({ card, defaultDeckId }: ICardFormProps) => {
 
       const compressed = await compressImage(file);
       const ext = compressed.name.split(".").pop() ?? "webp";
-      const path = `${userId}/${crypto.randomUUID()}.${ext}`;
 
-      const { error } = await supabase.storage
-        .from("card-images")
-        .upload(path, compressed);
-
-      if (error) {
+      try {
+        return await uploadToBucket("card-images", compressed, ext);
+      } catch (error) {
         toast.error(t("cardImageUploadError"));
         throw error;
       }
+    },
+    [t],
+  );
 
-      const { data } = supabase.storage.from("card-images").getPublicUrl(path);
-      return data.publicUrl;
+  const attachAudio = useCallback(
+    async (
+      file: File,
+      setAudio: (src: string) => void,
+    ): Promise<void> => {
+      if (!isValidAudio(file)) {
+        toast.error(t("cardAudioInvalid"));
+        return;
+      }
+
+      try {
+        const url = await uploadToBucket("card-audio", file, "mp3");
+        setAudio(url);
+      } catch {
+        toast.error(t("cardAudioUploadError"));
+      }
     },
     [t],
   );
@@ -125,12 +169,15 @@ export const CardForm = ({ card, defaultDeckId }: ICardFormProps) => {
   const handleSubmit = () => {
     if (!validate()) return;
 
-    const frontValue =
+    const frontHtml =
       type !== "cloze"
         ? (frontEditorRef.current?.getHTML() ?? front).trim()
         : "";
-    const backValue =
+    const backHtml =
       type !== "cloze" ? (backEditorRef.current?.getHTML() ?? back).trim() : "";
+
+    const frontValue = frontAudio ? appendAudio(frontHtml, frontAudio) : frontHtml;
+    const backValue = backAudio ? appendAudio(backHtml, backAudio) : backHtml;
 
     if (isEdit && card) {
       updateCard.mutate(
@@ -153,6 +200,8 @@ export const CardForm = ({ card, defaultDeckId }: ICardFormProps) => {
         onSuccess: () => {
           setFront("");
           setBack("");
+          setFrontAudio(null);
+          setBackAudio(null);
           setCloze("");
           frontEditorRef.current?.clear();
           backEditorRef.current?.clear();
@@ -241,7 +290,15 @@ export const CardForm = ({ card, defaultDeckId }: ICardFormProps) => {
         {type === "basic" || type === "typing" ? (
           <>
             <div className="flex flex-col gap-1.5">
-              <Label>{t("cardModalFrontLabel")}</Label>
+              <div className="flex items-center justify-between">
+                <Label>{t("cardModalFrontLabel")}</Label>
+
+                <AudioAttacher
+                  src={frontAudio}
+                  onAttach={(file) => attachAudio(file, setFrontAudio)}
+                  onRemove={() => setFrontAudio(null)}
+                />
+              </div>
 
               <TextEditor
                 ref={frontEditorRef}
@@ -257,7 +314,15 @@ export const CardForm = ({ card, defaultDeckId }: ICardFormProps) => {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label>{t("cardModalBackLabel")}</Label>
+              <div className="flex items-center justify-between">
+                <Label>{t("cardModalBackLabel")}</Label>
+
+                <AudioAttacher
+                  src={backAudio}
+                  onAttach={(file) => attachAudio(file, setBackAudio)}
+                  onRemove={() => setBackAudio(null)}
+                />
+              </div>
 
               <TextEditor
                 ref={backEditorRef}

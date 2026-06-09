@@ -1,5 +1,5 @@
 import DOMPurify from "dompurify";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { Button, InputText, Text } from "@stellar-ui-kit/web";
@@ -8,11 +8,18 @@ import { Pause, Play } from "lucide-react";
 import { toast } from "sonner";
 import { Loader } from "@/components";
 import { useStudySession } from "@/hooks";
-import { formatTime, parseClozePreview, parseClozeRevealed } from "@/utils";
+import {
+  formatTime,
+  parseClozePreview,
+  parseClozeRevealed,
+  stripAudio,
+  extractAudioSrc,
+} from "@/utils";
 
 import { requestOnboardingSurvey } from "@/pages/dashboard/components";
 
 import {
+  AudioPlayer,
   CardFace,
   CompletionScreen,
   EmptyDeck,
@@ -163,6 +170,38 @@ const StudySession = ({ deckId }: StudySessionProps) => {
     navigate({ to: "/decks" });
   }, [isLoaded, emptyReason]);
 
+  const { sanitizedFront, sanitizedBack, frontAudio, backAudio } =
+    useMemo(() => {
+      if (!currentCard) {
+        return {
+          sanitizedFront: "",
+          sanitizedBack: "",
+          frontAudio: null,
+          backAudio: null,
+        };
+      }
+
+      const isClozeCard = currentCard.type === "cloze";
+
+      const rawFront = isClozeCard
+        ? parseClozePreview(currentCard.front)
+        : currentCard.front;
+
+      const rawBack = isClozeCard
+        ? parseClozeRevealed(currentCard.front)
+        : currentCard.back;
+
+      const addLinkTargets = (html: string) =>
+        html.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
+
+      return {
+        sanitizedFront: addLinkTargets(DOMPurify.sanitize(stripAudio(rawFront))),
+        sanitizedBack: addLinkTargets(DOMPurify.sanitize(stripAudio(rawBack))),
+        frontAudio: extractAudioSrc(rawFront),
+        backAudio: extractAudioSrc(rawBack),
+      };
+    }, [currentCard]);
+
   if (!isLoaded || emptyReason) {
     return <Loader />;
   }
@@ -186,23 +225,6 @@ const StudySession = ({ deckId }: StudySessionProps) => {
   const isCloze = currentCard.type === "cloze";
   const isTyping = currentCard.type === "typing";
 
-  const frontContent = isCloze
-    ? parseClozePreview(currentCard.front)
-    : currentCard.front;
-
-  const backContent = isCloze
-    ? parseClozeRevealed(currentCard.front)
-    : currentCard.back;
-
-  const addLinkTargets = (html: string) =>
-    html.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
-
-  const sanitizedFront = addLinkTargets(
-    DOMPurify.sanitize(frontContent, { ADD_ATTR: ["target"] }),
-  );
-  const sanitizedBack = addLinkTargets(
-    DOMPurify.sanitize(backContent, { ADD_ATTR: ["target"] }),
-  );
   const sanitizedCorrectAnswer = DOMPurify.sanitize(currentCard.back, {
     ALLOWED_TAGS: [],
   });
@@ -296,6 +318,10 @@ const StudySession = ({ deckId }: StudySessionProps) => {
           )}
         </div>
       </div>
+
+      {(revealed ? backAudio : frontAudio) && (
+        <AudioPlayer src={(revealed ? backAudio : frontAudio) as string} />
+      )}
 
       {isTyping && !typingChecked && (
         <div

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Text } from "@stellar-ui-kit/web";
 
 type CardFaceProps = {
@@ -6,7 +7,7 @@ type CardFaceProps = {
   html: string;
 };
 
-export const CardFace = ({ label, progress, html }: CardFaceProps) => (
+export const CardFace = memo(({ label, progress, html }: CardFaceProps) => (
   <>
     <div className="relative flex shrink-0 items-center justify-between px-5 py-3">
       <Text
@@ -33,4 +34,6 @@ export const CardFace = ({ label, progress, html }: CardFaceProps) => (
       />
     </div>
   </>
-);
+));
+
+CardFace.displayName = "CardFace";

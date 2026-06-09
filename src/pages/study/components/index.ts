@@ -1,3 +1,4 @@
+export * from "./audio-player";
 export * from "./card-face";
 export * from "./completion-screen";
 export * from "./empty-deck";
