@@ -6,6 +6,13 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://think-cards.com/" />
     <xhtml:link rel="alternate" hreflang="pt-BR" href="https://think-cards.com/" />
     <xhtml:link rel="alternate" hreflang="es" href="https://think-cards.com/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://think-cards.com/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://think-cards.com/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://think-cards.com/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://think-cards.com/" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://think-cards.com/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://think-cards.com/" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://think-cards.com/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://think-cards.com/" />
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>

@@ -1,17 +1,47 @@
-export type Language = "en" | "es" | "pt-BR";
+export type Language =
+  | "en"
+  | "es"
+  | "pt-BR"
+  | "de"
+  | "fr"
+  | "it"
+  | "ja"
+  | "ko"
+  | "ru"
+  | "zh";
+
+export const SUPPORTED_LANGUAGES: Language[] = [
+  "en",
+  "es",
+  "pt-BR",
+  "de",
+  "fr",
+  "it",
+  "ja",
+  "ko",
+  "ru",
+  "zh",
+];
 
 export const LANGUAGE_STORAGE_KEY = "think-cards-language";
 
-export const isLanguage = (value: string): value is Language => {
-  return value === "en" || value === "es" || value === "pt-BR";
-};
+export const isLanguage = (value: string): value is Language =>
+  (SUPPORTED_LANGUAGES as string[]).includes(value);
 
 export const getDefaultLanguage = (): Language => {
   if (typeof navigator === "undefined") return "en";
 
-  const lang = navigator.language?.toLowerCase();
-  if (lang.startsWith("es")) return "es";
+  const lang = navigator.language?.toLowerCase() ?? "";
+
   if (lang.startsWith("pt")) return "pt-BR";
+  if (lang.startsWith("es")) return "es";
+  if (lang.startsWith("de")) return "de";
+  if (lang.startsWith("fr")) return "fr";
+  if (lang.startsWith("it")) return "it";
+  if (lang.startsWith("ja")) return "ja";
+  if (lang.startsWith("ko")) return "ko";
+  if (lang.startsWith("ru")) return "ru";
+  if (lang.startsWith("zh")) return "zh";
 
   return "en";
 };

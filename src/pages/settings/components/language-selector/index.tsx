@@ -1,24 +1,21 @@
 import { useTranslation } from "react-i18next";
-import { cn } from "@stellar-ui-kit/shared";
-import { Languages } from "lucide-react";
-import { Button, Text } from "@stellar-ui-kit/web";
+import { Text } from "@stellar-ui-kit/web";
 import { useLanguageStore } from "@/store";
+import { LANGUAGE_OPTIONS } from "@/lib/languages";
 import type { Language } from "@/lib/language-preference";
 
-const LANGUAGES: { value: Language; label: string }[] = [
-  { value: "en", label: "languageEn" },
-  { value: "es", label: "languageEs" },
-  { value: "pt-BR", label: "languagePtBR" },
-];
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@stellar-ui-kit/web";
 
 export const LanguageSelector = () => {
   const { t } = useTranslation();
   const selectedLanguage = useLanguageStore((s) => s.language);
   const setLanguage = useLanguageStore((s) => s.setLanguage);
-
-  const handleLanguageChange = (lang: Language) => {
-    setLanguage(lang);
-  };
 
   return (
     <div className="flex flex-col gap-3">
@@ -31,24 +28,25 @@ export const LanguageSelector = () => {
         </Text>
       </div>
 
-      <div className="inline-flex flex-wrap gap-2">
-        {LANGUAGES.map(({ value, label }) => (
-          <Button
-            key={value}
-            variant="outline"
-            onClick={() => handleLanguageChange(value)}
-            className={cn(
-              "flex-1 h-8 font-normal",
-              selectedLanguage === value
-                ? "border-primary bg-primary-soft text-primary"
-                : "border-border bg-transparent text-muted hover:border-foreground hover:text-foreground",
-            )}
-          >
-            <Languages className="size-4" />
-            <span className="truncate">{t(label)}</span>
-          </Button>
-        ))}
-      </div>
+      <Select
+        value={selectedLanguage}
+        onValueChange={(v) => setLanguage(v as Language)}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+
+        <SelectContent>
+          {LANGUAGE_OPTIONS.map(({ value, labelKey, Flag }) => (
+            <SelectItem key={value} value={value}>
+              <span className="flex items-center gap-2">
+                <Flag className="h-3.5 w-5 shrink-0 rounded-[2px]" />
+                {t(labelKey)}
+              </span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 };

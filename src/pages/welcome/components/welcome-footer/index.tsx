@@ -1,8 +1,19 @@
+import { useTranslation } from "react-i18next";
 import { cn } from "@stellar-ui-kit/shared";
 import { Github, Moon, Sun, Waves } from "lucide-react";
-import { Text } from "@stellar-ui-kit/web";
 import { useLanguageStore, useThemeStore } from "@/store";
+import { LANGUAGE_OPTIONS } from "@/lib/languages";
+import type { Language } from "@/lib/language-preference";
 import type { ThemeVariant } from "@/store";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Text,
+} from "@stellar-ui-kit/web";
 
 const THEMES: { value: ThemeVariant; icon: React.ReactNode }[] = [
   { value: "light", icon: <Sun className="size-3" /> },
@@ -10,13 +21,8 @@ const THEMES: { value: ThemeVariant; icon: React.ReactNode }[] = [
   { value: "ocean", icon: <Waves className="size-3" /> },
 ];
 
-const LANGS: { value: "en" | "es" | "pt-BR"; label: string }[] = [
-  { value: "en", label: "EN" },
-  { value: "es", label: "ES" },
-  { value: "pt-BR", label: "PT" },
-];
-
 export const WelcomeFooter = () => {
+  const { t } = useTranslation();
   const { theme, setTheme } = useThemeStore();
   const { language: lang, setLanguage: setLang } = useLanguageStore();
 
@@ -49,24 +55,22 @@ export const WelcomeFooter = () => {
 
           <div className="h-3 w-px bg-border" />
 
-          <div className="flex items-center gap-0.5">
-            {LANGS.map(({ value, label }) => (
-              <button
-                key={value}
-                type="button"
-                aria-label={`Change language to ${label}`}
-                onClick={() => setLang(value)}
-                className={cn(
-                  "px-1.5 py-1 text-xs transition-colors",
-                  lang === value
-                    ? "font-medium text-foreground"
-                    : "text-muted hover:text-foreground",
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          <Select value={lang} onValueChange={(v) => setLang(v as Language)}>
+            <SelectTrigger className="h-7 gap-1.5 border-none bg-transparent px-1.5 text-xs text-muted hover:text-foreground">
+              <SelectValue />
+            </SelectTrigger>
+
+            <SelectContent>
+              {LANGUAGE_OPTIONS.map(({ value, labelKey, Flag }) => (
+                <SelectItem key={value} value={value}>
+                  <span className="flex items-center gap-2">
+                    <Flag className="h-3.5 w-5 shrink-0 rounded-[2px]" />
+                    {t(labelKey)}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <div className="h-3 w-px bg-border" />
 
