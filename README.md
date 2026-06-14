@@ -2,7 +2,7 @@
 
 Free, open-source flashcard app with spaced repetition powered by the [FSRS algorithm](https://github.com/open-spaced-repetition/fsrs4anki). Study smarter, retain more, and build long-term memory.
 
-**[think-cards.com](https://think-cards.com)**
+**[think-cards.com](https://think-cards.com)** · UI built with [Stellar UI Kit](https://stellar.vsdev.app)
 
 ## Features
 
@@ -22,7 +22,7 @@ Free, open-source flashcard app with spaced repetition powered by the [FSRS algo
 | Framework | React 19 + TypeScript (strict) |
 | Routing | TanStack Router (file-based, auto code-split) |
 | Data Fetching | TanStack Query |
-| UI Components | [Stellar UI Kit](https://stellar-ui-one.vercel.app) + Radix UI |
+| UI Components | [Stellar UI Kit](https://stellar.vsdev.app) + Radix UI |
 | Styling | Tailwind CSS v3 |
 | State | Zustand |
 | Local DB | Dexie.js (IndexedDB) |
