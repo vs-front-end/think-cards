@@ -79,6 +79,7 @@ export const useCreateDeck = () => {
       name: string;
       parent_id: string | null;
       daily_goal: number;
+      language: string | null;
     }) => {
       const userId = useAuthStore.getState().user?.id;
       if (!userId) throw new Error("Not authenticated");
@@ -91,6 +92,7 @@ export const useCreateDeck = () => {
         name: input.name,
         parent_id: input.parent_id,
         daily_goal: input.daily_goal,
+        language: input.language,
         created_at: now,
         updated_at: now,
         pending_sync: 1,
@@ -121,6 +123,7 @@ export const useUpdateDeck = () => {
       name: string;
       parent_id: string | null;
       daily_goal: number;
+      language: string | null;
     }) => {
       const now = new Date().toISOString();
 
@@ -128,6 +131,7 @@ export const useUpdateDeck = () => {
         name: input.name,
         parent_id: input.parent_id,
         daily_goal: input.daily_goal,
+        language: input.language,
         updated_at: now,
         pending_sync: 1,
       });

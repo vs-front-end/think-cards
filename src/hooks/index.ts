@@ -16,3 +16,5 @@ export * from './useDocumentHead';
 export * from './useAuthListener';
 export * from './useAuthRedirect';
 export * from './useSendFeedback';
+export * from './useSpeech';
+export * from './useTtsEnabled';

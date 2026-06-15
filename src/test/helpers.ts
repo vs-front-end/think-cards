@@ -34,6 +34,7 @@ export const makeDeck = (overrides: Partial<IDeck> = {}): IDeck => ({
   name: "Test Deck",
   parent_id: null,
   daily_goal: 20,
+  language: null,
   created_at: now(),
   updated_at: now(),
   pending_sync: 0,

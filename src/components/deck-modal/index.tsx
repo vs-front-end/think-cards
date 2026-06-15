@@ -1,7 +1,21 @@
 import { useEffect, useState } from "react";
-import { useCreateDeck, useDecksList, useUpdateDeck } from "@/hooks";
+import {
+  useCreateDeck,
+  useDecksList,
+  useTtsEnabled,
+  useUpdateDeck,
+} from "@/hooks";
 import type { IDeck } from "@/lib/db";
 import { useTranslation } from "react-i18next";
+
+const SPEECH_LANGUAGES = [
+  { value: "en", label: "English" },
+  { value: "es", label: "Español" },
+  { value: "it", label: "Italiano" },
+  { value: "ja", label: "日本語" },
+  { value: "fr", label: "Français" },
+  { value: "pt-BR", label: "Português (BR)" },
+];
 
 import {
   Button,
@@ -30,6 +44,7 @@ type IDeckModalProps = {
 export function DeckModal({ deck, open, onOpenChange }: IDeckModalProps) {
   const { t } = useTranslation();
   const { data: decks = [] } = useDecksList();
+  const ttsEnabled = useTtsEnabled();
 
   const createDeck = useCreateDeck();
   const updateDeck = useUpdateDeck();
@@ -43,6 +58,9 @@ export function DeckModal({ deck, open, onOpenChange }: IDeckModalProps) {
   );
 
   const [dailyGoal, setDailyGoal] = useState(deck?.daily_goal ?? 20);
+  const [language, setLanguage] = useState<string | null>(
+    deck?.language ?? null,
+  );
   const [nameError, setNameError] = useState("");
 
   useEffect(() => {
@@ -50,6 +68,7 @@ export function DeckModal({ deck, open, onOpenChange }: IDeckModalProps) {
       setName(deck?.name ?? "");
       setParentId(deck?.parent_id ?? null);
       setDailyGoal(deck?.daily_goal ?? 20);
+      setLanguage(deck?.language ?? null);
       setNameError("");
     }
   }, [open, deck]);
@@ -59,6 +78,7 @@ export function DeckModal({ deck, open, onOpenChange }: IDeckModalProps) {
       setName("");
       setParentId(null);
       setDailyGoal(20);
+      setLanguage(null);
       setNameError("");
     }
     onOpenChange(false);
@@ -77,12 +97,18 @@ export function DeckModal({ deck, open, onOpenChange }: IDeckModalProps) {
           name: name.trim(),
           parent_id: parentId,
           daily_goal: dailyGoal,
+          language,
         },
         { onSuccess: handleClose },
       );
     } else {
       createDeck.mutate(
-        { name: name.trim(), parent_id: parentId, daily_goal: dailyGoal },
+        {
+          name: name.trim(),
+          parent_id: parentId,
+          daily_goal: dailyGoal,
+          language,
+        },
         { onSuccess: handleClose },
       );
     }
@@ -157,6 +183,30 @@ export function DeckModal({ deck, open, onOpenChange }: IDeckModalProps) {
               {t("deckModalDailyGoalDesc")}
             </Text>
           </div>
+
+          {ttsEnabled && (
+            <div className="flex flex-col gap-1.5">
+              <Label>Idioma (leitura)</Label>
+              <Select
+                value={language ?? "none"}
+                onValueChange={(v) => setLanguage(v === "none" ? null : v)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="none">Nenhum</SelectItem>
+
+                  {SPEECH_LANGUAGES.map((l) => (
+                    <SelectItem key={l.value} value={l.value}>
+                      {l.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         <DialogFooter>

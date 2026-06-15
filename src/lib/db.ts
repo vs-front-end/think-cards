@@ -10,6 +10,7 @@ export interface IDeck {
   name: string;
   parent_id: string | null;
   daily_goal: number;
+  language: string | null;
   created_at: string;
   updated_at: string;
   pending_sync: SyncFlag;

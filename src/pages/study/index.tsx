@@ -6,12 +6,15 @@ import { Button, InputText, Text } from "@stellar-ui-kit/web";
 import { cn } from "@stellar-ui-kit/shared";
 import { Pause, Play } from "lucide-react";
 import { toast } from "sonner";
+import { useLiveQuery } from "dexie-react-hooks";
 import { Loader } from "@/components";
-import { useStudySession } from "@/hooks";
+import { db } from "@/lib/db";
+import { useStudySession, useTtsEnabled } from "@/hooks";
 import {
   formatTime,
   parseClozePreview,
   parseClozeRevealed,
+  stopSpeech,
   stripAudio,
   extractAudioSrc,
 } from "@/utils";
@@ -54,6 +57,12 @@ const StudySession = ({ deckId }: StudySessionProps) => {
     answerCard,
     saveSession,
   } = useStudySession(deckId);
+
+  const ttsEnabled = useTtsEnabled();
+  const deckLanguage = useLiveQuery(
+    () => db.decks.get(deckId).then((d) => d?.language ?? null),
+    [deckId],
+  );
 
   const [revealed, setRevealed] = useState(false);
   const [flipped, setFlipped] = useState(false);
@@ -117,6 +126,7 @@ const StudySession = ({ deckId }: StudySessionProps) => {
   }, [isDone, paused, startedAt]);
 
   useEffect(() => {
+    stopSpeech();
     setNoAnim(true);
     setRevealed(false);
     setFlipped(false);
@@ -287,6 +297,8 @@ const StudySession = ({ deckId }: StudySessionProps) => {
               label={frontLabel}
               progress={progress}
               html={sanitizedFront}
+              lang={deckLanguage}
+              canSpeak={ttsEnabled}
             />
 
             {isTyping && typingChecked && (
@@ -320,6 +332,8 @@ const StudySession = ({ deckId }: StudySessionProps) => {
                 label={backLabel}
                 progress={progress}
                 html={sanitizedBack}
+                lang={deckLanguage}
+                canSpeak={ttsEnabled}
               />
             </div>
           )}
