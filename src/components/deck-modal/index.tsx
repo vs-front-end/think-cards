@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   useCreateDeck,
   useDecksList,
-  useTtsEnabled,
   useUpdateDeck,
 } from "@/hooks";
 import type { IDeck } from "@/lib/db";
@@ -44,7 +43,6 @@ type IDeckModalProps = {
 export function DeckModal({ deck, open, onOpenChange }: IDeckModalProps) {
   const { t } = useTranslation();
   const { data: decks = [] } = useDecksList();
-  const ttsEnabled = useTtsEnabled();
 
   const createDeck = useCreateDeck();
   const updateDeck = useUpdateDeck();
@@ -184,29 +182,33 @@ export function DeckModal({ deck, open, onOpenChange }: IDeckModalProps) {
             </Text>
           </div>
 
-          {ttsEnabled && (
-            <div className="flex flex-col gap-1.5">
-              <Label>Idioma (leitura)</Label>
-              <Select
-                value={language ?? "none"}
-                onValueChange={(v) => setLanguage(v === "none" ? null : v)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
+          <div className="flex flex-col gap-1.5">
+            <Label>{t("deckModalSpeechLangLabel")}</Label>
+            <Select
+              value={language ?? "none"}
+              onValueChange={(v) => setLanguage(v === "none" ? null : v)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
 
-                <SelectContent>
-                  <SelectItem value="none">Nenhum</SelectItem>
+              <SelectContent>
+                <SelectItem value="none">
+                  {t("deckModalSpeechLangNone")}
+                </SelectItem>
 
-                  {SPEECH_LANGUAGES.map((l) => (
-                    <SelectItem key={l.value} value={l.value}>
-                      {l.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+                {SPEECH_LANGUAGES.map((l) => (
+                  <SelectItem key={l.value} value={l.value}>
+                    {l.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Text as="p" className="text-xs text-muted">
+              {t("deckModalSpeechLangHint")}
+            </Text>
+          </div>
         </div>
 
         <DialogFooter>

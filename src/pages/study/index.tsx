@@ -9,7 +9,9 @@ import { toast } from "sonner";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Loader } from "@/components";
 import { db } from "@/lib/db";
-import { useStudySession, useTtsEnabled } from "@/hooks";
+import { useStudySession } from "@/hooks";
+import { requestOnboardingSurvey } from "@/pages/dashboard/components";
+
 import {
   formatTime,
   parseClozePreview,
@@ -18,8 +20,6 @@ import {
   stripAudio,
   extractAudioSrc,
 } from "@/utils";
-
-import { requestOnboardingSurvey } from "@/pages/dashboard/components";
 
 import {
   AudioPlayer,
@@ -58,7 +58,6 @@ const StudySession = ({ deckId }: StudySessionProps) => {
     saveSession,
   } = useStudySession(deckId);
 
-  const ttsEnabled = useTtsEnabled();
   const deckLanguage = useLiveQuery(
     () => db.decks.get(deckId).then((d) => d?.language ?? null),
     [deckId],
@@ -210,7 +209,9 @@ const StudySession = ({ deckId }: StudySessionProps) => {
         html.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
 
       return {
-        sanitizedFront: addLinkTargets(DOMPurify.sanitize(stripAudio(rawFront))),
+        sanitizedFront: addLinkTargets(
+          DOMPurify.sanitize(stripAudio(rawFront)),
+        ),
         sanitizedBack: addLinkTargets(DOMPurify.sanitize(stripAudio(rawBack))),
         frontAudio: extractAudioSrc(rawFront),
         backAudio: extractAudioSrc(rawBack),
@@ -298,7 +299,7 @@ const StudySession = ({ deckId }: StudySessionProps) => {
               progress={progress}
               html={sanitizedFront}
               lang={deckLanguage}
-              canSpeak={ttsEnabled}
+              active={isTyping || !revealed}
             />
 
             {isTyping && typingChecked && (
@@ -333,7 +334,7 @@ const StudySession = ({ deckId }: StudySessionProps) => {
                 progress={progress}
                 html={sanitizedBack}
                 lang={deckLanguage}
-                canSpeak={ttsEnabled}
+                active={revealed}
               />
             </div>
           )}

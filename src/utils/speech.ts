@@ -24,26 +24,33 @@ function pickVoice(lang: string | undefined): SpeechSynthesisVoice | undefined {
   if (!voices.length) return undefined;
 
   const base = langBase(lang);
+
   const matches = voices.filter(
     (v) => v.localService && langBase(v.lang) === base,
   );
+
   if (!matches.length) return undefined;
 
   const langsByName = new Map<string, Set<string>>();
+
   for (const v of voices) {
     const name = voiceBaseName(v.name);
     const set = langsByName.get(name) ?? new Set<string>();
+
     set.add(langBase(v.lang));
     langsByName.set(name, set);
   }
 
   const isCharacterVoice = (v: SpeechSynthesisVoice) =>
     (langsByName.get(voiceBaseName(v.name))?.size ?? 0) >= 3;
+
   const isPremium = (v: SpeechSynthesisVoice) =>
     /premium|enhanced/i.test(v.name);
 
   const score = (v: SpeechSynthesisVoice) =>
-    (isPremium(v) ? 4 : 0) + (isCharacterVoice(v) ? 0 : 2) + (v.default ? 1 : 0);
+    (isPremium(v) ? 4 : 0) +
+    (isCharacterVoice(v) ? 0 : 2) +
+    (v.default ? 1 : 0);
 
   return [...matches].sort((a, b) => score(b) - score(a))[0];
 }
@@ -72,6 +79,7 @@ export function speakText(
   if (lang) utterance.lang = lang;
 
   const voice = pickVoice(lang);
+
   if (voice) {
     utterance.voice = voice;
     utterance.lang = voice.lang;
@@ -83,11 +91,13 @@ export function speakText(
   utterance.onstart = () => {
     if (activeCallbacks === callbacksRef) callbacksRef?.onStart?.();
   };
+
   utterance.onend = () => {
     if (activeCallbacks !== callbacksRef) return;
     activeCallbacks = null;
     callbacksRef?.onEnd?.();
   };
+
   utterance.onerror = () => {
     if (activeCallbacks !== callbacksRef) return;
     activeCallbacks = null;
@@ -106,12 +116,15 @@ export function speakText(
 
 export function stopSpeech(): void {
   if (!isSpeechSupported()) return;
+
   if (pendingSpeak) {
     clearTimeout(pendingSpeak);
     pendingSpeak = null;
   }
+
   const callbacks = activeCallbacks;
   activeCallbacks = null;
+
   window.speechSynthesis.cancel();
   callbacks?.onEnd?.();
 }

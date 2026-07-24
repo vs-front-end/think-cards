@@ -1,4 +1,5 @@
 import { memo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Text } from "@stellar-ui-kit/web";
 import { cn } from "@stellar-ui-kit/shared";
 import { Volume2 } from "lucide-react";
@@ -9,16 +10,38 @@ type CardFaceProps = {
   progress: string;
   html: string;
   lang?: string | null;
-  canSpeak?: boolean;
+  active?: boolean;
 };
 
 export const CardFace = memo(
-  ({ label, progress, html, lang, canSpeak }: CardFaceProps) => {
+  ({ label, progress, html, lang, active }: CardFaceProps) => {
+    const { t } = useTranslation();
     const { toggle, stop, isSpeaking, isSupported } = useSpeech();
 
     useEffect(() => stop, [html, stop]);
 
-    const showSpeak = canSpeak && isSupported && !!lang;
+    const showSpeak = isSupported && !!lang;
+
+    useEffect(() => {
+      if (!active || !showSpeak) return;
+
+      const handler = (e: KeyboardEvent) => {
+        const el = document.activeElement;
+        const isInputFocused =
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement ||
+          el instanceof HTMLInputElement ||
+          el instanceof HTMLTextAreaElement;
+
+        if (isInputFocused || e.code !== "KeyR") return;
+
+        e.preventDefault();
+        toggle(html, lang ?? undefined);
+      };
+
+      window.addEventListener("keydown", handler);
+      return () => window.removeEventListener("keydown", handler);
+    }, [active, showSpeak, html, lang, toggle]);
 
     return (
       <>
@@ -29,31 +52,31 @@ export const CardFace = memo(
           >
             {label}
           </Text>
+          <Text
+            as="span"
+            className="text-[11px] font-medium tabular-nums text-muted"
+          >
+            {progress}
+          </Text>
 
-          <div className="flex items-center gap-2">
-            {showSpeak && (
-              <button
-                type="button"
-                onClick={() => toggle(html, lang ?? undefined)}
-                aria-label={isSpeaking ? "Stop" : "Speak"}
-                className={cn(
-                  "flex shrink-0 items-center justify-center transition-colors pb-0.5",
-                  isSpeaking
-                    ? "text-primary"
-                    : "text-muted hover:text-foreground",
-                )}
-              >
-                <Volume2 className="size-3.5" />
-              </button>
-            )}
-
-            <Text
-              as="span"
-              className="text-[11px] font-medium tabular-nums text-muted"
+          {showSpeak && (
+            <button
+              type="button"
+              onClick={() => toggle(html, lang ?? undefined)}
+              aria-label={isSpeaking ? t("studyStop") : t("studySpeak")}
+              className={cn(
+                "flex shrink-0 items-center justify-center gap-1 transition-colors pb-0.5",
+                isSpeaking
+                  ? "text-primary"
+                  : "text-muted hover:text-foreground",
+              )}
             >
-              {progress}
-            </Text>
-          </div>
+              <Volume2 className="size-3.5" />
+              <span className="hidden pt-0.5 text-[10px] font-semibold opacity-50 md:inline">
+                [ R ]
+              </span>
+            </button>
+          )}
         </div>
 
         <div className="mx-4 h-px bg-border" />
