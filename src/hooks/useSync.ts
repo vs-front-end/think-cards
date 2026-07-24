@@ -4,10 +4,14 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSyncStore, useAuthStore } from "@/store";
 import { syncAll } from "@/lib/sync";
+import { db } from "@/lib/db";
 
 let syncScheduled = false;
 let currentSyncSession = 0;
 let listenersOwner = false;
+
+const INITIAL_SYNC_GATE_MS = 8000;
+const INITIAL_PULL_GATE_MS = 60000;
 
 export const resetSyncState = () => {
   syncScheduled = false;
@@ -69,11 +73,28 @@ export const useSync = () => {
     if (!syncScheduled) {
       syncScheduled = true;
       const sessionAtStart = currentSyncSession;
-      runSync(userId, false).finally(() => {
-        syncScheduled = false;
+
+      let settled = false;
+
+      const markInitialSyncDone = () => {
+        if (settled) return;
+        settled = true;
         if (currentSyncSession === sessionAtStart) {
           useSyncStore.getState().setInitialSyncDone();
         }
+      };
+
+      db.cards.count().then((localCards) => {
+        if (settled) return;
+        setTimeout(
+          markInitialSyncDone,
+          localCards === 0 ? INITIAL_PULL_GATE_MS : INITIAL_SYNC_GATE_MS,
+        );
+      });
+
+      runSync(userId, false).finally(() => {
+        syncScheduled = false;
+        markInitialSyncDone();
       });
     }
 
