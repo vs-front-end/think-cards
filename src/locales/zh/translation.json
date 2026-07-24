@@ -568,6 +568,7 @@
   "generateCardsJsonPlaceholder": "在此粘贴 AI 输出...",
   "generateCardsDetected": "检测到 {{count}} 张卡片",
   "generateCardsInvalidJson": "输出无效。请确保格式与所选卡片类型的示例一致。",
+  "generateCardsTooManyCards": "卡片过多。每次最多导入 {{max}} 张。",
   "generateCardsImport": "创建 {{count}} 张卡片",
   "generateCardsImporting": "正在创建卡片...",
   "generateCardsSuccess": "已成功创建 {{count}} 张卡片。",

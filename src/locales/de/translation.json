@@ -568,6 +568,7 @@
   "generateCardsJsonPlaceholder": "Füge die KI-Ausgabe hier ein...",
   "generateCardsDetected": "{{count}} Karten erkannt",
   "generateCardsInvalidJson": "Ungültige Ausgabe. Stelle sicher, dass das Format dem Beispiel für den gewählten Kartentyp entspricht.",
+  "generateCardsTooManyCards": "Zu viele Karten. Importiere maximal {{max}} auf einmal.",
   "generateCardsImport": "{{count}} Karten erstellen",
   "generateCardsImporting": "Karten werden erstellt...",
   "generateCardsSuccess": "{{count}} Karten erfolgreich erstellt.",

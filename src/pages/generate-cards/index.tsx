@@ -30,6 +30,8 @@ import {
 
 type RawCard = { front: string; back?: string };
 
+const MAX_AI_CARDS = 100;
+
 const parseCards = (raw: string, type: CardType): RawCard[] | null => {
   try {
     const parsed: unknown = JSON.parse(raw.trim());
@@ -78,6 +80,7 @@ export const GenerateCardsPage = () => {
 
   const parsed = json.trim() ? parseCards(json, cardType) : null;
   const isInvalid = json.trim().length > 0 && parsed === null;
+  const isOverLimit = parsed !== null && parsed.length > MAX_AI_CARDS;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(prompts[promptTab]);
@@ -93,6 +96,11 @@ export const GenerateCardsPage = () => {
 
     if (!parsed) {
       toast.error(t("generateCardsInvalidJson"));
+      return;
+    }
+
+    if (parsed.length > MAX_AI_CARDS) {
+      toast.error(t("generateCardsTooManyCards", { max: MAX_AI_CARDS }));
       return;
     }
 
@@ -307,12 +315,18 @@ export const GenerateCardsPage = () => {
                 {t("generateCardsInvalidJson")}
               </Text>
             )}
+
+            {isOverLimit && (
+              <Text as="p" className="text-xs text-error-text">
+                {t("generateCardsTooManyCards", { max: MAX_AI_CARDS })}
+              </Text>
+            )}
           </div>
 
           <Button
             type="button"
             onClick={handleImport}
-            disabled={importing || !deckId || !parsed}
+            disabled={importing || !deckId || !parsed || isOverLimit}
             className="w-full sm:w-auto"
           >
             {importing

@@ -568,6 +568,7 @@
   "generateCardsJsonPlaceholder": "Paste the AI output here...",
   "generateCardsDetected": "{{count}} cards detected",
   "generateCardsInvalidJson": "Invalid output. Make sure the format matches the example for the selected card type.",
+  "generateCardsTooManyCards": "Too many cards. Import up to {{max}} at a time.",
   "generateCardsImport": "Create {{count}} cards",
   "generateCardsImporting": "Creating cards...",
   "generateCardsSuccess": "{{count}} cards created successfully.",

@@ -568,6 +568,7 @@
   "generateCardsJsonPlaceholder": "AIの出力をここに貼り付け...",
   "generateCardsDetected": "{{count}}枚のカードを検出",
   "generateCardsInvalidJson": "出力が無効です。形式が、選択したカードの種類の例と一致しているか確認してください。",
+  "generateCardsTooManyCards": "カードが多すぎます。一度に最大{{max}}枚までインポートできます。",
   "generateCardsImport": "{{count}}枚のカードを作成",
   "generateCardsImporting": "カードを作成中...",
   "generateCardsSuccess": "{{count}}枚のカードを正常に作成しました。",

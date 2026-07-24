@@ -568,6 +568,7 @@
   "generateCardsJsonPlaceholder": "Incolla qui l'output dell'IA...",
   "generateCardsDetected": "{{count}} carte rilevate",
   "generateCardsInvalidJson": "Output non valido. Assicurati che il formato corrisponda all'esempio per il tipo di carta selezionato.",
+  "generateCardsTooManyCards": "Troppe carte. Importa al massimo {{max}} alla volta.",
   "generateCardsImport": "Crea {{count}} carte",
   "generateCardsImporting": "Creazione carte...",
   "generateCardsSuccess": "{{count}} carte create con successo.",

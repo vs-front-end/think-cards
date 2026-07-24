@@ -573,6 +573,7 @@
   "generateCardsJsonPlaceholder": "Вставьте результат ИИ сюда...",
   "generateCardsDetected": "Обнаружено карточек: {{count}}",
   "generateCardsInvalidJson": "Недопустимый результат. Убедитесь, что формат соответствует примеру для выбранного типа карточки.",
+  "generateCardsTooManyCards": "Слишком много карточек. Импортируйте не более {{max}} за раз.",
   "generateCardsImport": "Создать {{count}} карточек",
   "generateCardsImporting": "Создание карточек...",
   "generateCardsSuccess": "Создано карточек: {{count}}.",
