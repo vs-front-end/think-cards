@@ -1,20 +1,13 @@
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { hasStoredSupabaseSession } from "@/lib/auth-storage";
 import { useAuthStore } from "@/store";
 
 export const useAuthListener = () => {
-  const { setUser, setSession, setIsLoading } = useAuthStore.getState();
+  const { logout, setUser, setSession, setIsLoading } =
+    useAuthStore.getState();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user.email_confirmed_at) {
-        setSession(session);
-        setUser(session.user);
-      }
-
-      setIsLoading(false);
-    });
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -30,10 +23,13 @@ export const useAuthListener = () => {
         return;
       }
 
-      if (event === "SIGNED_OUT" && navigator.onLine) {
-        setSession(null);
-        setUser(null);
-        setIsLoading(false);
+      if (event === "SIGNED_OUT") {
+        logout();
+        return;
+      }
+
+      if (event === "INITIAL_SESSION" && !hasStoredSupabaseSession()) {
+        logout();
         return;
       }
 

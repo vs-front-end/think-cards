@@ -11,7 +11,6 @@ let currentSyncSession = 0;
 let listenersOwner = false;
 
 const INITIAL_SYNC_GATE_MS = 8000;
-const INITIAL_PULL_GATE_MS = 60000;
 
 export const resetSyncState = () => {
   syncScheduled = false;
@@ -84,15 +83,25 @@ export const useSync = () => {
         }
       };
 
-      db.cards.count().then((localCards) => {
-        if (settled) return;
-        setTimeout(
-          markInitialSyncDone,
-          localCards === 0 ? INITIAL_PULL_GATE_MS : INITIAL_SYNC_GATE_MS,
-        );
-      });
+      const gateTimer = setTimeout(
+        markInitialSyncDone,
+        INITIAL_SYNC_GATE_MS,
+      );
+
+      Promise.all([db.decks.count(), db.cards.count()])
+        .then(([localDecks, localCards]) => {
+          if (localDecks > 0 || localCards > 0 || !navigator.onLine) {
+            clearTimeout(gateTimer);
+            markInitialSyncDone();
+          }
+        })
+        .catch(() => {
+          clearTimeout(gateTimer);
+          markInitialSyncDone();
+        });
 
       runSync(userId, false).finally(() => {
+        clearTimeout(gateTimer);
         syncScheduled = false;
         markInitialSyncDone();
       });
