@@ -7,12 +7,12 @@ Free, open-source flashcard app with spaced repetition powered by the [FSRS algo
 ## Features
 
 - **FSRS Spaced Repetition** - Each card gets its own adaptive schedule based on your memory performance
-- **Offline-First** - Study anywhere without internet. Data syncs automatically when you reconnect
-- **PWA** - Install on desktop or mobile. No app store required
+- **Offline-First Core** - Decks, text cards, reviews, and study history work offline after the first load. Changes sync when the app is open online
+- **Web & PWA** - Use it in a modern browser and install it where the browser supports PWA installation
 - **Decks & Subdecks** - Organize cards by subject, chapter, or any structure
 - **Card Types** - Basic (front/back), cloze (fill-in-the-blank), and typing cards
 - **Progress Tracking** - Streaks, study time, card distribution, and daily goals
-- **Multi-Language** - English, Portuguese (BR), and Spanish
+- **Multi-Language** - English, Portuguese (BR), Spanish, German, French, Italian, Japanese, Korean, Russian, and Chinese
 - **Themes** - Light, dark, and ocean
 
 ## Tech Stack
@@ -74,7 +74,7 @@ src/
   components/    # Reusable UI components
   hooks/         # Custom React hooks
   lib/           # Core libraries (db, supabase, i18n, sync)
-  locales/       # Translation files (en, es, pt-BR)
+  locales/       # Translation files (10 supported languages)
   routes/        # File-based routes (TanStack Router)
   store/         # Zustand stores
   utils/         # Utility functions
@@ -82,4 +82,4 @@ src/
 
 ## License
 
-MIT
+[MIT](LICENSE)

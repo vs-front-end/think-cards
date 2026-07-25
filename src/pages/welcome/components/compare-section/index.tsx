@@ -22,12 +22,6 @@ const COMPARE_ROWS = [
     leitner: "no",
   },
   {
-    featureKey: "welcomeCompareFeatureRetention",
-    fsrs: "welcomeCompareConfigurable",
-    sm2: "welcomeCompareNone",
-    leitner: "welcomeCompareNone",
-  },
-  {
     featureKey: "welcomeCompareFeatureOpenSource",
     fsrs: "check",
     sm2: "partial",
