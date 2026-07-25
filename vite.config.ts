@@ -48,5 +48,17 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
+    coverage: {
+      provider: "v8",
+      include: [
+        "src/hooks/**/*.ts",
+        "src/lib/**/*.ts",
+        "src/store/**/*.ts",
+        "src/utils/**/*.ts",
+        "src/pages/generate-cards/*.ts",
+      ],
+      exclude: ["src/test/**"],
+      reporter: ["text", "html"],
+    },
   },
 });

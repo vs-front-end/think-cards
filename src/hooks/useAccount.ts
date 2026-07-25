@@ -28,32 +28,47 @@ export const useResetStats = () => {
     mutationFn: async () => {
       const {
         data: { user },
+        error: userError,
       } = await supabase.auth.getUser();
+      if (userError) throw userError;
       if (!user) throw new Error("Not authenticated");
 
-      const deckIds = await supabase
+      const { data: decks, error: decksError } = await supabase
         .from("decks")
         .select("id")
-        .eq("user_id", user.id)
-        .then(({ data }) => (data ?? []).map((d) => d.id));
+        .eq("user_id", user.id);
+      if (decksError) throw decksError;
+
+      const deckIds = (decks ?? []).map((deck) => deck.id);
 
       const now = new Date();
       const fresh = createEmptyCard(now);
       const nowIso = now.toISOString();
       const freshDueIso = fresh.due.toISOString();
 
-      await supabase.from("revlog").delete().eq("user_id", user.id);
-      await supabase.from("session_log").delete().eq("user_id", user.id);
+      const { error: revlogError } = await supabase
+        .from("revlog")
+        .delete()
+        .eq("user_id", user.id);
+      if (revlogError) throw revlogError;
+
+      const { error: sessionError } = await supabase
+        .from("session_log")
+        .delete()
+        .eq("user_id", user.id);
+      if (sessionError) throw sessionError;
 
       if (deckIds.length > 0) {
-        const cardIds = await supabase
+        const { data: cards, error: cardsError } = await supabase
           .from("cards")
           .select("id")
-          .in("deck_id", deckIds)
-          .then(({ data }) => (data ?? []).map((c) => c.id));
+          .in("deck_id", deckIds);
+        if (cardsError) throw cardsError;
+
+        const cardIds = (cards ?? []).map((card) => card.id);
 
         if (cardIds.length > 0) {
-          await supabase
+          const { error: stateError } = await supabase
             .from("card_state")
             .update({
               stability: fresh.stability,
@@ -67,6 +82,7 @@ export const useResetStats = () => {
               updated_at: nowIso,
             })
             .in("card_id", cardIds);
+          if (stateError) throw stateError;
         }
       }
 
@@ -98,32 +114,60 @@ export const useResetData = () => {
     mutationFn: async () => {
       const {
         data: { user },
+        error: userError,
       } = await supabase.auth.getUser();
+      if (userError) throw userError;
       if (!user) throw new Error("Not authenticated");
 
-      const deckIds = await supabase
+      const { data: decks, error: decksError } = await supabase
         .from("decks")
         .select("id")
-        .eq("user_id", user.id)
-        .then(({ data }) => (data ?? []).map((d) => d.id));
+        .eq("user_id", user.id);
+      if (decksError) throw decksError;
+
+      const deckIds = (decks ?? []).map((deck) => deck.id);
 
       if (deckIds.length > 0) {
-        const cardIds = await supabase
+        const { data: cards, error: cardsError } = await supabase
           .from("cards")
           .select("id")
-          .in("deck_id", deckIds)
-          .then(({ data }) => (data ?? []).map((c) => c.id));
+          .in("deck_id", deckIds);
+        if (cardsError) throw cardsError;
+
+        const cardIds = (cards ?? []).map((card) => card.id);
 
         if (cardIds.length > 0) {
-          await supabase.from("revlog").delete().in("card_id", cardIds);
-          await supabase.from("card_state").delete().in("card_id", cardIds);
+          const { error: revlogError } = await supabase
+            .from("revlog")
+            .delete()
+            .in("card_id", cardIds);
+          if (revlogError) throw revlogError;
+
+          const { error: stateError } = await supabase
+            .from("card_state")
+            .delete()
+            .in("card_id", cardIds);
+          if (stateError) throw stateError;
         }
 
-        await supabase.from("session_log").delete().in("deck_id", deckIds);
-        await supabase.from("cards").delete().in("deck_id", deckIds);
+        const { error: sessionError } = await supabase
+          .from("session_log")
+          .delete()
+          .in("deck_id", deckIds);
+        if (sessionError) throw sessionError;
+
+        const { error: cardsDeleteError } = await supabase
+          .from("cards")
+          .delete()
+          .in("deck_id", deckIds);
+        if (cardsDeleteError) throw cardsDeleteError;
       }
 
-      await supabase.from("decks").delete().eq("user_id", user.id);
+      const { error: decksDeleteError } = await supabase
+        .from("decks")
+        .delete()
+        .eq("user_id", user.id);
+      if (decksDeleteError) throw decksDeleteError;
 
       await clearLocalDb();
     },

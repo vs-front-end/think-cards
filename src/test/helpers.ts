@@ -1,8 +1,9 @@
-import { db } from "@/lib/db";
-import { State } from "ts-fsrs";
 import { createElement } from "react";
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { State } from "ts-fsrs";
+
+import { db } from "@/lib/db";
 import type { IDeck, ICard, ICardState } from "@/lib/db";
 
 export const clearDb = () =>
@@ -13,6 +14,7 @@ export const clearDb = () =>
     db.revlog.clear(),
     db.session_log.clear(),
     db.sync_meta.clear(),
+    db.profile_cache.clear(),
   ]);
 
 export const makeWrapper = () => {

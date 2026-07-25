@@ -1,9 +1,9 @@
-import { db } from "@/lib/db";
 import { State } from "ts-fsrs";
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import { useResetStats } from "@/hooks/useAccount";
+import { act, renderHook } from "@testing-library/react";
 
+import { useResetData, useResetStats } from "@/hooks/useAccount";
+import { db } from "@/lib/db";
 import {
   clearDb,
   makeWrapper,
@@ -99,5 +99,35 @@ describe("useResetStats", () => {
     const state = (await db.card_state.toArray())[0];
     expect(state.reps).toBe(0);
     expect(state.state).toBe(State.New);
+  });
+});
+
+describe("useResetData", () => {
+  it("clears every local study table", async () => {
+    const deck = makeDeck();
+    const card = makeCard({ deck_id: deck.id });
+    const state = makeCardState(card.id);
+
+    await db.decks.add(deck);
+    await db.cards.add(card);
+    await db.card_state.add(state);
+    await db.sync_meta.add({
+      user_id: "test-user",
+      last_synced_at: new Date().toISOString(),
+      initial_pull_done: true,
+    });
+
+    const { result } = renderHook(() => useResetData(), {
+      wrapper: makeWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync();
+    });
+
+    expect(await db.decks.count()).toBe(0);
+    expect(await db.cards.count()).toBe(0);
+    expect(await db.card_state.count()).toBe(0);
+    expect(await db.sync_meta.count()).toBe(0);
   });
 });

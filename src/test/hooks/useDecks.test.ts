@@ -1,8 +1,15 @@
-import { db } from "@/lib/db";
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import { useDeleteDeck } from "@/hooks/useDecks";
+import { act, renderHook, waitFor } from "@testing-library/react";
+
+import { db } from "@/lib/db";
 import { clearDb, makeWrapper, makeDeck, makeCard } from "@/test/helpers";
+
+import {
+  useCreateDeck,
+  useDecks,
+  useDeleteDeck,
+  useUpdateDeck,
+} from "@/hooks/useDecks";
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("i18next", () => ({ default: { t: (k: string) => k } }));
@@ -19,6 +26,70 @@ vi.mock("@/store", () => {
 });
 
 beforeEach(clearDb);
+
+describe("deck CRUD", () => {
+  it("creates and reads a deck marked for synchronization", async () => {
+    const createHook = renderHook(() => useCreateDeck(), {
+      wrapper: makeWrapper(),
+    });
+
+    let createdId = "";
+    await act(async () => {
+      const created = await createHook.result.current.mutateAsync({
+        name: "Biology",
+        parent_id: null,
+        daily_goal: 30,
+        language: "en",
+      });
+      createdId = created.id;
+    });
+
+    const readHook = renderHook(() => useDecks());
+
+    await waitFor(() => {
+      expect(readHook.result.current.isLoading).toBe(false);
+      expect(readHook.result.current.data).toHaveLength(1);
+    });
+
+    expect(readHook.result.current.data?.[0]).toMatchObject({
+      id: createdId,
+      user_id: "test-user",
+      name: "Biology",
+      daily_goal: 30,
+      language: "en",
+      pending_sync: 1,
+      deleted_at: null,
+    });
+  });
+
+  it("updates deck fields and marks the change for synchronization", async () => {
+    const deck = makeDeck();
+    await db.decks.add(deck);
+
+    const { result } = renderHook(() => useUpdateDeck(), {
+      wrapper: makeWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        id: deck.id,
+        name: "Updated deck",
+        parent_id: null,
+        daily_goal: 40,
+        language: "pt-BR",
+      });
+    });
+
+    const stored = await db.decks.get(deck.id);
+    expect(stored).toMatchObject({
+      name: "Updated deck",
+      daily_goal: 40,
+      language: "pt-BR",
+      pending_sync: 1,
+    });
+    expect(stored?.updated_at).not.toBe(deck.updated_at);
+  });
+});
 
 describe("useDeleteDeck", () => {
   it("recursively soft-deletes a deck, its children, and all their cards", async () => {
