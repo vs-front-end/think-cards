@@ -36,7 +36,10 @@ const runSyncInternal = async (
     const synced = await syncWithRetry(userId);
 
     if (synced) {
-      await qc.invalidateQueries({ queryKey: ["dashboard"] });
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["dashboard"] }),
+        qc.invalidateQueries({ queryKey: ["statistics"] }),
+      ]);
       if (showToast) {
         toast.success(i18next.t("syncSuccess"), { duration: 2000 });
       }

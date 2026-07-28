@@ -1,5 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { QueryClient } from "@tanstack/react-query";
 
 import { resetSyncState, useSync } from "@/hooks/useSync";
 import { useAuthStore, useSyncStore } from "@/store";
@@ -131,6 +132,32 @@ describe("useSync offline lifecycle", () => {
 
     await act(async () => finishSync?.(false));
     expect(useSyncStore.getState().initialSyncDone).toBe(true);
+    unmount();
+  });
+
+  it("refreshes dashboard and statistics after synchronized changes", async () => {
+    setOnline(true);
+    mocks.syncAll.mockResolvedValue(true);
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const invalidateQueries = vi.spyOn(queryClient, "invalidateQueries");
+
+    const { unmount } = renderHook(() => useSync(), {
+      wrapper: makeWrapper(queryClient),
+    });
+    await flushTimers();
+
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["dashboard"],
+    });
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["statistics"],
+    });
     unmount();
   });
 });

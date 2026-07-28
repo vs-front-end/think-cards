@@ -17,10 +17,12 @@ export const clearDb = () =>
     db.profile_cache.clear(),
   ]);
 
-export const makeWrapper = () => {
-  const qc = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
-  });
+export const makeWrapper = (queryClient?: QueryClient) => {
+  const qc =
+    queryClient ??
+    new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
 
   return ({ children }: { children: ReactNode }) => {
     return createElement(QueryClientProvider, { client: qc }, children);
