@@ -70,8 +70,17 @@ export const useDashboardData = () => {
         fetchDailyGoalDefault(userId),
       ]);
 
+      const activeDeckIds = new Set(decks.map((deck) => deck.id));
+
+      const activeCards = cards.filter((card) =>
+        activeDeckIds.has(card.deck_id),
+      );
+
       const cardStateMap = new Map(allCardStates.map((s) => [s.card_id, s]));
-      const cardDeckMap = new Map(cards.map((c) => [c.id, c.deck_id]));
+
+      const cardDeckMap = new Map(
+        activeCards.map((card) => [card.id, card.deck_id]),
+      );
 
       const pendingToday = allCardStates.filter(
         (s) => s.state === State.New && cardDeckMap.has(s.card_id),
@@ -94,7 +103,7 @@ export const useDashboardData = () => {
         { newCount: number; learningCount: number; reviewCount: number }
       >();
 
-      for (const card of cards) {
+      for (const card of activeCards) {
         const state = cardStateMap.get(card.id);
         if (!state || state.due > todayEndIso) continue;
 
@@ -133,7 +142,7 @@ export const useDashboardData = () => {
 
       return {
         totalDecks: decks.length,
-        totalCards: cards.length,
+        totalCards: activeCards.length,
         pendingToday,
         streak,
         studiedToday,

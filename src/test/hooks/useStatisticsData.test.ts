@@ -3,7 +3,14 @@ import { State } from "ts-fsrs";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { useStatisticsData } from "@/hooks/useStatisticsData";
-import { clearDb, makeWrapper, makeCard, makeCardState } from "@/test/helpers";
+
+import {
+  clearDb,
+  makeWrapper,
+  makeCard,
+  makeCardState,
+  makeDeck,
+} from "@/test/helpers";
 
 vi.mock("@/store", () => {
   const mockState = { user: { id: "test-user" }, session: null };
@@ -36,7 +43,16 @@ const rendered = () =>
 
 describe("useStatisticsData — distribution", () => {
   it("counts cards by FSRS state", async () => {
-    const cards = [makeCard(), makeCard(), makeCard(), makeCard()];
+    const deck = makeDeck({ user_id: "test-user" });
+
+    const cards = [
+      makeCard({ deck_id: deck.id }),
+      makeCard({ deck_id: deck.id }),
+      makeCard({ deck_id: deck.id }),
+      makeCard({ deck_id: deck.id }),
+    ];
+
+    await db.decks.add(deck);
     await db.cards.bulkAdd(cards);
 
     await db.card_state.bulkAdd([
@@ -56,13 +72,46 @@ describe("useStatisticsData — distribution", () => {
       total: 4,
     });
   });
+
+  it("excludes cards that belong to soft-deleted decks", async () => {
+    const activeDeck = makeDeck({ id: "active-deck", user_id: "test-user" });
+
+    const deletedDeck = makeDeck({
+      id: "deleted-deck",
+      user_id: "test-user",
+      deleted_at: new Date().toISOString(),
+    });
+
+    const activeCard = makeCard({ deck_id: activeDeck.id });
+    const orphanedCard = makeCard({ deck_id: deletedDeck.id });
+
+    await db.decks.bulkAdd([activeDeck, deletedDeck]);
+    await db.cards.bulkAdd([activeCard, orphanedCard]);
+
+    await db.card_state.bulkAdd([
+      makeCardState(activeCard.id, { state: State.New }),
+      makeCardState(orphanedCard.id, { state: State.Review }),
+    ]);
+
+    const { result } = rendered();
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data?.distribution).toEqual({
+      new: 1,
+      learning: 0,
+      review: 0,
+      total: 1,
+    });
+  });
 });
 
 describe("useStatisticsData — trueRetention", () => {
   it("calculates non-Again rate for mature card reviews only", async () => {
-    const newCard = makeCard();
-    const matureCard = makeCard();
+    const deck = makeDeck({ user_id: "test-user" });
+    const newCard = makeCard({ deck_id: deck.id });
+    const matureCard = makeCard({ deck_id: deck.id });
 
+    await db.decks.add(deck);
     await db.cards.bulkAdd([newCard, matureCard]);
 
     await db.card_state.bulkAdd([

@@ -3,6 +3,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import i18next from "i18next";
 import { toast } from "sonner";
 import { db } from "@/lib/db";
+import { requestSync } from "@/lib/sync";
 import { State } from "ts-fsrs";
 import type { CardType } from "@/lib/db";
 
@@ -109,6 +110,7 @@ export const useMoveCards = () => {
 
     onSuccess: (cardIds) => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      requestSync().catch(console.error);
       toast.success(i18next.t("cardsMoved", { count: cardIds.length }));
     },
 
@@ -135,6 +137,7 @@ export const useBulkDeleteCards = () => {
     },
     onSuccess: (cardIds) => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      requestSync().catch(console.error);
       toast.success(i18next.t("cardsDeleted", { count: cardIds.length }));
     },
     onError: () => {

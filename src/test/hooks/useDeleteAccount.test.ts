@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   invoke: vi.fn(),
   logout: vi.fn(),
   resetSyncState: vi.fn(),
+  runExclusiveDataOperation: vi.fn(),
   signOut: vi.fn(),
 }));
 
@@ -20,9 +21,14 @@ vi.mock("@/lib/supabase", () => ({
 }));
 
 vi.mock("@/lib/db", () => ({ clearLocalDb: mocks.clearLocalDb }));
+vi.mock("@/lib/sync", () => ({
+  runExclusiveDataOperation: mocks.runExclusiveDataOperation,
+}));
+
 vi.mock("@/hooks/useSync", () => ({
   resetSyncState: mocks.resetSyncState,
 }));
+
 vi.mock("@/store", () => ({
   useAuthStore: {
     getState: () => ({ logout: mocks.logout }),
@@ -32,6 +38,11 @@ vi.mock("@/store", () => ({
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.invoke.mockResolvedValue({ data: { success: true }, error: null });
+
+  mocks.runExclusiveDataOperation.mockImplementation(
+    async (operation: () => Promise<unknown>) => operation(),
+  );
+
   mocks.signOut.mockResolvedValue({ error: null });
 });
 

@@ -1,9 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
+import type { Provider } from "@supabase/supabase-js";
+
 import { supabase } from "@/lib/supabase";
 import { clearLocalDb } from "@/lib/db";
 import { useAuthStore } from "@/store";
 import { resetSyncState } from "@/hooks/useSync";
-import type { Provider } from "@supabase/supabase-js";
+import { flushPendingChanges, runExclusiveDataOperation } from "@/lib/sync";
 
 export const useSession = () => {
   return useAuthStore((s) => s.session);
@@ -50,10 +52,18 @@ export const useSignOut = () => {
   const logout = useAuthStore((s) => s.logout);
 
   return async () => {
-    resetSyncState();
-    await supabase.auth.signOut({ scope: "global" });
-    await clearLocalDb();
-    logout();
+    const userId = useAuthStore.getState().user?.id;
+
+    if (userId && !(await flushPendingChanges(userId))) {
+      throw new Error("Pending changes could not be synchronized");
+    }
+
+    await runExclusiveDataOperation(async () => {
+      resetSyncState();
+      await supabase.auth.signOut({ scope: "global" });
+      await clearLocalDb();
+      logout();
+    });
   };
 };
 

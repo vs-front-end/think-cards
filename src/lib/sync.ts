@@ -1,21 +1,35 @@
-import { db } from "@/lib/db";
+import { createEmptyCard } from "ts-fsrs";
+
+import { clearLocalDb, db } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
-import { useSyncStore } from "@/store";
+import { useAuthStore } from "@/store/authStore";
+import { useSyncStore } from "@/store/syncStore";
+import type { ICard, ICardState, IDeck, ISyncMeta } from "@/lib/db";
 
 const PAGE_SIZE = 500;
+let operationQueue: Promise<void> = Promise.resolve();
+let activeSync: Promise<boolean> | null = null;
+let syncRerunRequested = false;
 
 const getSyncMeta = async (
   userId: string,
-): Promise<{ lastSyncedAt: string | null; initialPullDone: boolean }> => {
+): Promise<{
+  lastSyncedAt: string | null;
+  initialPullDone: boolean;
+  statsResetAt: string | null;
+  dataResetAt: string | null;
+}> => {
   const meta = await db.sync_meta.get(userId);
 
   return {
     lastSyncedAt: meta?.last_synced_at ?? null,
     initialPullDone: meta?.initial_pull_done ?? false,
+    statsResetAt: meta?.stats_reset_at ?? null,
+    dataResetAt: meta?.data_reset_at ?? null,
   };
 };
 
-const countPending = async (): Promise<number> => {
+export const countPendingChanges = async (): Promise<number> => {
   const [decks, cards, cardState, revlog, sessionLog] = await Promise.all([
     db.decks.where("pending_sync").equals(1).count(),
     db.cards.where("pending_sync").equals(1).count(),
@@ -25,6 +39,97 @@ const countPending = async (): Promise<number> => {
   ]);
 
   return decks + cards + cardState + revlog + sessionLog;
+};
+
+const enqueueOperation = <T>(operation: () => Promise<T>): Promise<T> => {
+  const result = operationQueue.then(operation, operation);
+  operationQueue = result.then(
+    () => undefined,
+    () => undefined,
+  );
+  return result;
+};
+
+export const runExclusiveDataOperation = <T>(
+  operation: () => Promise<T>,
+): Promise<T> => enqueueOperation(operation);
+
+const getRemoteResetState = async (): Promise<{
+  statsResetAt: string | null;
+  dataResetAt: string | null;
+}> => {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("stats_reset_at, data_reset_at")
+    .limit(1);
+
+  if (error) throw error;
+
+  const statsResetAt = data?.[0]?.stats_reset_at;
+  const dataResetAt = data?.[0]?.data_reset_at;
+
+  return {
+    statsResetAt: typeof statsResetAt === "string" ? statsResetAt : null,
+    dataResetAt: typeof dataResetAt === "string" ? dataResetAt : null,
+  };
+};
+
+export const applyStatsResetLocally = async (
+  userId: string,
+  resetAt: string,
+): Promise<void> => {
+  const decks = await db.decks.where("user_id").equals(userId).toArray();
+  const deckIds = decks.map((deck) => deck.id);
+
+  const cards = deckIds.length
+    ? await db.cards.where("deck_id").anyOf(deckIds).toArray()
+    : [];
+
+  const cardIds = cards.map((card) => card.id);
+
+  const pendingByCardId = new Map(
+    cards.map((card) => [card.id, card.pending_sync]),
+  );
+
+  const fresh = createEmptyCard(new Date(resetAt));
+
+  await db.transaction(
+    "rw",
+    db.card_state,
+    db.revlog,
+    db.session_log,
+    async () => {
+      await Promise.all([
+        db.revlog.where("user_id").equals(userId).delete(),
+        db.session_log.where("user_id").equals(userId).delete(),
+      ]);
+
+      if (!cardIds.length) return;
+
+      const states = await db.card_state
+        .where("card_id")
+        .anyOf(cardIds)
+        .toArray();
+
+      await db.card_state.bulkUpdate(
+        states.map((state) => ({
+          key: state.id,
+          changes: {
+            stability: fresh.stability,
+            difficulty: fresh.difficulty,
+            due: fresh.due.toISOString(),
+            last_review: null,
+            state: fresh.state,
+            reps: fresh.reps,
+            lapses: fresh.lapses,
+            learning_steps: fresh.learning_steps,
+            updated_at: resetAt,
+            pending_sync: pendingByCardId.get(state.card_id) ? 1 : 0,
+          },
+        })),
+      );
+    },
+  );
 };
 
 const hasRemoteChanges = async (lastSyncedAt: string): Promise<boolean> => {
@@ -51,15 +156,25 @@ const hasRemoteChanges = async (lastSyncedAt: string): Promise<boolean> => {
       supabase
         .from("revlog")
         .select("id")
-        .gt("reviewed_at", lastSyncedAt)
+        .gt("sync_updated_at", lastSyncedAt)
         .limit(1),
 
       supabase
         .from("session_log")
         .select("id")
-        .gt("started_at", lastSyncedAt)
+        .gt("sync_updated_at", lastSyncedAt)
         .limit(1),
     ]);
+
+  const error = [
+    decksRes,
+    cardsRes,
+    cardStateRes,
+    revlogRes,
+    sessionLogRes,
+  ].find((result) => result.error)?.error;
+
+  if (error) throw error;
 
   return (
     (decksRes.data?.length ?? 0) > 0 ||
@@ -88,6 +203,70 @@ const pushTable = async <T extends Record<string, unknown>>(
   }
 };
 
+const markDecksSyncedIfUnchanged = async (rows: IDeck[]): Promise<void> => {
+  const pendingRows = rows.filter((row) => row.pending_sync === 1);
+  const currentRows = await db.decks.bulkGet(pendingRows.map((row) => row.id));
+
+  await db.decks.bulkUpdate(
+    pendingRows.flatMap((sent, index) => {
+      const current = currentRows[index];
+      if (
+        !current ||
+        current.pending_sync !== 1 ||
+        current.updated_at !== sent.updated_at
+      ) {
+        return [];
+      }
+
+      return [{ key: sent.id, changes: { pending_sync: 0 as const } }];
+    }),
+  );
+};
+
+const markCardsSyncedIfUnchanged = async (rows: ICard[]): Promise<void> => {
+  const pendingRows = rows.filter((row) => row.pending_sync === 1);
+  const currentRows = await db.cards.bulkGet(pendingRows.map((row) => row.id));
+
+  await db.cards.bulkUpdate(
+    pendingRows.flatMap((sent, index) => {
+      const current = currentRows[index];
+      if (
+        !current ||
+        current.pending_sync !== 1 ||
+        current.updated_at !== sent.updated_at
+      ) {
+        return [];
+      }
+
+      return [{ key: sent.id, changes: { pending_sync: 0 as const } }];
+    }),
+  );
+};
+
+const markCardStatesSyncedIfUnchanged = async (
+  rows: ICardState[],
+): Promise<void> => {
+  const pendingRows = rows.filter((row) => row.pending_sync === 1);
+  const currentRows = await db.card_state.bulkGet(
+    pendingRows.map((row) => row.id),
+  );
+
+  await db.card_state.bulkUpdate(
+    pendingRows.flatMap((sent, index) => {
+      const current = currentRows[index];
+      if (
+        !current ||
+        current.pending_sync !== 1 ||
+        current.updated_at !== sent.updated_at
+      ) {
+        return [];
+      }
+
+      return [{ key: sent.id, changes: { pending_sync: 0 as const } }];
+    }),
+  );
+};
+
 const pushDecks = async (full: boolean): Promise<void> => {
   const rows = full
     ? await db.decks.toArray()
@@ -100,13 +279,7 @@ const pushDecks = async (full: boolean): Promise<void> => {
     rows.map(({ pending_sync: _, ...rest }) => rest),
   );
 
-  const toMark = rows.filter((d) => d.pending_sync).map(({ id }) => id);
-
-  if (toMark.length) {
-    await db.decks.bulkUpdate(
-      toMark.map((id) => ({ key: id, changes: { pending_sync: 0 } })),
-    );
-  }
+  await markDecksSyncedIfUnchanged(rows);
 };
 
 const pushCards = async (full: boolean): Promise<void> => {
@@ -121,13 +294,7 @@ const pushCards = async (full: boolean): Promise<void> => {
     rows.map(({ pending_sync: _, ...rest }) => rest),
   );
 
-  const toMark = rows.filter((c) => c.pending_sync).map(({ id }) => id);
-
-  if (toMark.length) {
-    await db.cards.bulkUpdate(
-      toMark.map((id) => ({ key: id, changes: { pending_sync: 0 } })),
-    );
-  }
+  await markCardsSyncedIfUnchanged(rows);
 };
 
 const pushCardState = async (full: boolean): Promise<void> => {
@@ -143,13 +310,7 @@ const pushCardState = async (full: boolean): Promise<void> => {
     "card_id",
   );
 
-  const toMark = rows.filter((s) => s.pending_sync).map(({ id }) => id);
-
-  if (toMark.length) {
-    await db.card_state.bulkUpdate(
-      toMark.map((id) => ({ key: id, changes: { pending_sync: 0 } })),
-    );
-  }
+  await markCardStatesSyncedIfUnchanged(rows);
 };
 
 const pushRevlog = async (): Promise<void> => {
@@ -235,17 +396,6 @@ const pullDecks = async (lastSyncedAt: string | null): Promise<void> => {
 
   for (const remote of data) {
     const id = remote.id as string;
-
-    if (remote.deleted_at) {
-      await db.decks.update(id, {
-        deleted_at: remote.deleted_at as string,
-        updated_at: remote.updated_at as string,
-        pending_sync: 0,
-      });
-
-      continue;
-    }
-
     const local = localMap.get(id);
 
     if (!local || (remote.updated_at as string) > local.updated_at) {
@@ -272,17 +422,6 @@ const pullCards = async (lastSyncedAt: string | null): Promise<void> => {
 
   for (const remote of data) {
     const id = remote.id as string;
-
-    if (remote.deleted_at) {
-      await db.cards.update(id, {
-        deleted_at: remote.deleted_at as string,
-        updated_at: remote.updated_at as string,
-        pending_sync: 0,
-      });
-
-      continue;
-    }
-
     const local = localMap.get(id);
 
     if (!local || (remote.updated_at as string) > local.updated_at) {
@@ -322,7 +461,7 @@ const pullCardState = async (lastSyncedAt: string | null): Promise<void> => {
 const pullRevlog = async (lastSyncedAt: string | null): Promise<void> => {
   const data = await fetchAllPages<Record<string, unknown>>(
     "revlog",
-    "reviewed_at",
+    "sync_updated_at",
     lastSyncedAt,
   );
 
@@ -348,7 +487,7 @@ const pullRevlog = async (lastSyncedAt: string | null): Promise<void> => {
 const pullSessionLog = async (lastSyncedAt: string | null): Promise<void> => {
   const data = await fetchAllPages<Record<string, unknown>>(
     "session_log",
-    "started_at",
+    "sync_updated_at",
     lastSyncedAt,
   );
 
@@ -384,48 +523,117 @@ const pull = async (lastSyncedAt: string | null): Promise<void> => {
 
 const getServerTimestamp = async (): Promise<string> => {
   const { data, error } = await supabase.rpc("get_server_time");
-  if (error || !data) return new Date().toISOString();
+  if (error) throw error;
+  if (typeof data !== "string") {
+    throw new Error("Invalid server timestamp");
+  }
   return data as string;
 };
 
-export const syncAll = async (userId: string): Promise<boolean> => {
+const performSync = async (userId: string): Promise<boolean> => {
   if (!navigator.onLine) return false;
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) return false;
-
-  const { isSyncing, setIsSyncing } = useSyncStore.getState();
-
-  if (isSyncing) return false;
-
-  const { lastSyncedAt, initialPullDone } = await getSyncMeta(userId);
-  const pendingCount = await countPending();
-
-  const pullSince = initialPullDone ? lastSyncedAt : null;
-
-  const needsPull = pullSince ? await hasRemoteChanges(pullSince) : true;
-
-  if (!pendingCount && !needsPull) return false;
-
+  const { setIsSyncing } = useSyncStore.getState();
   setIsSyncing(true);
 
   try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) return false;
+
+    let {
+      lastSyncedAt,
+      initialPullDone,
+      statsResetAt,
+      dataResetAt,
+    } = await getSyncMeta(userId);
+    const {
+      statsResetAt: remoteStatsResetAt,
+      dataResetAt: remoteDataResetAt,
+    } = await getRemoteResetState();
+    const dataResetPending =
+      remoteDataResetAt !== null &&
+      (dataResetAt === null || remoteDataResetAt > dataResetAt);
+    const resetPending =
+      remoteStatsResetAt !== null &&
+      (statsResetAt === null || remoteStatsResetAt > statsResetAt);
+
+    if (dataResetPending) {
+      await clearLocalDb();
+      lastSyncedAt = null;
+      initialPullDone = false;
+      statsResetAt = remoteStatsResetAt;
+      dataResetAt = remoteDataResetAt;
+    } else if (resetPending) {
+      await applyStatsResetLocally(userId, remoteStatsResetAt);
+    }
+
+    const pendingCount = await countPendingChanges();
+    const pullSince = initialPullDone ? lastSyncedAt : null;
+    const needsPull =
+      resetPending || (pullSince ? await hasRemoteChanges(pullSince) : true);
+
+    if (!pendingCount && !needsPull) return false;
+
+    const syncStartedAt = await getServerTimestamp();
     const full = lastSyncedAt === null;
     await push(full);
     await pull(pullSince);
 
-    const now = await getServerTimestamp();
-    await db.sync_meta.put({
+    const meta: ISyncMeta = {
       user_id: userId,
-      last_synced_at: now,
+      last_synced_at: syncStartedAt,
       initial_pull_done: true,
-    });
+      stats_reset_at: remoteStatsResetAt ?? statsResetAt,
+      data_reset_at: remoteDataResetAt ?? dataResetAt,
+    };
+
+    await db.sync_meta.put(meta);
 
     return true;
   } finally {
     setIsSyncing(false);
   }
+};
+
+export const syncAll = (userId: string): Promise<boolean> => {
+  if (activeSync) {
+    syncRerunRequested = true;
+    return activeSync;
+  }
+
+  activeSync = enqueueOperation(async () => {
+    let synced = false;
+
+    do {
+      syncRerunRequested = false;
+      synced = (await performSync(userId)) || synced;
+    } while (syncRerunRequested && navigator.onLine);
+
+    return synced;
+  }).finally(() => {
+    activeSync = null;
+  });
+
+  return activeSync;
+};
+
+export const requestSync = (): Promise<boolean> => {
+  const userId = useAuthStore.getState().user?.id;
+  if (!userId || !navigator.onLine) return Promise.resolve(false);
+  return syncAll(userId);
+};
+
+export const flushPendingChanges = async (userId: string): Promise<boolean> => {
+  if (activeSync) {
+    await activeSync;
+  }
+
+  if ((await countPendingChanges()) === 0) return true;
+  if (!navigator.onLine) return false;
+
+  await syncAll(userId);
+  return (await countPendingChanges()) === 0;
 };

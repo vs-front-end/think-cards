@@ -3,6 +3,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import i18next from "i18next";
 import { toast } from "sonner";
 import { db } from "@/lib/db";
+import { requestSync } from "@/lib/sync";
 import { useAuthStore } from "@/store";
 import { getAllDescendantDeckIds } from "@/utils";
 import type { IDeck } from "@/lib/db";
@@ -105,6 +106,7 @@ export const useCreateDeck = () => {
 
     onSuccess: (deck) => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      requestSync().catch(console.error);
       toast.success(i18next.t("deckCreated", { name: deck.name }));
     },
 
@@ -141,6 +143,7 @@ export const useUpdateDeck = () => {
 
     onSuccess: (input) => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      requestSync().catch(console.error);
       toast.success(i18next.t("deckUpdated", { name: input.name }));
     },
 
@@ -179,6 +182,7 @@ export const useDeleteDeck = () => {
 
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      requestSync().catch(console.error);
       toast.success(i18next.t("deckDeleted"));
     },
 

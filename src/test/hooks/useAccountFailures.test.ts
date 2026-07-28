@@ -14,12 +14,14 @@ const mocks = vi.hoisted(() => ({
   failTable: "",
   from: vi.fn(),
   getUser: vi.fn(),
+  rpc: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase", () => ({
   supabase: {
     auth: { getUser: mocks.getUser },
     from: mocks.from,
+    rpc: mocks.rpc,
   },
 }));
 
@@ -36,6 +38,15 @@ beforeEach(async () => {
     data: { user: { id: "test-user" } },
     error: null,
   });
+  mocks.rpc.mockImplementation((functionName: string) => {
+    const message =
+      functionName === "reset_statistics"
+        ? "Remote statistics reset failed"
+        : "Remote data reset failed";
+
+    return Promise.resolve({ data: null, error: new Error(message) });
+  });
+
   mocks.from.mockImplementation((table: string) => {
     let operation = "select";
     const query = {
@@ -91,7 +102,7 @@ describe("destructive account operations", () => {
     });
 
     await expect(result.current.mutateAsync()).rejects.toThrow(
-      "Remote revlog deletion failed",
+      "Remote statistics reset failed",
     );
     expect(await db.revlog.count()).toBe(1);
   });
@@ -99,13 +110,12 @@ describe("destructive account operations", () => {
   it("keeps the local database when remote data deletion fails", async () => {
     const deck = makeDeck();
     await db.decks.add(deck);
-    mocks.failTable = "decks";
     const { result } = renderHook(() => useResetData(), {
       wrapper: makeWrapper(),
     });
 
     await expect(result.current.mutateAsync()).rejects.toThrow(
-      "Remote decks deletion failed",
+      "Remote data reset failed",
     );
     expect(await db.decks.get(deck.id)).toEqual(deck);
   });

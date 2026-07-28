@@ -55,14 +55,30 @@ export const useStatisticsData = () => {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
-      const [allRevlogs, rawCardStates, sessionLogs, activeCards, profileRes] =
-        await Promise.all([
-          db.revlog.where("user_id").equals(userId).toArray(),
-          db.card_state.toArray(),
-          db.session_log.where("user_id").equals(userId).toArray(),
-          db.cards.filter((c) => c.deleted_at === null).toArray(),
-          fetchDailyGoalDefault(userId || null),
-        ]);
+      const [
+        allRevlogs,
+        rawCardStates,
+        sessionLogs,
+        activeDecks,
+        rawActiveCards,
+        profileRes,
+      ] = await Promise.all([
+        db.revlog.where("user_id").equals(userId).toArray(),
+        db.card_state.toArray(),
+        db.session_log.where("user_id").equals(userId).toArray(),
+        db.decks
+          .where("user_id")
+          .equals(userId)
+          .filter((deck) => deck.deleted_at === null)
+          .toArray(),
+        db.cards.filter((c) => c.deleted_at === null).toArray(),
+        fetchDailyGoalDefault(userId || null),
+      ]);
+
+      const activeDeckIds = new Set(activeDecks.map((deck) => deck.id));
+      const activeCards = rawActiveCards.filter((card) =>
+        activeDeckIds.has(card.deck_id),
+      );
 
       const activeCardIds = new Set(activeCards.map((c) => c.id));
       const allCardStates = rawCardStates.filter((s) =>

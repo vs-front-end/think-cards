@@ -3,6 +3,7 @@ import { useAuthStore, useSidebarStore, useSyncStore } from "@/store";
 import { cn } from "@stellar-ui-kit/shared";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useDashboardData, useProfile, useSignOut } from "@/hooks";
 import { FeedbackModal } from "@/components/feedback-modal";
 
@@ -82,8 +83,13 @@ export function Sidebar() {
     .slice(0, 2)
     .toUpperCase();
 
-  const handleLogout = () => {
-    signOut().then(() => navigate({ to: "/" }));
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate({ to: "/" });
+    } catch {
+      toast.error(t("syncError"));
+    }
   };
 
   return (

@@ -4,10 +4,19 @@ import { renderHook, act } from "@testing-library/react";
 import { useMoveCards, useBulkDeleteCards } from "@/hooks/useCardsWithState";
 import { clearDb, makeWrapper, makeCard } from "@/test/helpers";
 
+const mocks = vi.hoisted(() => ({
+  requestSync: vi.fn(),
+}));
+
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("i18next", () => ({ default: { t: (k: string) => k } }));
+vi.mock("@/lib/sync", () => ({ requestSync: mocks.requestSync }));
 
-beforeEach(clearDb);
+beforeEach(async () => {
+  await clearDb();
+  vi.clearAllMocks();
+  mocks.requestSync.mockResolvedValue(false);
+});
 
 describe("useMoveCards", () => {
   it("updates deck_id and marks pending_sync for all moved cards", async () => {
@@ -35,6 +44,7 @@ describe("useMoveCards", () => {
     const stored = await db.cards.toArray();
     expect(stored.every((c) => c.deck_id === targetDeckId)).toBe(true);
     expect(stored.every((c) => c.pending_sync === 1)).toBe(true);
+    expect(mocks.requestSync).toHaveBeenCalledOnce();
   });
 });
 
@@ -55,6 +65,7 @@ describe("useBulkDeleteCards", () => {
     expect(stored).toHaveLength(3);
     expect(stored.every((c) => c.deleted_at !== null)).toBe(true);
     expect(stored.every((c) => c.pending_sync === 1)).toBe(true);
+    expect(mocks.requestSync).toHaveBeenCalledOnce();
   });
 
   it("does not affect cards outside the given ids", async () => {

@@ -1,14 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { syncAll } from "@/lib/sync";
+import { flushPendingChanges, syncAll } from "@/lib/sync";
 import { db } from "@/lib/db";
 import { useSyncStore } from "@/store";
-import {
-  clearDb,
-  makeCard,
-  makeCardState,
-  makeDeck,
-} from "@/test/helpers";
+import { clearDb, makeCard, makeCardState, makeDeck } from "@/test/helpers";
 
 type RemoteRow = Record<string, unknown>;
 
@@ -27,6 +22,7 @@ const mocks = vi.hoisted(() => ({
   rpc: vi.fn(),
   selectErrorTables: new Set<string>(),
   tables: new Map<string, RemoteRow[]>(),
+  upsertGates: new Map<string, Promise<void>>(),
   upsertCalls: new Array<{ table: string; rows: RemoteRow[] }>(),
   upsertErrorTables: new Set<string>(),
 }));
@@ -71,6 +67,8 @@ class QueryBuilder implements PromiseLike<QueryResult> {
     options: UpsertOptions = {},
   ): Promise<{ error: Error | null }> {
     mocks.upsertCalls.push({ table: this.table, rows });
+
+    await mocks.upsertGates.get(this.table);
 
     if (mocks.upsertErrorTables.has(this.table)) {
       return { error: new Error(`Failed to upsert ${this.table}`) };
@@ -138,19 +136,14 @@ vi.mock("@/lib/supabase", () => ({
   },
 }));
 
-const tableNames = [
-  "decks",
-  "cards",
-  "card_state",
-  "revlog",
-  "session_log",
-];
+const tableNames = ["decks", "cards", "card_state", "revlog", "session_log"];
 
 beforeEach(async () => {
   await clearDb();
   vi.clearAllMocks();
   mocks.selectErrorTables.clear();
   mocks.tables.clear();
+  mocks.upsertGates.clear();
   mocks.upsertCalls.length = 0;
   mocks.upsertErrorTables.clear();
 
@@ -196,6 +189,8 @@ describe("syncAll guards", () => {
       user_id: "test-user",
       last_synced_at: "2026-07-25T10:00:00.000Z",
       initial_pull_done: true,
+      stats_reset_at: null,
+      data_reset_at: null,
     });
 
     expect(await syncAll("test-user")).toBe(false);
@@ -238,9 +233,9 @@ describe("syncAll push", () => {
     expect(await syncAll("test-user")).toBe(true);
 
     const pushedRows = mocks.upsertCalls.flatMap((call) => call.rows);
-    expect(
-      pushedRows.every((row) => !Object.hasOwn(row, "pending_sync")),
-    ).toBe(true);
+    expect(pushedRows.every((row) => !Object.hasOwn(row, "pending_sync"))).toBe(
+      true,
+    );
     expect((await db.decks.get(deck.id))?.pending_sync).toBe(0);
     expect((await db.cards.get(card.id))?.pending_sync).toBe(0);
     expect((await db.card_state.get(state.id))?.pending_sync).toBe(0);
@@ -250,6 +245,8 @@ describe("syncAll push", () => {
       user_id: "test-user",
       last_synced_at: "2026-07-25T12:00:00.000Z",
       initial_pull_done: true,
+      stats_reset_at: null,
+      data_reset_at: null,
     });
   });
 
@@ -266,6 +263,122 @@ describe("syncAll push", () => {
     expect(useSyncStore.getState().isSyncing).toBe(false);
     expect(await db.sync_meta.get("test-user")).toBeUndefined();
   });
+
+  it("does not fall back to the device clock when the server watermark fails", async () => {
+    const card = makeCard({ pending_sync: 1 });
+    await db.cards.add(card);
+
+    mocks.rpc.mockResolvedValue({
+      data: null,
+      error: new Error("Server clock unavailable"),
+    });
+
+    await expect(syncAll("test-user")).rejects.toThrow(
+      "Server clock unavailable",
+    );
+
+    expect(mocks.upsertCalls).toHaveLength(0);
+    expect((await db.cards.get(card.id))?.pending_sync).toBe(1);
+    expect(await db.sync_meta.get("test-user")).toBeUndefined();
+    expect(useSyncStore.getState().isSyncing).toBe(false);
+  });
+
+  it("does not acknowledge a newer local edit that was not in the uploaded snapshot", async () => {
+    const firstUpdatedAt = "2026-07-25T10:00:00.000Z";
+    const deletedAt = "2026-07-25T10:01:00.000Z";
+
+    const card = makeCard({
+      id: "card-race",
+      updated_at: firstUpdatedAt,
+      pending_sync: 1,
+    });
+
+    await db.cards.add(card);
+
+    let releaseUpload: (() => void) | undefined;
+    mocks.upsertGates.set(
+      "cards",
+      new Promise<void>((resolve) => {
+        releaseUpload = resolve;
+      }),
+    );
+
+    const firstSync = syncAll("test-user");
+
+    await vi.waitFor(() =>
+      expect(mocks.upsertCalls.some((call) => call.table === "cards")).toBe(
+        true,
+      ),
+    );
+
+    await db.cards.update(card.id, {
+      deleted_at: deletedAt,
+      updated_at: deletedAt,
+      pending_sync: 1,
+    });
+
+    const coalescedSync = syncAll("test-user");
+    mocks.upsertGates.delete("cards");
+    releaseUpload?.();
+
+    await Promise.all([firstSync, coalescedSync]);
+
+    const cardPushes = mocks.upsertCalls.filter(
+      (call) => call.table === "cards",
+    );
+
+    expect(cardPushes).toHaveLength(2);
+
+    expect(cardPushes[0].rows[0]).toMatchObject({
+      updated_at: firstUpdatedAt,
+      deleted_at: null,
+    });
+
+    expect(cardPushes[1].rows[0]).toMatchObject({
+      updated_at: deletedAt,
+      deleted_at: deletedAt,
+    });
+
+    expect(await db.cards.get(card.id)).toMatchObject({
+      deleted_at: deletedAt,
+      pending_sync: 0,
+    });
+  });
+
+  it("waits for an in-flight upload before reporting that pending changes are flushed", async () => {
+    const card = makeCard({ pending_sync: 1 });
+    await db.cards.add(card);
+
+    let releaseUpload: (() => void) | undefined;
+    mocks.upsertGates.set(
+      "cards",
+      new Promise<void>((resolve) => {
+        releaseUpload = resolve;
+      }),
+    );
+
+    const runningSync = syncAll("test-user");
+    await vi.waitFor(() =>
+      expect(mocks.upsertCalls.some((call) => call.table === "cards")).toBe(
+        true,
+      ),
+    );
+
+    let flushFinished = false;
+    const flush = flushPendingChanges("test-user").then((result) => {
+      flushFinished = true;
+      return result;
+    });
+
+    await Promise.resolve();
+    expect(flushFinished).toBe(false);
+
+    mocks.upsertGates.delete("cards");
+    releaseUpload?.();
+
+    await expect(flush).resolves.toBe(true);
+    await runningSync;
+  });
 });
 
 describe("syncAll pull", () => {
@@ -280,6 +393,8 @@ describe("syncAll pull", () => {
       user_id: "test-user",
       last_synced_at: "2026-07-25T08:00:00.000Z",
       initial_pull_done: true,
+      stats_reset_at: null,
+      data_reset_at: null,
     });
     mocks.tables.set("decks", [
       {
@@ -296,9 +411,9 @@ describe("syncAll pull", () => {
       updated_at: "2026-07-25T11:00:00.000Z",
       pending_sync: 0,
     });
-    expect(
-      (await db.sync_meta.get("test-user"))?.last_synced_at,
-    ).toBe("2026-07-25T12:00:00.000Z");
+    expect((await db.sync_meta.get("test-user"))?.last_synced_at).toBe(
+      "2026-07-25T12:00:00.000Z",
+    );
   });
 
   it("applies a remote soft deletion locally", async () => {
@@ -311,6 +426,8 @@ describe("syncAll pull", () => {
       user_id: "test-user",
       last_synced_at: "2026-07-25T08:00:00.000Z",
       initial_pull_done: true,
+      stats_reset_at: null,
+      data_reset_at: null,
     });
     mocks.tables.set("cards", [
       {
@@ -328,6 +445,25 @@ describe("syncAll pull", () => {
     });
   });
 
+  it("stores a remote tombstone even when the record is absent locally", async () => {
+    mocks.tables.set("cards", [
+      {
+        ...makeCard({
+          id: "remote-deleted-card",
+          updated_at: "2026-07-25T11:00:00.000Z",
+        }),
+        deleted_at: "2026-07-25T11:00:00.000Z",
+      },
+    ]);
+
+    expect(await syncAll("test-user")).toBe(true);
+
+    expect(await db.cards.get("remote-deleted-card")).toMatchObject({
+      deleted_at: "2026-07-25T11:00:00.000Z",
+      pending_sync: 0,
+    });
+  });
+
   it("does not overwrite a newer local record with older remote data", async () => {
     const deck = makeDeck({
       id: "deck-id",
@@ -339,6 +475,8 @@ describe("syncAll pull", () => {
       user_id: "test-user",
       last_synced_at: "2026-07-25T08:00:00.000Z",
       initial_pull_done: true,
+      stats_reset_at: null,
+      data_reset_at: null,
     });
     mocks.tables.set("decks", [
       {
@@ -364,5 +502,153 @@ describe("syncAll pull", () => {
     expect(await syncAll("test-user")).toBe(true);
     expect(await db.decks.count()).toBe(501);
     expect((await db.decks.get("deck-500"))?.name).toBe("Deck 500");
+  });
+
+  it("propagates a remote statistics reset and removes stale local logs", async () => {
+    const resetAt = "2026-07-25T11:30:00.000Z";
+    const deck = makeDeck({ id: "deck-reset", user_id: "test-user" });
+    const card = makeCard({ id: "card-reset", deck_id: deck.id });
+
+    const state = makeCardState(card.id, {
+      id: "state-reset",
+      state: 2,
+      reps: 12,
+      updated_at: "2026-07-25T10:00:00.000Z",
+    });
+
+    await db.decks.add(deck);
+    await db.cards.add(card);
+    await db.card_state.add(state);
+
+    await db.revlog.add({
+      id: "old-review",
+      card_id: card.id,
+      user_id: "test-user",
+      rating: 3,
+      scheduled_days: 2,
+      elapsed_days: 2,
+      review_time_ms: 500,
+      reviewed_at: "2026-07-25T10:00:00.000Z",
+      pending_sync: 1,
+    });
+
+    await db.session_log.add({
+      id: "old-session",
+      deck_id: deck.id,
+      user_id: "test-user",
+      started_at: "2026-07-25T10:00:00.000Z",
+      ended_at: "2026-07-25T10:05:00.000Z",
+      cards_reviewed: 1,
+      time_elapsed_ms: 300_000,
+      pending_sync: 1,
+    });
+
+    await db.sync_meta.put({
+      user_id: "test-user",
+      last_synced_at: "2026-07-25T10:30:00.000Z",
+      initial_pull_done: true,
+      stats_reset_at: null,
+      data_reset_at: null,
+    });
+
+    mocks.tables.set("profiles", [{ stats_reset_at: resetAt }]);
+    mocks.tables.set("card_state", [
+      {
+        ...state,
+        state: 0,
+        reps: 0,
+        updated_at: resetAt,
+      },
+    ]);
+
+    expect(await syncAll("test-user")).toBe(true);
+
+    expect(await db.revlog.count()).toBe(0);
+    expect(await db.session_log.count()).toBe(0);
+
+    expect(await db.card_state.get(state.id)).toMatchObject({
+      state: 0,
+      reps: 0,
+      pending_sync: 0,
+    });
+
+    expect(await db.sync_meta.get("test-user")).toMatchObject({
+      stats_reset_at: resetAt,
+    });
+
+    expect(
+      mocks.upsertCalls.some(
+        (call) => call.table === "revlog" || call.table === "session_log",
+      ),
+    ).toBe(false);
+  });
+
+  it("propagates a remote full-data reset before stale pending rows can be pushed", async () => {
+    const resetAt = "2026-07-25T11:45:00.000Z";
+    const deck = makeDeck({
+      id: "stale-deck",
+      user_id: "test-user",
+      pending_sync: 1,
+    });
+    const card = makeCard({
+      id: "stale-card",
+      deck_id: deck.id,
+      pending_sync: 1,
+    });
+    const state = makeCardState(card.id, { pending_sync: 1 });
+
+    await db.decks.add(deck);
+    await db.cards.add(card);
+    await db.card_state.add(state);
+
+    await db.sync_meta.put({
+      user_id: "test-user",
+      last_synced_at: "2026-07-25T10:30:00.000Z",
+      initial_pull_done: true,
+      stats_reset_at: null,
+      data_reset_at: null,
+    });
+
+    mocks.tables.set("profiles", [
+      {
+        stats_reset_at: resetAt,
+        data_reset_at: resetAt,
+      },
+    ]);
+
+    expect(await syncAll("test-user")).toBe(true);
+
+    expect(await db.decks.count()).toBe(0);
+    expect(await db.cards.count()).toBe(0);
+    expect(await db.card_state.count()).toBe(0);
+
+    expect(await db.sync_meta.get("test-user")).toMatchObject({
+      stats_reset_at: resetAt,
+      data_reset_at: resetAt,
+    });
+
+    expect(mocks.upsertCalls).toHaveLength(0);
+  });
+
+  it("stores the server watermark captured before pull work completes", async () => {
+    mocks.rpc.mockResolvedValueOnce({
+      data: "2026-07-25T12:00:00.000Z",
+      error: null,
+    });
+
+    mocks.tables.set("decks", [
+      {
+        ...makeDeck({
+          id: "changed-during-sync",
+          updated_at: "2026-07-25T12:00:01.000Z",
+        }),
+      },
+    ]);
+
+    expect(await syncAll("test-user")).toBe(true);
+
+    expect(await db.sync_meta.get("test-user")).toMatchObject({
+      last_synced_at: "2026-07-25T12:00:00.000Z",
+    });
   });
 });

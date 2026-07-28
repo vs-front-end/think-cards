@@ -1,6 +1,7 @@
 import { createEmptyCard } from "ts-fsrs";
 
 import { db } from "@/lib/db";
+import { requestSync } from "@/lib/sync";
 import type { CardType, ICard, ICardState } from "@/lib/db";
 
 export type NewCardInput = { type: CardType; front: string; back: string };
@@ -49,4 +50,6 @@ export const bulkAddCards = async (
       await db.card_state.add(cardState);
     }
   });
+
+  requestSync().catch(console.error);
 };

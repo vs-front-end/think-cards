@@ -11,8 +11,13 @@ import {
   useUpdateDeck,
 } from "@/hooks/useDecks";
 
+const mocks = vi.hoisted(() => ({
+  requestSync: vi.fn(),
+}));
+
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("i18next", () => ({ default: { t: (k: string) => k } }));
+vi.mock("@/lib/sync", () => ({ requestSync: mocks.requestSync }));
 
 vi.mock("@/store", () => {
   const mockState = { user: { id: "test-user" }, session: null };
@@ -25,7 +30,11 @@ vi.mock("@/store", () => {
   return { useAuthStore };
 });
 
-beforeEach(clearDb);
+beforeEach(async () => {
+  await clearDb();
+  vi.clearAllMocks();
+  mocks.requestSync.mockResolvedValue(false);
+});
 
 describe("deck CRUD", () => {
   it("creates and reads a deck marked for synchronization", async () => {
@@ -60,6 +69,7 @@ describe("deck CRUD", () => {
       pending_sync: 1,
       deleted_at: null,
     });
+    expect(mocks.requestSync).toHaveBeenCalledOnce();
   });
 
   it("updates deck fields and marks the change for synchronization", async () => {
@@ -88,6 +98,7 @@ describe("deck CRUD", () => {
       pending_sync: 1,
     });
     expect(stored?.updated_at).not.toBe(deck.updated_at);
+    expect(mocks.requestSync).toHaveBeenCalledOnce();
   });
 });
 
@@ -120,6 +131,7 @@ describe("useDeleteDeck", () => {
     expect(decks.every((d) => d.deleted_at !== null)).toBe(true);
     expect(decks.every((d) => d.pending_sync === 1)).toBe(true);
     expect(cards.every((c) => c.deleted_at !== null)).toBe(true);
+    expect(mocks.requestSync).toHaveBeenCalledOnce();
   });
 
   it("does not affect unrelated decks or their cards", async () => {

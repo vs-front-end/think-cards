@@ -12,6 +12,10 @@ import {
   makeCardState,
 } from "@/test/helpers";
 
+const mocks = vi.hoisted(() => ({
+  rpc: vi.fn(),
+}));
+
 vi.mock("@/store", () => {
   const mockState = { user: { id: "test-user" }, session: null };
 
@@ -37,6 +41,7 @@ vi.mock("@/lib/supabase", () => {
   return {
     supabase: {
       from: () => chain([]),
+      rpc: mocks.rpc,
       auth: {
         getUser: () => Promise.resolve({ data: { user: { id: "test-user" } } }),
       },
@@ -46,7 +51,14 @@ vi.mock("@/lib/supabase", () => {
 
 vi.mock("@/hooks/useSync", () => ({ resetSyncState: vi.fn() }));
 
-beforeEach(clearDb);
+beforeEach(async () => {
+  await clearDb();
+  vi.clearAllMocks();
+  mocks.rpc.mockResolvedValue({
+    data: "2026-07-25T12:00:00.000Z",
+    error: null,
+  });
+});
 
 describe("useResetStats", () => {
   it("clears revlog and session_log but keeps cards and decks intact", async () => {
@@ -99,6 +111,50 @@ describe("useResetStats", () => {
     const state = (await db.card_state.toArray())[0];
     expect(state.reps).toBe(0);
     expect(state.state).toBe(State.New);
+    expect(mocks.rpc).toHaveBeenCalledWith("reset_statistics");
+  });
+
+  it("resets every local state in a large account through one server operation", async () => {
+    const deck = makeDeck({ id: "large-deck", user_id: "test-user" });
+
+    const cards = Array.from({ length: 1_205 }, (_, index) =>
+      makeCard({ id: `card-${index}`, deck_id: deck.id }),
+    );
+
+    const states = cards.map((card, index) =>
+      makeCardState(card.id, {
+        id: `state-${index}`,
+        state: State.Review,
+        reps: 10,
+      }),
+    );
+
+    await db.decks.add(deck);
+    await db.cards.bulkAdd(cards);
+    await db.card_state.bulkAdd(states);
+
+    const { result } = renderHook(() => useResetStats(), {
+      wrapper: makeWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync();
+    });
+
+    const resetStates = await db.card_state.toArray();
+    expect(resetStates).toHaveLength(1_205);
+
+    expect(
+      resetStates.every(
+        (state) =>
+          state.state === State.New &&
+          state.reps === 0 &&
+          state.pending_sync === 0,
+      ),
+    ).toBe(true);
+
+    expect(mocks.rpc).toHaveBeenCalledTimes(1);
+    expect(mocks.rpc).toHaveBeenCalledWith("reset_statistics");
   });
 });
 
@@ -115,6 +171,8 @@ describe("useResetData", () => {
       user_id: "test-user",
       last_synced_at: new Date().toISOString(),
       initial_pull_done: true,
+      stats_reset_at: null,
+      data_reset_at: null,
     });
 
     const { result } = renderHook(() => useResetData(), {
@@ -128,6 +186,15 @@ describe("useResetData", () => {
     expect(await db.decks.count()).toBe(0);
     expect(await db.cards.count()).toBe(0);
     expect(await db.card_state.count()).toBe(0);
-    expect(await db.sync_meta.count()).toBe(0);
+
+    expect(await db.sync_meta.get("test-user")).toEqual({
+      user_id: "test-user",
+      last_synced_at: "2026-07-25T12:00:00.000Z",
+      initial_pull_done: true,
+      stats_reset_at: "2026-07-25T12:00:00.000Z",
+      data_reset_at: "2026-07-25T12:00:00.000Z",
+    });
+
+    expect(mocks.rpc).toHaveBeenCalledWith("reset_all_data");
   });
 });

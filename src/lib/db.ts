@@ -53,6 +53,7 @@ export interface IRevlog {
   elapsed_days: number;
   review_time_ms: number;
   reviewed_at: string;
+  sync_updated_at?: string;
   pending_sync: SyncFlag;
 }
 
@@ -64,6 +65,7 @@ export interface ISessionLog {
   ended_at: string | null;
   cards_reviewed: number;
   time_elapsed_ms: number;
+  sync_updated_at?: string;
   pending_sync: SyncFlag;
 }
 
@@ -71,6 +73,8 @@ export interface ISyncMeta {
   user_id: string;
   last_synced_at: string | null;
   initial_pull_done: boolean;
+  stats_reset_at: string | null;
+  data_reset_at: string | null;
 }
 
 export interface IProfileCache {
@@ -131,6 +135,17 @@ class ThinkCardsDB extends Dexie {
 
     this.version(6).stores({
       profile_cache: "id",
+    });
+
+    this.version(7).stores({}).upgrade(async (tx) => {
+      await tx.table("sync_meta").toCollection().modify((record) => {
+        if (record.stats_reset_at === undefined) {
+          record.stats_reset_at = null;
+        }
+        if (record.data_reset_at === undefined) {
+          record.data_reset_at = null;
+        }
+      });
     });
   }
 }

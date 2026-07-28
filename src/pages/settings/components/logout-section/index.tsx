@@ -1,11 +1,23 @@
-import { LogOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+
 import { Button, Text } from "@stellar-ui-kit/web";
+
+import { LogOut } from "lucide-react";
+
 import { useSignOut } from "@/hooks";
 
 export const LogoutSection = () => {
   const { t } = useTranslation();
   const handleSignOut = useSignOut();
+
+  const signOut = async () => {
+    try {
+      await handleSignOut();
+    } catch {
+      toast.error(t("syncError"));
+    }
+  };
 
   return (
     <div className="flex flex-col gap-3">
@@ -21,7 +33,7 @@ export const LogoutSection = () => {
       <Button
         type="button"
         variant="outline"
-        onClick={() => handleSignOut()}
+        onClick={signOut}
         className="w-full gap-2 text-muted"
       >
         <LogOut className="size-4" />

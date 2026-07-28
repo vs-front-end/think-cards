@@ -91,8 +91,15 @@ describe("useDashboardData — studiedToday & avgSecondsPerCard", () => {
 
 describe("useDashboardData — pendingToday", () => {
   it("counts all New-state card_states regardless of due date", async () => {
-    const cards = [makeCard(), makeCard(), makeCard()];
+    const deck = makeDeck({ user_id: "test-user" });
 
+    const cards = [
+      makeCard({ deck_id: deck.id }),
+      makeCard({ deck_id: deck.id }),
+      makeCard({ deck_id: deck.id }),
+    ];
+
+    await db.decks.add(deck);
     await db.cards.bulkAdd(cards);
 
     await db.card_state.bulkAdd([
@@ -138,5 +145,35 @@ describe("useDashboardData — deckStats", () => {
     expect(stats?.newCount).toBe(1);
     expect(stats?.reviewCount).toBe(1);
     expect(stats?.learningCount).toBe(0);
+  });
+
+  it("excludes active card rows whose parent deck is soft-deleted", async () => {
+    const activeDeck = makeDeck({ id: "active-deck", user_id: "test-user" });
+
+    const deletedDeck = makeDeck({
+      id: "deleted-deck",
+      user_id: "test-user",
+      deleted_at: new Date().toISOString(),
+    });
+
+    const activeCard = makeCard({ deck_id: activeDeck.id });
+    const orphanedCard = makeCard({ deck_id: deletedDeck.id });
+
+    await db.decks.bulkAdd([activeDeck, deletedDeck]);
+    await db.cards.bulkAdd([activeCard, orphanedCard]);
+
+    await db.card_state.bulkAdd([
+      makeCardState(activeCard.id, { state: State.New }),
+      makeCardState(orphanedCard.id, { state: State.New }),
+    ]);
+
+    const { result } = rendered();
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data?.totalCards).toBe(1);
+    expect(result.current.data?.pendingToday).toBe(1);
+    expect(result.current.data?.deckStats.map((deck) => deck.id)).toEqual([
+      activeDeck.id,
+    ]);
   });
 });

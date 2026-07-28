@@ -12,10 +12,19 @@ import {
   useUpdateCard,
 } from "@/hooks/useCards";
 
+const mocks = vi.hoisted(() => ({
+  requestSync: vi.fn(),
+}));
+
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("i18next", () => ({ default: { t: (k: string) => k } }));
+vi.mock("@/lib/sync", () => ({ requestSync: mocks.requestSync }));
 
-beforeEach(clearDb);
+beforeEach(async () => {
+  await clearDb();
+  vi.clearAllMocks();
+  mocks.requestSync.mockResolvedValue(false);
+});
 
 describe("useCreateCard", () => {
   it("creates a card and its FSRS state atomically", async () => {
@@ -40,6 +49,7 @@ describe("useCreateCard", () => {
     expect(cards[0].pending_sync).toBe(1);
     expect(states).toHaveLength(1);
     expect(states[0].card_id).toBe(cards[0].id);
+    expect(mocks.requestSync).toHaveBeenCalledOnce();
   });
 });
 
@@ -59,6 +69,7 @@ describe("useDeleteCard", () => {
     const stored = await db.cards.get(card.id);
     expect(stored?.deleted_at).not.toBeNull();
     expect(stored?.pending_sync).toBe(1);
+    expect(mocks.requestSync).toHaveBeenCalledOnce();
   });
 });
 
@@ -91,6 +102,7 @@ describe("useUpdateCard", () => {
       pending_sync: 1,
     });
     expect(stored?.updated_at).not.toBe(card.updated_at);
+    expect(mocks.requestSync).toHaveBeenCalledOnce();
   });
 });
 
