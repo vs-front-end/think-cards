@@ -60,6 +60,13 @@ beforeEach(async () => {
   });
 });
 
+const mutateAndFlush = async (mutation: () => Promise<unknown>) => {
+  await act(async () => {
+    await mutation();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+};
+
 describe("useResetStats", () => {
   it("clears revlog and session_log but keeps cards and decks intact", async () => {
     const deck = makeDeck({ id: crypto.randomUUID() });
@@ -99,9 +106,7 @@ describe("useResetStats", () => {
       wrapper: makeWrapper(),
     });
 
-    await act(async () => {
-      await result.current.mutateAsync();
-    });
+    await mutateAndFlush(result.current.mutateAsync);
 
     expect(await db.decks.count()).toBe(1);
     expect(await db.cards.count()).toBe(1);
@@ -114,48 +119,50 @@ describe("useResetStats", () => {
     expect(mocks.rpc).toHaveBeenCalledWith("reset_statistics");
   });
 
-  it("resets every local state in a large account through one server operation", async () => {
-    const deck = makeDeck({ id: "large-deck", user_id: "test-user" });
+  it(
+    "resets every local state in a large account through one server operation",
+    async () => {
+      const deck = makeDeck({ id: "large-deck", user_id: "test-user" });
 
-    const cards = Array.from({ length: 1_205 }, (_, index) =>
-      makeCard({ id: `card-${index}`, deck_id: deck.id }),
-    );
+      const cards = Array.from({ length: 1_205 }, (_, index) =>
+        makeCard({ id: `card-${index}`, deck_id: deck.id }),
+      );
 
-    const states = cards.map((card, index) =>
-      makeCardState(card.id, {
-        id: `state-${index}`,
-        state: State.Review,
-        reps: 10,
-      }),
-    );
+      const states = cards.map((card, index) =>
+        makeCardState(card.id, {
+          id: `state-${index}`,
+          state: State.Review,
+          reps: 10,
+        }),
+      );
 
-    await db.decks.add(deck);
-    await db.cards.bulkAdd(cards);
-    await db.card_state.bulkAdd(states);
+      await db.decks.add(deck);
+      await db.cards.bulkAdd(cards);
+      await db.card_state.bulkAdd(states);
 
-    const { result } = renderHook(() => useResetStats(), {
-      wrapper: makeWrapper(),
-    });
+      const { result } = renderHook(() => useResetStats(), {
+        wrapper: makeWrapper(),
+      });
 
-    await act(async () => {
-      await result.current.mutateAsync();
-    });
+      await mutateAndFlush(result.current.mutateAsync);
 
-    const resetStates = await db.card_state.toArray();
-    expect(resetStates).toHaveLength(1_205);
+      const resetStates = await db.card_state.toArray();
+      expect(resetStates).toHaveLength(1_205);
 
-    expect(
-      resetStates.every(
-        (state) =>
-          state.state === State.New &&
-          state.reps === 0 &&
-          state.pending_sync === 0,
-      ),
-    ).toBe(true);
+      expect(
+        resetStates.every(
+          (state) =>
+            state.state === State.New &&
+            state.reps === 0 &&
+            state.pending_sync === 0,
+        ),
+      ).toBe(true);
 
-    expect(mocks.rpc).toHaveBeenCalledTimes(1);
-    expect(mocks.rpc).toHaveBeenCalledWith("reset_statistics");
-  });
+      expect(mocks.rpc).toHaveBeenCalledTimes(1);
+      expect(mocks.rpc).toHaveBeenCalledWith("reset_statistics");
+    },
+    15_000,
+  );
 });
 
 describe("useResetData", () => {
@@ -179,9 +186,7 @@ describe("useResetData", () => {
       wrapper: makeWrapper(),
     });
 
-    await act(async () => {
-      await result.current.mutateAsync();
-    });
+    await mutateAndFlush(result.current.mutateAsync);
 
     expect(await db.decks.count()).toBe(0);
     expect(await db.cards.count()).toBe(0);

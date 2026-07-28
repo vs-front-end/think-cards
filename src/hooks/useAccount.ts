@@ -63,8 +63,8 @@ export const useResetStats = () => {
         });
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries();
+    onSuccess: async () => {
+      await queryClient.invalidateQueries();
     },
   });
 };
@@ -102,8 +102,8 @@ export const useResetData = () => {
         });
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries();
+    onSuccess: async () => {
+      await queryClient.invalidateQueries();
     },
   });
 };

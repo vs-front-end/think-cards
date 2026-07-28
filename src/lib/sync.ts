@@ -111,21 +111,19 @@ export const applyStatsResetLocally = async (
         .anyOf(cardIds)
         .toArray();
 
-      await db.card_state.bulkUpdate(
+      await db.card_state.bulkPut(
         states.map((state) => ({
-          key: state.id,
-          changes: {
-            stability: fresh.stability,
-            difficulty: fresh.difficulty,
-            due: fresh.due.toISOString(),
-            last_review: null,
-            state: fresh.state,
-            reps: fresh.reps,
-            lapses: fresh.lapses,
-            learning_steps: fresh.learning_steps,
-            updated_at: resetAt,
-            pending_sync: pendingByCardId.get(state.card_id) ? 1 : 0,
-          },
+          ...state,
+          stability: fresh.stability,
+          difficulty: fresh.difficulty,
+          due: fresh.due.toISOString(),
+          last_review: null,
+          state: fresh.state,
+          reps: fresh.reps,
+          lapses: fresh.lapses,
+          learning_steps: fresh.learning_steps,
+          updated_at: resetAt,
+          pending_sync: pendingByCardId.get(state.card_id) ? 1 : 0,
         })),
       );
     },
