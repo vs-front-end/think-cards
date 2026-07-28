@@ -99,7 +99,7 @@ describe("useSync offline lifecycle", () => {
     unmount();
   });
 
-  it("releases the initial gate after eight seconds when sync hangs", async () => {
+  it("keeps the initial gate closed while an online sync is pending", async () => {
     setOnline(true);
     mocks.syncAll.mockImplementation(
       () => new Promise<boolean>(() => undefined),
@@ -108,10 +108,28 @@ describe("useSync offline lifecycle", () => {
     const { unmount } = renderHook(() => useSync(), {
       wrapper: makeWrapper(),
     });
-    await flushTimers(7999);
+    await flushTimers(60_000);
+    expect(useSyncStore.getState().initialSyncDone).toBe(false);
+    unmount();
+  });
+
+  it("releases the initial gate when an online sync finishes", async () => {
+    setOnline(true);
+    let finishSync: ((synced: boolean) => void) | undefined;
+    mocks.syncAll.mockImplementation(
+      () =>
+        new Promise<boolean>((resolve) => {
+          finishSync = resolve;
+        }),
+    );
+
+    const { unmount } = renderHook(() => useSync(), {
+      wrapper: makeWrapper(),
+    });
+    await flushTimers();
     expect(useSyncStore.getState().initialSyncDone).toBe(false);
 
-    await flushTimers(1);
+    await act(async () => finishSync?.(false));
     expect(useSyncStore.getState().initialSyncDone).toBe(true);
     unmount();
   });

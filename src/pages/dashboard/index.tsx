@@ -136,6 +136,7 @@ export const DashboardPage = () => {
   const { triggerSync } = useSync();
   const isSyncing = useSyncStore((s) => s.isSyncing);
   const initialSyncDone = useSyncStore((s) => s.initialSyncDone);
+  const initialDataLoading = isLoading || !initialSyncDone;
 
   const [modal, setModal] = useState<ActiveModal>(null);
   const [deckSearch, setDeckSearch] = useState("");
@@ -295,10 +296,10 @@ export const DashboardPage = () => {
         </div>
       </div>
 
-      <InstallPrompt visible={!showOnboarding} />
+      <InstallPrompt visible={initialSyncDone && !showOnboarding} />
 
       <section>
-        <OverviewCard data={data} isLoading={isLoading} />
+        <OverviewCard data={data} isLoading={initialDataLoading} />
       </section>
 
       <section className="mt-2 flex flex-col gap-4">
@@ -329,9 +330,9 @@ export const DashboardPage = () => {
             </TooltipProvider>
           </div>
 
-          {isLoading ? (
+          {initialDataLoading ? (
             <Skeleton className="h-8 w-full flex-1 rounded-lg min-[426px]:max-w-xs" />
-          ) : !isLoading && deckTree.length > 0 ? (
+          ) : deckTree.length > 0 ? (
             <InputSearch
               placeholder={t("dashboardSearchDecks")}
               value={deckSearch}
@@ -341,16 +342,16 @@ export const DashboardPage = () => {
           ) : null}
         </div>
 
-        {(isLoading || !initialSyncDone) && (
+        {initialDataLoading && (
           <div className="flex flex-col gap-4">
             <Skeleton className="h-24 rounded-xl" />
             <Skeleton className="h-24 rounded-xl" />
           </div>
         )}
 
-        {!isLoading && initialSyncDone && deckTree.length === 0 ? (
+        {!initialDataLoading && deckTree.length === 0 ? (
           <EmptyDecks onCreateDeck={() => setModal({ type: "createDeck" })} />
-        ) : !isLoading && initialSyncDone ? (
+        ) : !initialDataLoading ? (
           <div className="flex flex-col gap-4">
             {filteredDeckTree.length === 0 ? (
               <Text as="p" styleVariant="muted" className="py-8 text-center">

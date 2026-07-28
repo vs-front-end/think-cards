@@ -4,13 +4,10 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSyncStore, useAuthStore } from "@/store";
 import { syncAll } from "@/lib/sync";
-import { db } from "@/lib/db";
 
 let syncScheduled = false;
 let currentSyncSession = 0;
 let listenersOwner = false;
-
-const INITIAL_SYNC_GATE_MS = 8000;
 
 export const resetSyncState = () => {
   syncScheduled = false;
@@ -39,7 +36,7 @@ const runSyncInternal = async (
     const synced = await syncWithRetry(userId);
 
     if (synced) {
-      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      await qc.invalidateQueries({ queryKey: ["dashboard"] });
       if (showToast) {
         toast.success(i18next.t("syncSuccess"), { duration: 2000 });
       }
@@ -83,25 +80,11 @@ export const useSync = () => {
         }
       };
 
-      const gateTimer = setTimeout(
-        markInitialSyncDone,
-        INITIAL_SYNC_GATE_MS,
-      );
-
-      Promise.all([db.decks.count(), db.cards.count()])
-        .then(([localDecks, localCards]) => {
-          if (localDecks > 0 || localCards > 0 || !navigator.onLine) {
-            clearTimeout(gateTimer);
-            markInitialSyncDone();
-          }
-        })
-        .catch(() => {
-          clearTimeout(gateTimer);
-          markInitialSyncDone();
-        });
+      if (!navigator.onLine) {
+        markInitialSyncDone();
+      }
 
       runSync(userId, false).finally(() => {
-        clearTimeout(gateTimer);
         syncScheduled = false;
         markInitialSyncDone();
       });

@@ -54,11 +54,12 @@ export function Sidebar() {
 
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: dashboard, isLoading: dashboardLoading } = useDashboardData();
-  const footerLoading = profileLoading || dashboardLoading;
 
   const signOut = useSignOut();
   const user = useAuthStore((s) => s.user);
   const initialSyncDone = useSyncStore((s) => s.initialSyncDone);
+  const footerLoading =
+    profileLoading || dashboardLoading || !initialSyncDone;
 
   const streak = dashboard?.streak ?? 0;
   const studiedToday = dashboard?.studiedToday ?? 0;
