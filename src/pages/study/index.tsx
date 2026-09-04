@@ -10,6 +10,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { Loader } from "@/components";
 import { db } from "@/lib/db";
 import { useStudySession } from "@/hooks";
+import type { StudyMode } from "@/hooks/useStudySession";
 import { requestOnboardingSurvey } from "@/pages/dashboard/components";
 
 import {
@@ -31,13 +32,15 @@ import {
 
 type StudyPageProps = {
   deckId: string | undefined;
+  mode?: StudyMode;
 };
 
 type StudySessionProps = {
   deckId: string;
+  mode: StudyMode;
 };
 
-const StudySession = ({ deckId }: StudySessionProps) => {
+const StudySession = ({ deckId, mode }: StudySessionProps) => {
   const pausedTotal = useRef(0);
   const pausedAt = useRef<number | null>(null);
 
@@ -56,7 +59,7 @@ const StudySession = ({ deckId }: StudySessionProps) => {
     startedAt,
     answerCard,
     saveSession,
-  } = useStudySession(deckId);
+  } = useStudySession(deckId, mode);
 
   const deckLanguage = useLiveQuery(
     () => db.decks.get(deckId).then((d) => d?.language ?? null),
@@ -100,9 +103,9 @@ const StudySession = ({ deckId }: StudySessionProps) => {
 
   const handleFinish = useCallback(() => {
     saveSession().catch(console.error);
-    if (answeredCount > 0) requestOnboardingSurvey();
+    if (mode === "scheduled" && answeredCount > 0) requestOnboardingSurvey();
     navigate({ to: "/dashboard" });
-  }, [saveSession, answeredCount, navigate]);
+  }, [saveSession, answeredCount, mode, navigate]);
 
   useEffect(() => {
     if (isDone) return;
@@ -228,6 +231,7 @@ const StudySession = ({ deckId }: StudySessionProps) => {
         answeredCount={answeredCount}
         elapsedMs={elapsedMs}
         dailyGoal={dailyGoal}
+        mode={mode}
         onBack={handleFinish}
       />
     );
@@ -259,6 +263,15 @@ const StudySession = ({ deckId }: StudySessionProps) => {
 
   return (
     <div className="relative flex flex-1 flex-col items-center justify-center gap-2.5 px-4 py-6">
+      {mode === "practice" && (
+        <Text
+          as="span"
+          className="absolute left-4 top-4 rounded-full bg-primary-soft px-3 py-1.5 text-xs font-medium text-primary-text"
+        >
+          {t("studyPracticeMode")}
+        </Text>
+      )}
+
       <button
         type="button"
         onClick={() => setPaused((p) => !p)}
@@ -451,7 +464,7 @@ const StudySession = ({ deckId }: StudySessionProps) => {
   );
 };
 
-export const StudyPage = ({ deckId }: StudyPageProps) => {
+export const StudyPage = ({ deckId, mode = "scheduled" }: StudyPageProps) => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -460,5 +473,5 @@ export const StudyPage = ({ deckId }: StudyPageProps) => {
 
   if (!deckId) return null;
 
-  return <StudySession deckId={deckId} />;
+  return <StudySession key={`${deckId}:${mode}`} deckId={deckId} mode={mode} />;
 };

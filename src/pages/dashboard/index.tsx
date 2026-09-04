@@ -60,6 +60,8 @@ type DeckStatNode = {
   id: string;
   name: string;
   parent_id: string | null;
+  totalCards: number;
+  nextDue: string | null;
   new: number;
   learning: number;
   review: number;
@@ -74,9 +76,17 @@ const deckNameCollator = new Intl.Collator(undefined, {
 const aggregateCounts = (node: DeckStatNode): void => {
   for (const child of node.children) {
     aggregateCounts(child);
+    node.totalCards += child.totalCards;
     node.new += child.new;
     node.learning += child.learning;
     node.review += child.review;
+
+    if (
+      child.nextDue &&
+      (node.nextDue === null || child.nextDue < node.nextDue)
+    ) {
+      node.nextDue = child.nextDue;
+    }
   }
 };
 
@@ -85,6 +95,8 @@ const buildDeckTree = (
     id: string;
     name: string;
     parent_id: string | null;
+    totalCards: number;
+    nextDue: string | null;
     newCount: number;
     learningCount: number;
     reviewCount: number;
@@ -101,6 +113,8 @@ const buildDeckTree = (
       id: s.id,
       name: s.name,
       parent_id: s.parent_id,
+      totalCards: s.totalCards,
+      nextDue: s.nextDue,
       new: s.newCount,
       learning: s.learningCount,
       review: s.reviewCount,

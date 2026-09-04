@@ -91,6 +91,107 @@ describe("useStudySession", () => {
     expect(result.current.emptyReason).toBe("no_due");
   });
 
+  it("loads future cards in practice mode without changing their schedule", async () => {
+    const deckId = crypto.randomUUID();
+    await db.decks.add(makeDeck({ id: deckId }));
+
+    const card = makeCard({ deck_id: deckId });
+    const due = new Date(Date.now() + 7 * 86_400_000).toISOString();
+    const state = makeCardState(card.id, { due, stability: 3, reps: 2 });
+
+    await db.cards.add(card);
+    await db.card_state.add(state);
+
+    const { result } = renderHook(
+      () => useStudySession(deckId, "practice"),
+      { wrapper: makeWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.isLoaded).toBe(true));
+
+    expect(result.current.emptyReason).toBeNull();
+    expect(result.current.remainingCount).toBe(1);
+    expect(result.current.previewIntervals).toBeNull();
+
+    await act(async () => {
+      await result.current.answerCard(3);
+    });
+
+    expect(await db.card_state.get(state.id)).toEqual(state);
+    const practiceReviews = await db.revlog.toArray();
+    expect(practiceReviews).toHaveLength(1);
+    expect(practiceReviews[0].review_type).toBe("practice");
+    expect(await db.session_log.count()).toBe(0);
+  });
+
+  it("does not apply the deck daily limit to the temporary practice queue", async () => {
+    const deckId = crypto.randomUUID();
+    await db.decks.add(makeDeck({ id: deckId, daily_goal: 1 }));
+
+    for (let i = 0; i < 3; i++) {
+      const card = makeCard({ deck_id: deckId });
+      await db.cards.add(card);
+      await db.card_state.add(
+        makeCardState(card.id, {
+          due: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+        }),
+      );
+    }
+
+    const { result } = renderHook(
+      () => useStudySession(deckId, "practice"),
+      { wrapper: makeWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.isLoaded).toBe(true));
+
+    expect(result.current.remainingCount).toBe(3);
+  });
+
+  it("shows each practice card only once even when it is missed", async () => {
+    const deckId = crypto.randomUUID();
+    await seedDeck(deckId);
+
+    const { result } = renderHook(
+      () => useStudySession(deckId, "practice"),
+      { wrapper: makeWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.isLoaded).toBe(true));
+
+    await act(async () => {
+      await result.current.answerCard(1);
+    });
+
+    expect(result.current.remainingCount).toBe(0);
+    expect(result.current.isDone).toBe(true);
+    const practiceReviews = await db.revlog.toArray();
+    expect(practiceReviews).toHaveLength(1);
+    expect(practiceReviews[0].review_type).toBe("practice");
+  });
+
+  it("ignores overlapping answers for the same practice card", async () => {
+    const deckId = crypto.randomUUID();
+    await seedDeck(deckId);
+
+    const { result } = renderHook(
+      () => useStudySession(deckId, "practice"),
+      { wrapper: makeWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.isLoaded).toBe(true));
+
+    await act(async () => {
+      await Promise.all([
+        result.current.answerCard(3),
+        result.current.answerCard(3),
+      ]);
+    });
+
+    expect(result.current.answeredCount).toBe(1);
+    expect(await db.revlog.count()).toBe(1);
+  });
+
   it("answerCard updates card_state via FSRS and appends a revlog entry", async () => {
     const deckId = crypto.randomUUID();
     await seedDeck(deckId);

@@ -171,7 +171,7 @@ export const useStatisticsData = () => {
       );
 
       const matureRevlogs = allRevlogs.filter((r) =>
-        matureCardIds.has(r.card_id),
+        matureCardIds.has(r.card_id) && r.review_type !== "practice",
       );
       const matureTotal = matureRevlogs.length;
       const matureNonAgain = matureRevlogs.filter((r) => r.rating !== 1).length;

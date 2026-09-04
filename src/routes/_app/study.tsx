@@ -5,15 +5,16 @@ import { StudyPage } from "@/pages";
 
 const searchSchema = z.object({
   deckId: z.string().optional(),
+  mode: z.enum(["scheduled", "practice"]).optional().default("scheduled"),
 });
 
 export const Route = createFileRoute("/_app/study")({
   validateSearch: searchSchema,
   component: () => {
-    const { deckId } = Route.useSearch();
+    const { deckId, mode } = Route.useSearch();
     return (
       <AuthGuard>
-        <StudyPage deckId={deckId} />
+        <StudyPage deckId={deckId} mode={mode} />
       </AuthGuard>
     );
   },

@@ -217,6 +217,7 @@ describe("syncAll push", () => {
       elapsed_days: 2,
       review_time_ms: 500,
       reviewed_at: new Date().toISOString(),
+      review_type: "practice",
       pending_sync: 1,
     });
     await db.session_log.add({
@@ -240,6 +241,9 @@ describe("syncAll push", () => {
     expect((await db.cards.get(card.id))?.pending_sync).toBe(0);
     expect((await db.card_state.get(state.id))?.pending_sync).toBe(0);
     expect((await db.revlog.get(revlogId))?.pending_sync).toBe(0);
+    expect(
+      pushedRows.find((row) => row.id === revlogId)?.review_type,
+    ).toBe("practice");
     expect((await db.session_log.get(sessionId))?.pending_sync).toBe(0);
     expect(await db.sync_meta.get("test-user")).toEqual({
       user_id: "test-user",
@@ -382,6 +386,27 @@ describe("syncAll push", () => {
 });
 
 describe("syncAll pull", () => {
+  it("preserves the type of a remote practice review", async () => {
+    const reviewId = crypto.randomUUID();
+    mocks.tables.set("revlog", [
+      {
+        id: reviewId,
+        card_id: crypto.randomUUID(),
+        user_id: "test-user",
+        rating: 3,
+        scheduled_days: 0,
+        elapsed_days: 0,
+        review_time_ms: 500,
+        reviewed_at: "2026-07-25T11:00:00.000Z",
+        sync_updated_at: "2026-07-25T11:00:00.000Z",
+        review_type: "practice",
+      },
+    ]);
+
+    expect(await syncAll("test-user")).toBe(true);
+    expect((await db.revlog.get(reviewId))?.review_type).toBe("practice");
+  });
+
   it("applies a newer remote record and stores the server timestamp", async () => {
     const deck = makeDeck({
       id: "deck-id",
@@ -529,6 +554,7 @@ describe("syncAll pull", () => {
       elapsed_days: 2,
       review_time_ms: 500,
       reviewed_at: "2026-07-25T10:00:00.000Z",
+      review_type: "scheduled",
       pending_sync: 1,
     });
 

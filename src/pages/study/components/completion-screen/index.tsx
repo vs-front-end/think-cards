@@ -5,11 +5,13 @@ import { CheckCircle2, Flame } from "lucide-react";
 import { db } from "@/lib/db";
 import { useAuthStore } from "@/store";
 import { computeStreak, formatTime } from "@/utils";
+import type { StudyMode } from "@/hooks/useStudySession";
 
 type CompletionScreenProps = {
   answeredCount: number;
   elapsedMs: number;
   dailyGoal: number;
+  mode: StudyMode;
   onBack: () => void;
 };
 
@@ -17,11 +19,13 @@ export const CompletionScreen = ({
   answeredCount,
   elapsedMs,
   dailyGoal,
+  mode,
   onBack,
 }: CompletionScreenProps) => {
   const { t } = useTranslation();
   const userId = useAuthStore((s) => s.user?.id ?? "");
-  const goalMet = answeredCount >= dailyGoal;
+  const isPractice = mode === "practice";
+  const goalMet = !isPractice && answeredCount >= dailyGoal;
 
   const streak = useLiveQuery(async () => {
     const revlogs = await db.revlog.where("user_id").equals(userId).toArray();
@@ -35,7 +39,7 @@ export const CompletionScreen = ({
 
         <div className="space-y-1">
           <Text as="h2" className="text-xl font-semibold">
-            {t("studySessionComplete")}
+            {t(isPractice ? "studyPracticeComplete" : "studySessionComplete")}
           </Text>
 
           {goalMet && (
@@ -45,7 +49,7 @@ export const CompletionScreen = ({
           )}
         </div>
 
-        {!!streak && streak > 0 && (
+        {!isPractice && !!streak && streak > 0 && (
           <div className="flex items-center gap-1.5 rounded-full bg-warning-soft px-3 py-1 text-warning">
             <Flame className="size-4" />
             <Text as="span" className="text-sm font-medium text-warning">
@@ -61,7 +65,7 @@ export const CompletionScreen = ({
             </Text>
 
             <Text as="span" className="text-xs text-muted">
-              {t("studyCardsReviewed")}
+              {t(isPractice ? "studyCardsPracticed" : "studyCardsReviewed")}
             </Text>
           </div>
 

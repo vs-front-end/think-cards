@@ -55,6 +55,7 @@ describe("useDashboardData — studiedToday & avgSecondsPerCard", () => {
         elapsed_days: 0,
         review_time_ms: 6000,
         reviewed_at: today,
+        review_type: "practice",
         pending_sync: 0,
       },
       {
@@ -66,6 +67,7 @@ describe("useDashboardData — studiedToday & avgSecondsPerCard", () => {
         elapsed_days: 0,
         review_time_ms: 4000,
         reviewed_at: today,
+        review_type: "practice",
         pending_sync: 0,
       },
       {
@@ -77,6 +79,7 @@ describe("useDashboardData — studiedToday & avgSecondsPerCard", () => {
         elapsed_days: 0,
         review_time_ms: 2000,
         reviewed_at: today,
+        review_type: "scheduled",
         pending_sync: 0,
       },
     ]);
@@ -145,6 +148,8 @@ describe("useDashboardData — deckStats", () => {
     expect(stats?.newCount).toBe(1);
     expect(stats?.reviewCount).toBe(1);
     expect(stats?.learningCount).toBe(0);
+    expect(stats?.totalCards).toBe(3);
+    expect(stats?.nextDue).toBe(dueDate);
   });
 
   it("excludes active card rows whose parent deck is soft-deleted", async () => {

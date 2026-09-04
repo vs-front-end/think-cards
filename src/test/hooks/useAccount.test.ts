@@ -88,6 +88,7 @@ describe("useResetStats", () => {
       elapsed_days: 5,
       review_time_ms: 2000,
       reviewed_at: new Date().toISOString(),
+      review_type: "scheduled",
       pending_sync: 0,
     });
 

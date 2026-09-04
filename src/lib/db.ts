@@ -53,6 +53,7 @@ export interface IRevlog {
   elapsed_days: number;
   review_time_ms: number;
   reviewed_at: string;
+  review_type: "scheduled" | "practice";
   sync_updated_at?: string;
   pending_sync: SyncFlag;
 }
@@ -144,6 +145,14 @@ class ThinkCardsDB extends Dexie {
         }
         if (record.data_reset_at === undefined) {
           record.data_reset_at = null;
+        }
+      });
+    });
+
+    this.version(8).stores({}).upgrade(async (tx) => {
+      await tx.table("revlog").toCollection().modify((record) => {
+        if (record.review_type === undefined) {
+          record.review_type = "scheduled";
         }
       });
     });

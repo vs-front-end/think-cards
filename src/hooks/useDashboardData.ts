@@ -10,6 +10,8 @@ type DeckStats = {
   name: string;
   parent_id: string | null;
   daily_goal: number;
+  totalCards: number;
+  nextDue: string | null;
   newCount: number;
   learningCount: number;
   reviewCount: number;
@@ -100,18 +102,24 @@ export const useDashboardData = () => {
 
       const deckCounters = new Map<
         string,
-        { newCount: number; learningCount: number; reviewCount: number }
+        {
+          totalCards: number;
+          nextDue: string | null;
+          newCount: number;
+          learningCount: number;
+          reviewCount: number;
+        }
       >();
 
       for (const card of activeCards) {
         const state = cardStateMap.get(card.id);
-        if (!state || state.due > todayEndIso) continue;
-
         const deckId = cardDeckMap.get(card.id);
         if (!deckId) continue;
 
         if (!deckCounters.has(deckId)) {
           deckCounters.set(deckId, {
+            totalCards: 0,
+            nextDue: null,
             newCount: 0,
             learningCount: 0,
             reviewCount: 0,
@@ -119,6 +127,16 @@ export const useDashboardData = () => {
         }
 
         const counter = deckCounters.get(deckId)!;
+        counter.totalCards++;
+
+        if (!state) continue;
+
+        if (counter.nextDue === null || state.due < counter.nextDue) {
+          counter.nextDue = state.due;
+        }
+
+        if (state.due > todayEndIso) continue;
+
         if (state.state === State.New) counter.newCount++;
         else if (
           state.state === State.Learning ||
@@ -134,6 +152,8 @@ export const useDashboardData = () => {
         parent_id: d.parent_id,
         daily_goal: d.daily_goal,
         ...(deckCounters.get(d.id) ?? {
+          totalCards: 0,
+          nextDue: null,
           newCount: 0,
           learningCount: 0,
           reviewCount: 0,

@@ -94,6 +94,7 @@ describe("destructive account operations", () => {
       elapsed_days: 2,
       review_time_ms: 500,
       reviewed_at: new Date().toISOString(),
+      review_type: "scheduled",
       pending_sync: 0,
     });
     mocks.failTable = "revlog";

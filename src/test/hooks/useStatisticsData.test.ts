@@ -130,6 +130,7 @@ describe("useStatisticsData — trueRetention", () => {
         elapsed_days: 0,
         review_time_ms: 1000,
         reviewed_at: now,
+        review_type: "practice",
         pending_sync: 0,
       },
       {
@@ -141,6 +142,7 @@ describe("useStatisticsData — trueRetention", () => {
         elapsed_days: 1,
         review_time_ms: 1000,
         reviewed_at: now,
+        review_type: "scheduled",
         pending_sync: 0,
       },
       {
@@ -152,6 +154,7 @@ describe("useStatisticsData — trueRetention", () => {
         elapsed_days: 1,
         review_time_ms: 1000,
         reviewed_at: now,
+        review_type: "scheduled",
         pending_sync: 0,
       },
       {
@@ -163,6 +166,7 @@ describe("useStatisticsData — trueRetention", () => {
         elapsed_days: 0,
         review_time_ms: 1000,
         reviewed_at: now,
+        review_type: "scheduled",
         pending_sync: 0,
       },
     ]);
@@ -170,7 +174,7 @@ describe("useStatisticsData — trueRetention", () => {
     const { result } = rendered();
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(result.current.data?.trueRetention).toBe(67);
+    expect(result.current.data?.trueRetention).toBe(100);
   });
 
   it("returns 0 retention when no mature cards have been reviewed", async () => {
@@ -196,6 +200,7 @@ describe("useStatisticsData — studiedToday", () => {
         elapsed_days: 1,
         review_time_ms: 1000,
         reviewed_at: todayIso,
+        review_type: "scheduled",
         pending_sync: 0,
       },
       {
@@ -207,6 +212,7 @@ describe("useStatisticsData — studiedToday", () => {
         elapsed_days: 1,
         review_time_ms: 1000,
         reviewed_at: todayIso,
+        review_type: "scheduled",
         pending_sync: 0,
       },
       {
@@ -218,6 +224,7 @@ describe("useStatisticsData — studiedToday", () => {
         elapsed_days: 1,
         review_time_ms: 1000,
         reviewed_at: todayIso,
+        review_type: "practice",
         pending_sync: 0,
       },
       {
@@ -229,6 +236,7 @@ describe("useStatisticsData — studiedToday", () => {
         elapsed_days: 1,
         review_time_ms: 1000,
         reviewed_at: oldIso,
+        review_type: "scheduled",
         pending_sync: 0,
       },
     ]);

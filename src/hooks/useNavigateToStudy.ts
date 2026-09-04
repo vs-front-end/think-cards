@@ -5,8 +5,8 @@ export const useNavigateToStudy = () => {
   const navigate = useNavigate();
 
   return useCallback(
-    (deckId: string) => {
-      navigate({ to: "/study", search: { deckId } });
+    (deckId: string, mode: "scheduled" | "practice" = "scheduled") => {
+      navigate({ to: "/study", search: { deckId, mode } });
     },
     [navigate],
   );

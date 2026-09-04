@@ -9,6 +9,7 @@ import { syncAll } from "@/lib/sync";
 import { getAllDescendantDeckIds } from "@/utils";
 
 export type EmptyReason = "no_cards" | "no_due" | null;
+export type StudyMode = "scheduled" | "practice";
 
 type QueuedCard = {
   card: ICard;
@@ -33,6 +34,13 @@ function stateOrder(state: number): number {
   if (state === State.Learning || state === State.Relearning) return 0;
   if (state === State.Review) return 1;
   return 2;
+}
+
+function shuffle<T>(items: T[]): void {
+  for (let i = items.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
 }
 
 function interleaveDecks(
@@ -66,10 +74,14 @@ function interleaveDecks(
   return result;
 }
 
-export const useStudySession = (deckId: string) => {
+export const useStudySession = (
+  deckId: string,
+  mode: StudyMode = "scheduled",
+) => {
   const startedAt = useRef(new Date());
   const cardShownAt = useRef(new Date());
   const sessionSaved = useRef(false);
+  const answering = useRef(false);
   const saveSessionRef = useRef<() => Promise<void>>(() => Promise.resolve());
 
   const f = useMemo(() => fsrs(), []);
@@ -101,7 +113,8 @@ export const useStudySession = (deckId: string) => {
       const deckLimitMap = new Map(
         deckRecords.map((d) => [d.id, d.daily_goal]),
       );
-      const rootLimit = deckLimitMap.get(deckId) ?? 9999;
+      const rootLimit =
+        mode === "practice" ? Infinity : (deckLimitMap.get(deckId) ?? 9999);
 
       const allCards = await db.cards
         .where("deck_id")
@@ -111,10 +124,10 @@ export const useStudySession = (deckId: string) => {
 
       const cardIds = allCards.map((c) => c.id);
 
-      const dueStates = await db.card_state
+      const states = await db.card_state
         .where("card_id")
         .anyOf(cardIds)
-        .filter((s) => new Date(s.due) <= today)
+        .filter((s) => mode === "practice" || new Date(s.due) <= today)
         .toArray();
 
       const cardMap = new Map(allCards.map((c) => [c.id, c]));
@@ -125,13 +138,18 @@ export const useStudySession = (deckId: string) => {
         buckets.set(did, []);
       }
 
-      for (const state of dueStates) {
+      for (const state of states) {
         const card = cardMap.get(state.card_id);
         if (!card) continue;
         buckets.get(card.deck_id)?.push({ card, state });
       }
 
       for (const [did, bucket] of buckets) {
+        if (mode === "practice") {
+          shuffle(bucket);
+          continue;
+        }
+
         bucket.sort(
           (a, b) => stateOrder(a.state.state) - stateOrder(b.state.state),
         );
@@ -148,17 +166,19 @@ export const useStudySession = (deckId: string) => {
       setQueue(queued);
       setDailyGoal(deckLimitMap.get(deckId) ?? 0);
       if (allCards.length === 0) setEmptyReason("no_cards");
-      else if (queued.length === 0) setEmptyReason("no_due");
+      else if (queued.length === 0 && mode === "scheduled") {
+        setEmptyReason("no_due");
+      }
       setIsLoaded(true);
     }
 
     load().catch(console.error);
-  }, [deckId]);
+  }, [deckId, mode]);
 
   const currentItem = queue[index] ?? null;
 
   const previewIntervals = useMemo((): RatingPreview | null => {
-    if (!currentItem) return null;
+    if (!currentItem || mode === "practice") return null;
 
     const now = new Date();
 
@@ -185,70 +205,106 @@ export const useStudySession = (deckId: string) => {
       3: formatInterval(scheduling[Rating.Good].card.due, now),
       4: formatInterval(scheduling[Rating.Easy].card.due, now),
     };
-  }, [currentItem, f]);
+  }, [currentItem, f, mode]);
 
   const answerCard = useCallback(
     async (rating: 1 | 2 | 3 | 4) => {
-      if (!currentItem || !userId) return;
+      if (!currentItem || !userId || answering.current) return;
+      answering.current = true;
 
-      const now = new Date();
-      const grade = rating as Grade;
+      try {
+        const now = new Date();
 
-      const fsrsCard = {
-        due: new Date(currentItem.state.due),
-        stability: currentItem.state.stability,
-        difficulty: currentItem.state.difficulty,
-        elapsed_days: 0,
-        scheduled_days: 0,
-        reps: currentItem.state.reps,
-        lapses: currentItem.state.lapses,
-        learning_steps: currentItem.state.learning_steps ?? 0,
-        state: currentItem.state.state as State,
-        last_review: currentItem.state.last_review
-          ? new Date(currentItem.state.last_review)
-          : undefined,
-      };
+        if (mode === "practice") {
+          await db.revlog.add({
+            id: crypto.randomUUID(),
+            card_id: currentItem.card.id,
+            user_id: userId,
+            rating: rating as DBRating,
+            scheduled_days: 0,
+            elapsed_days: 0,
+            review_time_ms: now.getTime() - cardShownAt.current.getTime(),
+            reviewed_at: now.toISOString(),
+            review_type: "practice",
+            pending_sync: 1,
+          });
 
-      const result = f.next(fsrsCard, now, grade);
-      const { card: nextCard, log } = result;
+          setAnsweredCount((n) => n + 1);
+          setIndex((i) => i + 1);
+          cardShownAt.current = new Date();
+          return;
+        }
 
-      await db.card_state.update(currentItem.state.id, {
-        stability: nextCard.stability,
-        difficulty: nextCard.difficulty,
-        due: nextCard.due.toISOString(),
-        last_review: now.toISOString(),
-        state: nextCard.state,
-        reps: nextCard.reps,
-        lapses: nextCard.lapses,
-        learning_steps: nextCard.learning_steps,
-        updated_at: now.toISOString(),
-        pending_sync: 1,
-      });
+        const grade = rating as Grade;
 
-      const elapsedMs = now.getTime() - cardShownAt.current.getTime();
+        const fsrsCard = {
+          due: new Date(currentItem.state.due),
+          stability: currentItem.state.stability,
+          difficulty: currentItem.state.difficulty,
+          elapsed_days: 0,
+          scheduled_days: 0,
+          reps: currentItem.state.reps,
+          lapses: currentItem.state.lapses,
+          learning_steps: currentItem.state.learning_steps ?? 0,
+          state: currentItem.state.state as State,
+          last_review: currentItem.state.last_review
+            ? new Date(currentItem.state.last_review)
+            : undefined,
+        };
 
-      await db.revlog.add({
-        id: crypto.randomUUID(),
-        card_id: currentItem.card.id,
-        user_id: userId,
-        rating: rating as DBRating,
-        scheduled_days: log.scheduled_days,
-        elapsed_days: log.elapsed_days,
-        review_time_ms: elapsedMs,
-        reviewed_at: now.toISOString(),
-        pending_sync: 1,
-      });
+        const result = f.next(fsrsCard, now, grade);
+        const { card: nextCard, log } = result;
 
-      setAnsweredCount((n) => n + 1);
-      setIndex((i) => i + 1);
-      cardShownAt.current = new Date();
+        await db.card_state.update(currentItem.state.id, {
+          stability: nextCard.stability,
+          difficulty: nextCard.difficulty,
+          due: nextCard.due.toISOString(),
+          last_review: now.toISOString(),
+          state: nextCard.state,
+          reps: nextCard.reps,
+          lapses: nextCard.lapses,
+          learning_steps: nextCard.learning_steps,
+          updated_at: now.toISOString(),
+          pending_sync: 1,
+        });
+
+        const elapsedMs = now.getTime() - cardShownAt.current.getTime();
+
+        await db.revlog.add({
+          id: crypto.randomUUID(),
+          card_id: currentItem.card.id,
+          user_id: userId,
+          rating: rating as DBRating,
+          scheduled_days: log.scheduled_days,
+          elapsed_days: log.elapsed_days,
+          review_time_ms: elapsedMs,
+          reviewed_at: now.toISOString(),
+          review_type: "scheduled",
+          pending_sync: 1,
+        });
+
+        setAnsweredCount((n) => n + 1);
+        setIndex((i) => i + 1);
+        cardShownAt.current = new Date();
+      } finally {
+        answering.current = false;
+      }
     },
-    [currentItem, f],
+    [currentItem, f, mode, userId],
   );
 
   const saveSession = useCallback(async () => {
-    if (sessionSaved.current || answeredCount === 0 || !userId) return;
+    if (sessionSaved.current || answeredCount === 0 || !userId) {
+      return;
+    }
     sessionSaved.current = true;
+
+    if (mode === "practice") {
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["statistics"] });
+      syncAll(userId).catch(console.error);
+      return;
+    }
 
     const now = new Date();
 
@@ -268,7 +324,7 @@ export const useStudySession = (deckId: string) => {
 
     const uid = useAuthStore.getState().user?.id;
     if (uid) syncAll(uid).catch(console.error);
-  }, [deckId, answeredCount, queryClient]);
+  }, [deckId, answeredCount, mode, queryClient, userId]);
 
   saveSessionRef.current = saveSession;
 
@@ -293,5 +349,6 @@ export const useStudySession = (deckId: string) => {
     startedAt: startedAt.current,
     answerCard,
     saveSession,
+    mode,
   };
 };

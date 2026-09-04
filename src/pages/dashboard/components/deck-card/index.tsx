@@ -11,6 +11,11 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -21,6 +26,8 @@ import {
 export type DeckCardSubdeck = {
   id: string;
   name: string;
+  totalCards: number;
+  nextDue: string | null;
   new: number;
   learning: number;
   review: number;
@@ -29,6 +36,8 @@ export type DeckCardSubdeck = {
 export type DeckCard = {
   id: string;
   name: string;
+  totalCards: number;
+  nextDue: string | null;
   new: number;
   learning: number;
   review: number;
@@ -71,19 +80,34 @@ const CardCounts = ({
   newCount,
   learning,
   review,
+  nextDue,
 }: {
   newCount: number;
   learning: number;
   review: number;
+  nextDue: string | null;
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const total = newCount + learning + review;
 
   if (total === 0) {
     return (
-      <Text as="span" styleVariant="muted" className="text-sm">
-        {t("deckNoCardsDue")}
-      </Text>
+      <div className="flex flex-col gap-0.5">
+        <Text as="span" styleVariant="muted" className="text-sm">
+          {t("deckNoCardsDue")}
+        </Text>
+
+        {nextDue && (
+          <Text as="span" styleVariant="muted" className="text-xs">
+            {t("studyNextReview", {
+              date: new Intl.DateTimeFormat(
+                i18n.resolvedLanguage ?? i18n.language,
+                { dateStyle: "medium", timeStyle: "short" },
+              ).format(new Date(nextDue)),
+            })}
+          </Text>
+        )}
+      </div>
     );
   }
 
@@ -104,20 +128,83 @@ const CardCounts = ({
   );
 };
 
-const PlayButton = ({ deckId }: { deckId: string }) => {
-  const { t } = useTranslation();
+const PlayButton = ({ deck }: { deck: DeckCard | DeckCardSubdeck }) => {
+  const { t, i18n } = useTranslation();
   const navigateToStudy = useNavigateToStudy();
+  const [practiceDialogOpen, setPracticeDialogOpen] = useState(false);
+  const dueCount = deck.new + deck.learning + deck.review;
+
+  const nextReview = deck.nextDue
+    ? new Intl.DateTimeFormat(i18n.resolvedLanguage ?? i18n.language, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(new Date(deck.nextDue))
+    : null;
+
+  const handleClick = () => {
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const nextReviewIsDue =
+      deck.nextDue !== null && new Date(deck.nextDue) <= todayEnd;
+
+    if (dueCount === 0 && !nextReviewIsDue && deck.totalCards > 0) {
+      setPracticeDialogOpen(true);
+      return;
+    }
+
+    navigateToStudy(deck.id);
+  };
 
   return (
-    <Button
-      type="button"
-      size="icon"
-      className="size-7 shrink-0"
-      onClick={() => navigateToStudy(deckId)}
-      aria-label={t("deckStudy")}
-    >
-      <Play className="size-3.5" />
-    </Button>
+    <>
+      <Button
+        type="button"
+        size="icon"
+        className="size-7 shrink-0"
+        onClick={handleClick}
+        aria-label={t("deckStudy")}
+      >
+        <Play className="size-3.5" />
+      </Button>
+
+      <Dialog open={practiceDialogOpen} onOpenChange={setPracticeDialogOpen}>
+        <DialogContent aria-describedby={undefined} className="sm:max-w-sm">
+          <DialogHeader className="text-left">
+            <DialogTitle>{t("studyPracticeDialogTitle")}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <Text as="p" className="text-sm text-muted">
+              {t("studyPracticeDialogDesc")}
+            </Text>
+
+            {nextReview && (
+              <Text as="p" className="text-sm font-medium text-foreground">
+                {t("studyNextReview", { date: nextReview })}
+              </Text>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setPracticeDialogOpen(false)}
+            >
+              {t("studyPracticeCancel")}
+            </Button>
+
+            <Button
+              type="button"
+              onClick={() => navigateToStudy(deck.id, "practice")}
+            >
+              {t("studyPracticeStart")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
@@ -185,7 +272,7 @@ export const DeckCard = ({ deck, onEdit, onDelete }: DeckCardProps) => {
           </Text>
 
           <div className="flex shrink-0 items-center gap-2">
-            <PlayButton deckId={deck.id} />
+            <PlayButton deck={deck} />
             <DeckMenu deckId={deck.id} onEdit={onEdit} onDelete={onDelete} />
           </div>
         </div>
@@ -194,6 +281,7 @@ export const DeckCard = ({ deck, onEdit, onDelete }: DeckCardProps) => {
           newCount={deck.new}
           learning={deck.learning}
           review={deck.review}
+          nextDue={deck.nextDue}
         />
       </div>
 
@@ -244,11 +332,12 @@ export const DeckCard = ({ deck, onEdit, onDelete }: DeckCardProps) => {
                       newCount={sub.new}
                       learning={sub.learning}
                       review={sub.review}
+                      nextDue={sub.nextDue}
                     />
                   </div>
 
                   <div className="flex shrink-0 items-center gap-1.5">
-                    <PlayButton deckId={sub.id} />
+                    <PlayButton deck={sub} />
                     <DeckMenu
                       deckId={sub.id}
                       onEdit={onEdit}
